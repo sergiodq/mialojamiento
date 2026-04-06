@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiAlojamiento · Unidades</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="units-page">
+  <div class="page-shell">
+    <aside id="sidebar" class="sidebar"></aside>
+
+    <main class="main">
+      <div class="page-frame" id="unidadesRoot">
+        <header id="topbar" class="topbar"></header>
+
+        <section class="split">
+          <div class="card pad">
+            <h3 style="margin-top:0;">Resumen de la propiedad</h3>
+            <div id="propertyResume" class="stat-list"></div>
+
+            <div class="divider"></div>
+
+            <h3 id="unitFormTitle" style="margin:0 0 12px;">Nueva unidad</h3>
+            <form id="unidadForm" class="form-grid">
+              <div class="field">
+                <label for="unit_codigo">Código interno</label>
+                <input id="unit_codigo" name="codigo" type="text" placeholder="Se genera automáticamente" readonly>
+                <small>El identificador interno de la unidad lo genera la aplicación.</small>
+              </div>
+
+              <div class="field">
+                <label for="unit_nombre">Nombre</label>
+                <input id="unit_nombre" name="nombre" type="text" placeholder="Habitación 101" required>
+              </div>
+
+              <div class="field">
+                <label for="unit_tipo">Tipo de unidad</label>
+                <select id="unit_tipo" name="tipo_unidad"></select>
+              </div>
+
+              <div class="field">
+                <label class="checkbox-chip" style="margin-top:30px;">
+                  <input name="activa" type="checkbox" checked>
+                  <span>Unidad activa</span>
+                </label>
+              </div>
+
+              <div class="field">
+                <label for="capacidad_max">Capacidad máxima</label>
+                <input id="capacidad_max" name="capacidad_max" type="number" min="1" value="2" required>
+              </div>
+
+              <div class="field">
+                <label for="capacidad_adultos">Capacidad adultos</label>
+                <input id="capacidad_adultos" name="capacidad_adultos" type="number" min="0" value="2">
+              </div>
+
+              <div class="field">
+                <label for="capacidad_ninos">Capacidad niños</label>
+                <input id="capacidad_ninos" name="capacidad_ninos" type="number" min="0" value="0">
+              </div>
+
+              <div class="field full">
+                <label>Camas</label>
+                <div id="camasContainer" class="checkbox-list"></div>
+              </div>
+
+              <div class="field full">
+                <label>Comodidades</label>
+                <div id="comodidadesUnidad" class="checkbox-list"></div>
+              </div>
+
+              <div id="formFeedback" class="full"></div>
+
+              <div class="form-actions full">
+                <button id="btnCancelarEdicionUnidad" type="button" class="btn-ghost">Limpiar</button>
+                <button type="submit" class="btn">Guardar unidad</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card pad">
+            <h3 style="margin-top:0;">Listado de unidades</h3>
+            <div class="muted">Estas son las unidades reales reservables asociadas a la propiedad actual.</div>
+
+            <div class="table-wrap" style="margin-top:18px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Cap. máx</th>
+                    <th>Adultos</th>
+                    <th>Niños</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="unidadesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="env.js"></script>
+  <script type="module" src="js/unidades.js"></script>
+</body>
+</html>

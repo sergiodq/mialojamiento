@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiAlojamiento · Propiedades</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="properties-page">
+  <div class="page-shell">
+    <aside id="sidebar" class="sidebar"></aside>
+
+    <main class="main">
+      <div class="page-frame propiedades-page-frame">
+        <header id="topbar" class="topbar"></header>
+
+        <section class="propiedades-stack">
+          <div class="card pad propiedades-form-card">
+            <div class="toolbar-between">
+              <div>
+                <h3 id="propertyFormTitle" style="margin:0 0 6px;">Nueva propiedad</h3>
+                <div class="muted">Configurá los datos comerciales, operativos y de contacto de la propiedad.</div>
+              </div>
+            </div>
+
+            <form id="propiedadForm" class="section form-grid property-form-grid">
+              <div class="full form-block-title">Identificación</div>
+
+              <div class="field compact-span-2 property-col ident-name">
+                <label for="prop_nombre">Nombre comercial</label>
+                <input id="prop_nombre" name="nombre" type="text" placeholder="Hotel Centro" required>
+              </div>
+
+              <div class="field compact-span-1 property-col ident-code">
+                <label for="prop_codigo">Código interno</label>
+                <input id="prop_codigo" name="codigo" type="text" placeholder="Se genera automáticamente" readonly>
+                <small>La aplicación lo genera automáticamente para mantener consistencia interna.</small>
+              </div>
+
+              <div class="field compact-span-1 property-col ident-type">
+                <label for="prop_tipo">Tipo</label>
+                <select id="prop_tipo" name="tipo"></select>
+              </div>
+
+              <div class="field compact-span-2 property-col ident-company">
+                <label for="empresa_prop">Ámbito / empresa</label>
+                <input id="empresa_prop" name="empresa_id" type="text" placeholder="empresa-demo">
+              </div>
+
+
+              <div class="full form-block-title">Ubicación</div>
+
+              <div class="field compact-span-1 property-col loc-country">
+                <label for="prop_pais">País</label>
+                <input id="prop_pais" name="pais" type="text" placeholder="Argentina">
+              </div>
+
+              <div class="field compact-span-1 property-col loc-state">
+                <label for="prop_provincia">Provincia / estado</label>
+                <input id="prop_provincia" name="provincia" type="text" placeholder="Neuquén">
+              </div>
+
+              <div class="field compact-span-1 property-col loc-city">
+                <label for="prop_ciudad">Ciudad</label>
+                <input id="prop_ciudad" name="ciudad" type="text" placeholder="San Martín de los Andes">
+              </div>
+
+              <div class="field compact-span-1 property-col loc-zip">
+                <label for="prop_cp">Código postal</label>
+                <input id="prop_cp" name="codigo_postal" type="text" placeholder="8370">
+              </div>
+
+              <div class="field compact-span-4 property-col loc-address">
+                <label for="prop_direccion">Dirección</label>
+                <input id="prop_direccion" name="direccion" type="text" placeholder="Av. Siempre Viva 123">
+              </div>
+
+              <div class="field compact-span-4 property-col loc-description">
+                <label for="prop_descripcion">Descripción pública / comercial</label>
+                <textarea id="prop_descripcion" name="descripcion" placeholder="Descripción comercial o operativa de la propiedad"></textarea>
+              </div>
+
+              <div class="full form-block-title">Operación hotelera</div>
+
+              <div class="field compact-span-1 property-col op-checkin">
+                <label for="check_in">Check-in</label>
+                <input id="check_in" name="check_in" type="time" value="14:00">
+              </div>
+
+              <div class="field compact-span-1 property-col op-checkout">
+                <label for="check_out">Check-out</label>
+                <input id="check_out" name="check_out" type="time" value="10:00">
+              </div>
+
+              <div id="horarioRecepcionDesdeField" class="field compact-span-1 property-col op-from">
+                <label for="horario_recepcion_desde">Recepción desde</label>
+                <input id="horario_recepcion_desde" name="horario_recepcion_desde" type="time" value="08:00">
+              </div>
+
+              <div id="horarioRecepcionHastaField" class="field compact-span-1 property-col op-to">
+                <label for="horario_recepcion_hasta">Recepción hasta</label>
+                <input id="horario_recepcion_hasta" name="horario_recepcion_hasta" type="time" value="22:00">
+              </div>
+
+              <div class="field compact-span-1 property-col op-24h">
+                <label class="checkbox-chip property-toggle-chip">
+                  <input id="recepcion24h" name="recepcion_24h" type="checkbox">
+                  <span>Recepción 24 horas</span>
+                </label>
+              </div>
+
+              <div class="field compact-span-1 property-col op-breakfast">
+                <label class="checkbox-chip property-toggle-chip">
+                  <input id="incluyeDesayuno" name="incluye_desayuno" type="checkbox">
+                  <span>Incluye desayuno</span>
+                </label>
+              </div>
+
+              <div class="field compact-span-1 property-col op-pets">
+                <label class="checkbox-chip property-toggle-chip">
+                  <input id="admiteMascotas" name="admite_mascotas" type="checkbox">
+                  <span>Admite mascotas</span>
+                </label>
+              </div>
+
+              <div class="field compact-span-2 property-col op-policy">
+                <label for="politica_cancelacion">Política de cancelación</label>
+                <textarea id="politica_cancelacion" name="politica_cancelacion" placeholder="Ej.: cancelación sin cargo hasta 72 hs antes del check-in"></textarea>
+              </div>
+
+              <div class="full form-block-title">Contacto y gestión interna</div>
+
+              <div class="field compact-span-2 property-col contact-phone">
+                <label for="prop_telefono">Teléfono</label>
+                <input id="prop_telefono" name="telefono" type="text" placeholder="+54 9 294 123 4567">
+              </div>
+
+              <div class="field compact-span-2 property-col contact-email">
+                <label for="prop_email">Email de contacto</label>
+                <input id="prop_email" name="email_contacto" type="email" placeholder="reservas@tuempresa.com">
+              </div>
+
+              <div class="field compact-span-2 property-col contact-notes">
+                <label for="observaciones_internas">Observaciones internas</label>
+                <textarea id="observaciones_internas" name="observaciones_internas" placeholder="Notas internas para administración, recepción o reservas"></textarea>
+              </div>
+
+              <div class="full form-block-title">Comodidades generales</div>
+
+              <div class="field compact-span-2 property-col amenities-grid">
+                <label>Checklist de servicios</label>
+                <div id="comodidadesGenerales" class="checkbox-list"></div>
+              </div>
+
+              <div class="field full property-col ident-active form-final-toggle">
+                <label class="checkbox-chip property-toggle-chip">
+                  <input name="activo" type="checkbox" checked>
+                  <span>Propiedad activa</span>
+                </label>
+              </div>
+
+              <div id="formFeedback" class="full"></div>
+
+              <div class="form-actions full">
+                <button id="btnCancelarEdicionPropiedad" type="button" class="btn-ghost">Limpiar</button>
+                <button type="submit" class="btn">Guardar propiedad</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card pad propiedades-list-card">
+            <div class="toolbar">
+              <div class="field" style="flex:1 1 280px;">
+                <label for="filtroPropiedad">Buscar</label>
+                <input id="filtroPropiedad" type="text" placeholder="Nombre, código, ciudad, tipo...">
+              </div>
+
+              <label class="checkbox-chip" style="margin-top:28px;">
+                <input id="verInactivas" type="checkbox">
+                <span>Ver inactivas</span>
+              </label>
+            </div>
+
+            <div class="table-wrap" style="margin-top:18px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Propiedad</th>
+                    <th>Código</th>
+                    <th>Tipo</th>
+                    <th>Ciudad</th>
+                    <th>Ámbito</th>
+                    <th>Horarios</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="propiedadesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="env.js"></script>
+  <script type="module" src="js/propiedades.js"></script>
+</body>
+</html>

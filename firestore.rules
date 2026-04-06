@@ -1,0 +1,252 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function authEmail() {
+      return signedIn() && request.auth.token.email != null
+        ? request.auth.token.email
+        : "";
+    }
+
+    function authMirror() {
+      return signedIn()
+        ? get(/databases/$(database)/documents/usuarios_auth/$(request.auth.uid))
+        : null;
+    }
+
+    function hasMirror() {
+      return signedIn() && authMirror() != null && authMirror().data.usuario_id != null;
+    }
+
+    function myRole() {
+      return hasMirror() ? authMirror().data.rol : null;
+    }
+
+    function myCompany() {
+      return hasMirror() ? authMirror().data.empresa_id : null;
+    }
+
+    function myUserId() {
+      return hasMirror() ? authMirror().data.usuario_id : null;
+    }
+
+    function myPropertyIds() {
+      return hasMirror() ? authMirror().data.propiedad_ids : [];
+    }
+
+    function isSuper() {
+      return myRole() == 'superadmin';
+    }
+
+    function isAdmin() {
+      return myRole() == 'admin';
+    }
+
+    function isReception() {
+      return myRole() == 'recepcion';
+    }
+
+    function sameCompany(companyId) {
+      return companyId != null && companyId == myCompany();
+    }
+
+    function isOwnUserData(data) {
+      return signedIn() && (
+        (data.uid != null && data.uid == request.auth.uid) ||
+        (authEmail() != "" && (
+          data.email == authEmail() ||
+          data.email_normalizado == authEmail()
+        ))
+      );
+    }
+
+    function canReadUserData(data) {
+      return isSuper() ||
+        (isAdmin() && sameCompany(data.empresa_id)) ||
+        isOwnUserData(data) ||
+        (myUserId() != null && myUserId() == data.uid);
+    }
+
+    function targetUserData(userId) {
+      return get(/databases/$(database)/documents/usuarios/$(userId)).data;
+    }
+
+    function canSelfBootstrapUserUpdate(userId) {
+      return signedIn() &&
+        isOwnUserData(resource.data) &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.rol == resource.data.rol &&
+        request.resource.data.empresa_id == resource.data.empresa_id &&
+        request.resource.data.activo == true &&
+        request.resource.data.eliminado == false &&
+        request.resource.data.uid == request.auth.uid;
+    }
+
+    function canSelfWriteSupportFor(userId) {
+      let target = targetUserData(userId);
+      return signedIn() &&
+        (
+          target.email == authEmail() ||
+          target.email_normalizado == authEmail()
+        ) &&
+        (
+          target.uid == null ||
+          target.uid == "" ||
+          target.uid == request.auth.uid
+        );
+    }
+
+    function canReadPropertyData(data, propertyId) {
+      return isSuper() ||
+        (isAdmin() && sameCompany(data.empresa_id)) ||
+        (isReception() && myPropertyIds().hasAny([propertyId]));
+    }
+
+    function canReadReservationData(data) {
+      return isSuper() ||
+        (isAdmin() && sameCompany(data.empresa_id)) ||
+        (isReception() && myPropertyIds().hasAny([data.propiedad_id]));
+    }
+
+    match /email_index/{emailKey} {
+      allow get: if signedIn() && (
+        isAdmin() ||
+        isSuper() ||
+        emailKey == authEmail()
+      );
+      allow list: if false;
+
+      allow create, update: if signedIn() && (
+        isAdmin() ||
+        isSuper() ||
+        (
+          emailKey == authEmail() &&
+          request.resource.data.email == authEmail() &&
+          request.resource.data.uid == request.auth.uid &&
+          request.resource.data.email_normalizado == emailKey &&
+          canSelfWriteSupportFor(request.resource.data.usuario_id) &&
+          request.resource.data.rol == targetUserData(request.resource.data.usuario_id).rol &&
+          request.resource.data.empresa_id == targetUserData(request.resource.data.usuario_id).empresa_id &&
+          request.resource.data.activo == true &&
+          request.resource.data.eliminado == false
+        )
+      );
+
+      allow delete: if isAdmin() || isSuper();
+    }
+
+    match /usuarios_auth/{uid} {
+      allow get: if signedIn() && (
+        uid == request.auth.uid ||
+        isAdmin() ||
+        isSuper()
+      );
+      allow list: if isAdmin() || isSuper();
+
+      allow create, update: if signedIn() && (
+        isAdmin() ||
+        isSuper() ||
+        (
+          uid == request.auth.uid &&
+          request.resource.data.uid == request.auth.uid &&
+          request.resource.data.email == authEmail() &&
+          canSelfWriteSupportFor(request.resource.data.usuario_id) &&
+          request.resource.data.rol == targetUserData(request.resource.data.usuario_id).rol &&
+          request.resource.data.empresa_id == targetUserData(request.resource.data.usuario_id).empresa_id &&
+          request.resource.data.activo == true &&
+          request.resource.data.eliminado == false
+        )
+      );
+
+      allow delete: if isSuper();
+    }
+
+    match /usuarios/{userId} {
+      allow get, list: if signedIn() && canReadUserData(resource.data);
+
+      allow create: if signedIn() && (isAdmin() || isSuper());
+
+      allow update: if signedIn() && (
+        isSuper() ||
+        (isAdmin() && sameCompany(resource.data.empresa_id)) ||
+        canSelfBootstrapUserUpdate(userId)
+      );
+
+      allow delete: if false;
+    }
+
+    match /propiedades/{propertyId} {
+      allow get, list: if signedIn() && canReadPropertyData(resource.data, propertyId);
+
+      allow create: if signedIn() && (isSuper() || isAdmin());
+
+      allow update: if signedIn() && (
+        isSuper() ||
+        (isAdmin() && sameCompany(resource.data.empresa_id))
+      );
+
+      allow delete: if false;
+
+      match /unidades/{unitId} {
+        allow get, list: if signedIn() &&
+          (
+            isSuper() ||
+            (isAdmin() && sameCompany(get(/databases/$(database)/documents/propiedades/$(propertyId)).data.empresa_id)) ||
+            (isReception() && myPropertyIds().hasAny([propertyId]))
+          );
+
+        allow create, update, delete: if signedIn() &&
+          (
+            isSuper() ||
+            (isAdmin() && sameCompany(get(/databases/$(database)/documents/propiedades/$(propertyId)).data.empresa_id))
+          );
+      }
+    }
+
+    match /reservas/{reservationId} {
+      allow get, list: if signedIn() && canReadReservationData(resource.data);
+
+      allow create, update: if signedIn() &&
+        (
+          isSuper() ||
+          (isAdmin() && request.resource.data.empresa_id == myCompany()) ||
+          (isReception() && myPropertyIds().hasAny([request.resource.data.propiedad_id]))
+        );
+
+      allow delete: if false;
+    }
+
+    match /reserva_ocupacion/{lockId} {
+      allow get, list: if signedIn() &&
+        (
+          isSuper() ||
+          canReadPropertyData(
+            get(/databases/$(database)/documents/propiedades/$(resource.data.propiedad_id)).data,
+            resource.data.propiedad_id
+          )
+        );
+
+      allow create, update: if signedIn() &&
+        (
+          isSuper() ||
+          canReadPropertyData(
+            get(/databases/$(database)/documents/propiedades/$(request.resource.data.propiedad_id)).data,
+            request.resource.data.propiedad_id
+          )
+        );
+
+      allow delete: if signedIn() &&
+        (
+          isSuper() ||
+          canReadPropertyData(
+            get(/databases/$(database)/documents/propiedades/$(resource.data.propiedad_id)).data,
+            resource.data.propiedad_id
+          )
+        );
+    }
+  }
+}

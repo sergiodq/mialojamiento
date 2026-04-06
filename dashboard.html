@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiAlojamiento · Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="dashboard-page">
+  <div class="page-shell">
+    <aside id="sidebar" class="sidebar"></aside>
+
+    <main class="main">
+      <div class="page-frame dashboard-page-frame">
+        <header id="topbar" class="topbar dashboard-topbar"></header>
+
+        <section class="grid six dashboard-kpi-grid dashboard-kpi-grid-planner">
+          <article class="card kpi-card dashboard-kpi-card compact planner-kpi-card">
+            <span class="kpi-label">Unidades activas</span>
+            <div id="kpiUnidades" class="kpi-value">0</div>
+            <div class="kpi-foot">Habitaciones o unidades visibles en tu alcance actual.</div>
+          </article>
+
+          <article class="card kpi-card dashboard-kpi-card compact planner-kpi-card">
+            <span class="kpi-label">Capacidad máx.</span>
+            <div id="kpiPaxMax" class="kpi-value">0</div>
+            <div class="kpi-foot">Suma de pax máxima según la configuración de unidades.</div>
+          </article>
+
+          <article class="card kpi-card dashboard-kpi-card compact planner-kpi-card accent-warning">
+            <span class="kpi-label">Ocupadas hoy</span>
+            <div id="kpiOcupadasHoy" class="kpi-value">0</div>
+            <div class="kpi-foot">Con reserva activa que cruza la fecha actual.</div>
+          </article>
+
+          <article class="card kpi-card dashboard-kpi-card compact planner-kpi-card accent-success">
+            <span class="kpi-label">Disponibles hoy</span>
+            <div id="kpiDisponiblesHoy" class="kpi-value">0</div>
+            <div class="kpi-foot">Unidades libres para operar durante el día de hoy.</div>
+          </article>
+
+          <article class="card kpi-card dashboard-kpi-card compact planner-kpi-card accent-primary">
+            <span id="kpiVisiblePeriodLabel" class="kpi-label">Reservas visibles</span>
+            <div id="kpiReservasVisibles" class="kpi-value">0</div>
+            <div class="kpi-foot">Reservas que tocan el rango actualmente mostrado.</div>
+          </article>
+
+          <article class="card kpi-card dashboard-kpi-card compact planner-kpi-card accent-soft">
+            <span class="kpi-label">Confirmadas visibles</span>
+            <div id="kpiConfirmadasVisibles" class="kpi-value">0</div>
+            <div class="kpi-foot">Confirmadas dentro del período mostrado.</div>
+          </article>
+        </section>
+
+        <section id="regularDashboardSection" class="section dashboard-focus dashboard-fit-layout">
+          <div class="card pad dashboard-calendar-card dashboard-calendar-card-fit planner-card-fit">
+            <div class="dashboard-calendar-header compact planner-header">
+              <div class="dashboard-calendar-titleblock planner-titleblock">
+                <h3>Planning de habitaciones</h3>
+                <div class="muted">Vista operativa por unidad, con días en horizontal y reservas como bloques continuos.</div>
+              </div>
+
+              <div class="toolbar dashboard-month-toolbar planner-toolbar">
+                <div class="dashboard-view-switch" role="tablist" aria-label="Vista del planning">
+                  <button id="viewMonthBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn is-active">Mes</button>
+                  <button id="viewWeekBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn">Semana</button>
+                </div>
+                <button id="calendarPrev" class="btn-ghost btn-compact">← Mes anterior</button>
+                <strong id="calendarMonthLabel" class="codeish dashboard-month-label">Mes</strong>
+                <button id="calendarNext" class="btn-ghost btn-compact">Mes siguiente →</button>
+              </div>
+            </div>
+
+            <div class="dashboard-inline-tools planner-inline-tools">
+              <div class="field dashboard-inline-field planner-inline-field">
+                <label for="filtroPropiedad">Propiedad</label>
+                <select id="filtroPropiedad">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+
+              <div class="field dashboard-inline-field planner-inline-field planner-inline-search">
+                <label for="filtroTexto">Buscar</label>
+                <input id="filtroTexto" type="text" placeholder="Cliente, unidad o propiedad">
+              </div>
+
+              <div class="field dashboard-inline-field planner-inline-field">
+                <label for="filtroEstado">Estado</label>
+                <select id="filtroEstado">
+                  <option value="">Todos</option>
+                  <option value="pendiente">pendiente</option>
+                  <option value="pendiente de pago">pendiente de pago</option>
+                  <option value="confirmada">confirmada</option>
+                  <option value="bloqueada">bloqueada</option>
+                  <option value="mantenimiento">mantenimiento</option>
+                  <option value="cancelada">cancelada</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="plannerResume" class="dashboard-inline-resume planner-resume"></div>
+
+            <div class="planner-legend" aria-label="Referencia visual de estados">
+              <span class="planner-legend-item confirmada">Confirmada</span>
+              <span class="planner-legend-item pendiente">Pendiente</span>
+              <span class="planner-legend-item bloqueada">Bloqueo / mantenimiento</span>
+              <span class="planner-legend-item cancelada">Cancelada</span>
+            </div>
+
+            <div class="planning-board-shell">
+              <div class="planning-board-scroll">
+                <div id="planningBoard" class="planning-board-wrap"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="superadminSummarySection" class="section" hidden>
+          <div class="grid two">
+            <article class="card pad">
+              <h3 style="margin-top:0;">Resumen de reservas por estado</h3>
+              <div class="muted" style="margin-bottom:14px;">Vista ejecutiva para superadmin, sin planning operativo.</div>
+              <div id="superadminStateSummary" class="stat-list"></div>
+            </article>
+
+            <article class="card pad">
+              <h3 style="margin-top:0;">Últimas reservas visibles</h3>
+              <div class="muted" style="margin-bottom:14px;">Solo resumen, sin edición directa desde el dashboard.</div>
+              <div id="superadminRecentReservations" class="stat-list"></div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <a id="quickNuevaReservaFab" hidden class="fab-dashboard" href="nueva_reserva.html" aria-label="Nueva reserva">
+    <span class="fab-dashboard-icon">＋</span>
+    <span class="fab-dashboard-label">Nueva reserva</span>
+  </a>
+
+  <script src="env.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

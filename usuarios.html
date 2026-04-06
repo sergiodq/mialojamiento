@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiAlojamiento · Usuarios</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="users-page">
+  <div class="page-shell">
+    <aside id="sidebar" class="sidebar"></aside>
+
+    <main class="main">
+      <div class="page-frame">
+        <header id="topbar" class="topbar"></header>
+
+        <section class="section card pad">
+          <div class="toolbar">
+            <div class="field" style="flex:1 1 320px;">
+              <label for="filtroUsuario">Buscar usuario</label>
+              <input id="filtroUsuario" type="text" placeholder="Nombre, mail, rol o ámbito...">
+            </div>
+
+            <label class="checkbox-chip" style="margin-top:28px;">
+              <input id="verBajas" type="checkbox">
+              <span>Ver dados de baja</span>
+            </label>
+          </div>
+
+          <div class="table-wrap" style="margin-top:18px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Ámbito</th>
+                  <th>Propiedades</th>
+                  <th>Registro</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usuariosBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="env.js"></script>
+  <script type="module" src="js/usuarios.js"></script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiAlojamiento · Nueva reserva</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="reservation-page">
+  <div class="page-shell">
+    <aside id="sidebar" class="sidebar"></aside>
+
+    <main class="main">
+      <div class="page-frame">
+        <header id="topbar" class="topbar"></header>
+
+        <section class="split">
+          <div class="card pad">
+            <div class="toolbar-between">
+              <div>
+                <h3 id="reservationPageTitle" style="margin:0 0 6px;">Nueva reserva</h3>
+                <div class="muted">Si elegís una unidad real, se valida capacidad y conflicto. Si no hay unidades, se habilita el fallback manual.</div>
+              </div>
+            </div>
+
+            <form id="reservaForm" class="section form-grid">
+              <div class="field">
+                <label for="cliente">Cliente / huésped</label>
+                <input id="cliente" name="cliente" type="text" placeholder="Nombre del cliente" required>
+              </div>
+
+              <div class="field">
+                <label for="propiedad_id">Propiedad</label>
+                <select id="propiedad_id" name="propiedad_id" required></select>
+              </div>
+
+              <div class="field full">
+                <label for="unidad_id">Unidad real</label>
+                <select id="unidad_id" name="unidad_id"></select>
+                <small id="unitHint">Seleccioná una propiedad para cargar sus unidades.</small>
+              </div>
+
+              <div class="field full">
+                <label class="checkbox-chip">
+                  <input name="usar_unidad_manual" type="checkbox">
+                  <span>Usar unidad manual (compatibilidad legacy)</span>
+                </label>
+              </div>
+
+              <div id="unidadManualWrap" class="field full" hidden>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="unidad_manual">Unidad manual</label>
+                    <input id="unidad_manual" name="unidad_manual" type="text" placeholder="Habitación 12 / Dpto A / Cabaña 3">
+                  </div>
+
+                  <div class="field">
+                    <label for="capacidad_manual">Capacidad manual</label>
+                    <input id="capacidad_manual" name="capacidad_manual" type="number" min="0" placeholder="Opcional">
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="fecha_inicio">Check-in</label>
+                <input id="fecha_inicio" name="fecha_inicio" type="date" required>
+              </div>
+
+              <div class="field">
+                <label for="fecha_fin">Check-out</label>
+                <input id="fecha_fin" name="fecha_fin" type="date" required>
+              </div>
+
+              <div class="field">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado"></select>
+              </div>
+
+              <div class="field">
+                <label for="huespedes">Huéspedes</label>
+                <input id="huespedes" name="huespedes" type="number" min="1" value="1" required>
+                <small id="capacityHint">Seleccioná una unidad para ver su capacidad.</small>
+              </div>
+
+              <div class="field">
+                <label for="total">Importe total</label>
+                <input id="total" name="total" type="number" min="0" step="1" placeholder="120000">
+              </div>
+
+              <div class="field full">
+                <label for="observaciones">Observaciones</label>
+                <textarea id="observaciones" name="observaciones" placeholder="Notas operativas, comentarios del huésped, etc."></textarea>
+              </div>
+
+              <div id="formFeedback" class="full"></div>
+
+              <div class="form-actions full">
+                <a class="btn-ghost" href="dashboard.html">Cancelar</a>
+                <button type="submit" class="btn">Guardar reserva</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card pad">
+            <h3 style="margin-top:0;">Cómo se valida</h3>
+            <div class="stat-list">
+              <div class="stat-item">
+                <span>Capacidad</span>
+                <strong>Huéspedes ≤ capacidad</strong>
+              </div>
+              <div class="stat-item">
+                <span>Conflicto</span>
+                <strong>Sin superposición por unidad</strong>
+              </div>
+              <div class="stat-item">
+                <span>Fallback manual</span>
+                <strong>Compatible con reservas viejas</strong>
+              </div>
+              <div class="stat-item">
+                <span>Edición</span>
+                <strong>La misma pantalla resuelve alta y modificación</strong>
+              </div>
+            </div>
+
+            <div id="legacyHint" style="margin-top:18px;"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="env.js"></script>
+  <script type="module" src="js/nueva-reserva.js"></script>
+</body>
+</html>

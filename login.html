@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiAlojamiento · Acceso</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="login-page">
+  <div class="hero-auth">
+    <section class="auth-side">
+      <div>
+        <div class="brand-badge" style="margin-bottom:18px;">M</div>
+        <h1>MiAlojamiento</h1>
+        <p>
+          Gestión web de propiedades, unidades, usuarios y reservas con un flujo realista:
+          el administrador da de alta el perfil y cada usuario completa su cuenta desde esta pantalla.
+        </p>
+      </div>
+
+      <div class="auth-kpis">
+        <div class="mini">
+          <strong>Roles</strong>
+          <p>superadmin, admin y recepción.</p>
+        </div>
+        <div class="mini">
+          <strong>Reservas</strong>
+          <p>Control de conflictos por unidad y fechas.</p>
+        </div>
+        <div class="mini">
+          <strong>Escalable</strong>
+          <p>Compatibilidad con datos legacy y soft delete.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-panel-wrap">
+      <div class="auth-panel">
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab active" data-mode="login">Ingresar</button>
+          <button type="button" class="auth-tab" data-mode="register">Registrarme</button>
+          <button type="button" class="auth-tab" data-mode="reset">Olvidé mi clave</button>
+        </div>
+
+        <div>
+          <h2>Acceso seguro</h2>
+          <p>Usá el modo correcto según tu estado. Si tu perfil fue dado de alta por un admin y nunca tuviste cuenta, primero usá “Registrarme”. Si el usuario fue reactivado, deberá usar “Olvidé mi clave”.</p>
+        </div>
+
+        <div id="authMessage"></div>
+
+        <div class="auth-pane" data-mode="login">
+          <form id="loginForm" class="grid">
+            <div class="field">
+              <label for="login_email">Correo</label>
+              <input id="login_email" name="login_email" type="email" placeholder="usuario@empresa.com" required>
+            </div>
+
+            <div class="field">
+              <label for="login_password">Contraseña</label>
+              <input id="login_password" name="login_password" type="password" placeholder="••••••••" required>
+            </div>
+
+            <div id="loginFeedback"></div>
+
+            <button type="submit" class="btn">Ingresar</button>
+          </form>
+        </div>
+
+        <div class="auth-pane" data-mode="register" hidden>
+          <div class="notice">
+            Este registro no es abierto. Funciona si tu perfil ya fue dado de alta en Firestore por un administrador y todavía no tenías cuenta en Authentication. Si tu usuario fue reactivado, no podrás entrar hasta usar “Olvidé mi clave”.
+          </div>
+
+          <form id="registerForm" class="grid">
+            <div class="field">
+              <label for="register_nombre">Nombre visible</label>
+              <input id="register_nombre" name="register_nombre" type="text" placeholder="Nombre y apellido" required>
+            </div>
+
+            <div class="field">
+              <label for="register_email">Correo dado de alta por el admin</label>
+              <input id="register_email" name="register_email" type="email" placeholder="usuario@empresa.com" required>
+            </div>
+
+            <div class="grid two">
+              <div class="field">
+                <label for="register_password">Contraseña</label>
+                <input id="register_password" name="register_password" type="password" placeholder="Mínimo 6 caracteres" required>
+              </div>
+
+              <div class="field">
+                <label for="register_password_confirm">Repetir contraseña</label>
+                <input id="register_password_confirm" name="register_password_confirm" type="password" placeholder="Repetí la contraseña" required>
+              </div>
+            </div>
+
+            <div id="registerFeedback"></div>
+
+            <button type="submit" class="btn">Crear mi acceso</button>
+          </form>
+        </div>
+
+        <div class="auth-pane" data-mode="reset" hidden>
+          <form id="resetForm" class="grid">
+            <div class="field">
+              <label for="reset_email">Correo</label>
+              <input id="reset_email" name="reset_email" type="email" placeholder="usuario@empresa.com" required>
+            </div>
+
+            <div id="resetFeedback"></div>
+
+            <button type="submit" class="btn-secondary">Enviar recuperación</button>
+          </form>
+        </div>
+
+        <div class="divider"></div>
+        <div id="authFooterHint"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="env.js"></script>
+  <script type="module">
+    import { initLoginPage } from './js/auth.js';
+    initLoginPage();
+  </script>
+</body>
+</html>
