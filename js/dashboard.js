@@ -8,6 +8,7 @@ import {
   listScopedReservations,
   listUnitsByProperty,
   renderTopbar,
+  primeSidebarFromCache,
   renderEmptyState,
   reservationMatchesFilters,
   deleteReservationWithLocks,
@@ -86,6 +87,36 @@ function reservationTouchesRange(item, range = getVisibleRange()) {
 function reservationTouchesDay(item, dayISO) {
   if (!item?.fecha_inicio || !item?.fecha_fin) return false;
   return item.fecha_inicio <= dayISO && item.fecha_fin > dayISO;
+}
+
+function reservationBelongsToActiveInventory(item) {
+  if (!item?.propiedad_id) return false;
+
+  const propertyIsVisible = properties.some((property) => property.id === item.propiedad_id && property.activo);
+  if (!propertyIsVisible) return false;
+
+  const activeUnits = unitsCache.get(item.propiedad_id) || [];
+  if (!activeUnits.length) return false;
+
+  if (item.unidad_id) {
+    return activeUnits.some((unit) => unit.id === item.unidad_id);
+  }
+
+  const reservationUnitKeys = new Set([
+    normalizeText(item.unidad || ''),
+    normalizeText(item.unidad_nombre || ''),
+    item.unidad_key || ''
+  ].filter(Boolean));
+
+  return activeUnits.some((unit) => {
+    const unitKeys = [
+      unit.id,
+      normalizeText(unit.nombre || ''),
+      normalizeText(unit.codigo || '')
+    ].filter(Boolean);
+
+    return unitKeys.some((key) => reservationUnitKeys.has(key));
+  });
 }
 
 function updateViewButtons() {
@@ -682,13 +713,16 @@ function applyFilters() {
 }
 
 async function loadData() {
-  properties = await listScopedProperties(currentProfile, { includeInactive: true });
-  reservations = await listScopedReservations(currentProfile);
+  properties = await listScopedProperties(currentProfile, { includeInactive: false });
+  const allReservations = await listScopedReservations(currentProfile);
 
+  unitsCache.clear();
   const unitsEntries = await Promise.all(
     properties.map(async (property) => [property.id, await listUnitsByProperty(property.id, { includeInactive: false })])
   );
   unitsEntries.forEach(([propertyId, units]) => unitsCache.set(propertyId, units));
+
+  reservations = allReservations.filter(reservationBelongsToActiveInventory);
 
   updatePropertyFilterOptions();
   filteredReservations = [...reservations];
@@ -764,6 +798,7 @@ function bindFilters() {
 }
 
 async function init() {
+  primeSidebarFromCache('dashboard');
   currentProfile = await requireAuth({ pageKey: 'dashboard' });
   if (!currentProfile) return;
 

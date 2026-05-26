@@ -15,6 +15,7 @@ import {
   ROLES,
   REGISTRATION_STATES,
   renderTopbar,
+  primeSidebarFromCache,
   listScopedProperties,
   getUserById,
   getEmailIndex,
@@ -261,6 +262,7 @@ async function saveUser(event) {
 }
 
 async function init() {
+  primeSidebarFromCache('usuarios');
   currentProfile = await requireAuth({ roles: ['superadmin', 'admin'], pageKey: 'usuarios' });
   if (!currentProfile || !canManageUsers(currentProfile)) return;
 

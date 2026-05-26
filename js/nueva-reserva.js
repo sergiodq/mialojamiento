@@ -3,6 +3,7 @@ import {
   canCreateReservations,
   RESERVATION_STATUSES,
   renderTopbar,
+  primeSidebarFromCache,
   listScopedProperties,
   listUnitsByProperty,
   getReservationById,
@@ -224,6 +225,7 @@ async function saveReservation(event) {
 }
 
 async function init() {
+  primeSidebarFromCache('nueva-reserva');
   currentProfile = await requireAuth({ pageKey: 'nueva-reserva' });
   if (!currentProfile || !canCreateReservations(currentProfile)) return;
 

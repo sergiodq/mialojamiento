@@ -5,6 +5,7 @@ import {
   markUserAsDeleted,
   reactivateUser,
   renderTopbar,
+  primeSidebarFromCache,
   renderStatusBadge,
   userMatchesFilter,
   qs,
@@ -130,6 +131,7 @@ async function loadUsers() {
 }
 
 async function init() {
+  primeSidebarFromCache('usuarios');
   currentProfile = await requireAuth({ roles: ['superadmin', 'admin'], pageKey: 'usuarios' });
   if (!currentProfile || !canManageUsers(currentProfile)) return;
 

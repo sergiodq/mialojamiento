@@ -13,6 +13,7 @@ import {
 import {
   REGISTRATION_STATES,
   getCurrentProfile,
+  getCurrentProfileWithRetry,
   getEmailIndex,
   getUserById,
   findUserCandidateByEmail,
@@ -22,7 +23,8 @@ import {
   setButtonLoading,
   upsertUserSupportDocs,
   qs,
-  qsa
+  qsa,
+  clearCachedChromeProfile
 } from './app-helpers.js';
 
 const RESET_PENDING_STORAGE_KEY = 'mialojamiento_reset_pending_email';
@@ -47,10 +49,23 @@ function clearResetPendingEmail() {
   } catch {}
 }
 
+async function settleSessionAfterLogin(user) {
+  if (!user) return;
+
+  try {
+    await user.getIdToken(true);
+  } catch {
+    // no-op
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 280));
+}
+
 export async function loginUser(email, password) {
   const normalizedEmail = normalizeEmail(email);
   const credential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
-  let profile = await getCurrentProfile();
+  await settleSessionAfterLogin(credential.user);
+  let profile = await getCurrentProfileWithRetry({ attempts: 4, delayMs: 260 });
 
   if (!profile) {
     const legacyUser = await findUserCandidateByEmail(normalizedEmail);
@@ -83,7 +98,8 @@ export async function loginUser(email, password) {
         }, { previousEmail: legacyUser.email || normalizedEmail });
 
         clearResetPendingEmail();
-        profile = await getCurrentProfile();
+        await settleSessionAfterLogin(credential.user);
+        profile = await getCurrentProfileWithRetry({ attempts: 4, delayMs: 260 });
       } else {
         await signOut(auth);
         throw new Error('Esta cuenta fue reactivada. Antes de ingresar, usá “Olvidé mi clave” para definir una contraseña nueva.');
@@ -201,6 +217,7 @@ export async function sendReset(email) {
 }
 
 export async function logoutUser() {
+  clearCachedChromeProfile();
   await signOut(auth);
   window.location.href = 'login.html';
 }

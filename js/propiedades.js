@@ -13,6 +13,7 @@ import {
   PROPERTY_TYPES,
   GENERAL_AMENITIES,
   renderTopbar,
+  primeSidebarFromCache,
   renderCheckboxChips,
   listScopedProperties,
   propertyMatchesFilter,
@@ -238,6 +239,7 @@ async function loadProperties() {
 }
 
 async function init() {
+  primeSidebarFromCache('propiedades');
   currentProfile = await requireAuth({ roles: ['superadmin', 'admin'], pageKey: 'propiedades' });
   if (!currentProfile || !canManageProperties(currentProfile)) return;
 

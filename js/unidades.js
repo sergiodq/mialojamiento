@@ -19,6 +19,7 @@ import {
   generateInternalCode,
   deletePropertyUnit,
   renderTopbar,
+  primeSidebarFromCache,
   renderCheckboxChips,
   qs,
   showToast,
@@ -210,6 +211,7 @@ function bindTableActions() {
 }
 
 async function init() {
+  primeSidebarFromCache('propiedades');
   currentProfile = await requireAuth({ roles: ['superadmin', 'admin'], pageKey: 'propiedades' });
   if (!currentProfile || !canManageProperties(currentProfile)) return;
 

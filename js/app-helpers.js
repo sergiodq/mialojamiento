@@ -114,6 +114,75 @@ export const BED_OPTIONS = [
   '2 camas matrimoniales'
 ];
 
+
+const PROFILE_CACHE_KEY = 'mialojamiento_cached_profile';
+
+function safeSessionGet(key) {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSessionSet(key, value) {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    // no-op
+  }
+}
+
+function safeSessionRemove(key) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // no-op
+  }
+}
+
+export function sanitizeProfileForChrome(profile = {}) {
+  if (!profile?.rol) return null;
+  return {
+    id: profile.id || '',
+    uid: profile.uid || '',
+    nombre: profile.nombre || 'Usuario',
+    email: profile.email || '',
+    rol: profile.rol || '',
+    empresa_id: profile.empresa_id || '',
+    propiedad_id: profile.propiedad_id || '',
+    propiedad_ids: Array.isArray(profile.propiedad_ids) ? profile.propiedad_ids : []
+  };
+}
+
+export function cacheChromeProfile(profile) {
+  const safeProfile = sanitizeProfileForChrome(profile);
+  if (!safeProfile) return;
+  safeSessionSet(PROFILE_CACHE_KEY, JSON.stringify(safeProfile));
+}
+
+export function readCachedChromeProfile() {
+  const raw = safeSessionGet(PROFILE_CACHE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    safeSessionRemove(PROFILE_CACHE_KEY);
+    return null;
+  }
+}
+
+export function clearCachedChromeProfile() {
+  safeSessionRemove(PROFILE_CACHE_KEY);
+}
+
+export function primeSidebarFromCache(pageKey = 'dashboard') {
+  const cached = readCachedChromeProfile();
+  if (!cached) return null;
+  renderSidebar(cached, pageKey);
+  return cached;
+}
+
 export function qs(selector, root = document) {
   return root.querySelector(selector);
 }
@@ -630,21 +699,52 @@ export async function waitForAuthUser() {
   });
 }
 
+function delay(ms = 0) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function shouldRetryFirestoreRead(error) {
+  const code = error?.code || '';
+  return code === 'permission-denied' || code === 'unauthenticated' || code === 'failed-precondition';
+}
+
+async function retryFirestoreRead(reader, { attempts = 3, delayMs = 220 } = {}) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await reader();
+    } catch (error) {
+      lastError = error;
+      if (attempt >= attempts || !shouldRetryFirestoreRead(error)) break;
+
+      try {
+        if (auth.currentUser) {
+          await auth.currentUser.getIdToken(true);
+        } else {
+          await authReady;
+        }
+      } catch {
+        // no-op
+      }
+
+      await delay(delayMs * attempt);
+    }
+  }
+
+  if (lastError) {
+    console.warn('[MiAlojamiento] Lectura de Firestore reintentada sin éxito:', lastError?.code || lastError?.message || lastError);
+  }
+
+  return null;
+}
 
 async function safeGetDoc(ref) {
-  try {
-    return await getDoc(ref);
-  } catch {
-    return null;
-  }
+  return retryFirestoreRead(() => getDoc(ref));
 }
 
 async function safeGetDocs(q) {
-  try {
-    return await getDocs(q);
-  } catch {
-    return null;
-  }
+  return retryFirestoreRead(() => getDocs(q));
 }
 
 function dedupeUsersById(users = []) {
@@ -868,27 +968,54 @@ export async function getCurrentProfile() {
   return resolveProfileFromAuthenticatedUser(currentUser);
 }
 
+export async function getCurrentProfileWithRetry({ attempts = 3, delayMs = 250 } = {}) {
+  let currentUser = auth.currentUser || await waitForAuthUser();
+  if (!currentUser) return null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const profile = await resolveProfileFromAuthenticatedUser(currentUser);
+    if (profile) return profile;
+
+    if (attempt >= attempts) break;
+
+    try {
+      await currentUser.getIdToken(true);
+    } catch {
+      // no-op
+    }
+
+    await delay(delayMs * attempt);
+    currentUser = auth.currentUser || currentUser;
+  }
+
+  return null;
+}
+
 export async function requireAuth({ roles = [], pageKey = 'dashboard' } = {}) {
   const currentUser = auth.currentUser || await waitForAuthUser();
   if (!currentUser) {
+    clearCachedChromeProfile();
     window.location.href = 'login.html';
     return null;
   }
 
-  const profile = await getCurrentProfile();
+  const profile = await getCurrentProfileWithRetry({ attempts: 4, delayMs: 220 });
 
   if (!profile) {
+    clearCachedChromeProfile();
     await signOut(auth).catch(() => {});
     window.location.href = 'login.html?error=sin-perfil';
     return null;
   }
 
   if (roles.length && !roles.includes(profile.rol)) {
+    cacheChromeProfile(profile);
     showToast('No tenés permisos para entrar a esa pantalla.', 'warning', 'Acceso restringido');
     window.location.href = 'dashboard.html';
     return null;
   }
 
+  cacheChromeProfile(profile);
   renderSidebar(profile, pageKey);
   return profile;
 }
