@@ -105,14 +105,14 @@ function renderUnits() {
   tbody.innerHTML = units
     .map((unit) => `
       <tr>
-        <td><strong>${unit.codigo || '—'}</strong></td>
-        <td>${unit.nombre || '—'}</td>
-        <td>${unit.tipo_unidad || '—'}</td>
-        <td>${unit.capacidad_max || 0}</td>
-        <td>${unit.capacidad_adultos || 0}</td>
-        <td>${unit.capacidad_ninos || 0}</td>
-        <td>${unit.activa ? '<span class="badge green">Activa</span>' : '<span class="badge orange">Inactiva</span>'}</td>
-        <td>
+        <td data-label="Código"><strong>${unit.codigo || '—'}</strong></td>
+        <td data-label="Nombre">${unit.nombre || '—'}</td>
+        <td data-label="Tipo">${unit.tipo_unidad || '—'}</td>
+        <td data-label="Cap. máx">${unit.capacidad_max || 0}</td>
+        <td data-label="Adultos">${unit.capacidad_adultos || 0}</td>
+        <td data-label="Niños">${unit.capacidad_ninos || 0}</td>
+        <td data-label="Estado">${unit.activa ? '<span class="badge green">Activa</span>' : '<span class="badge orange">Inactiva</span>'}</td>
+        <td data-label="Acciones">
           <div class="table-actions">
             <button class="btn-secondary btnEditUnit" data-id="${unit.id}">Editar</button>
             <button class="btn-danger btnDeleteUnit" data-id="${unit.id}">Eliminar</button>

@@ -32,9 +32,10 @@ let currentMonth = new Date();
 let calendarView = 'month';
 const unitsCache = new Map();
 let plannerViewTouchedByUser = false;
+const compactPlannerMedia = window.matchMedia('(max-width: 760px)');
 
 function isSmallMobile() {
-  return window.innerWidth <= 520;
+  return compactPlannerMedia.matches;
 }
 
 function applyResponsiveDefaultView() {
@@ -818,13 +819,22 @@ async function init() {
   bindFilters();
   applyResponsiveDefaultView();
 
+  let wasCompactPlanner = isSmallMobile();
+  let resizeTimer = null;
   window.addEventListener('resize', () => {
-    if (plannerViewTouchedByUser) return;
-    const previous = calendarView;
-    applyResponsiveDefaultView();
-    if (previous !== calendarView && !isSuperadmin(currentProfile)) {
-      applyFilters();
-    }
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(() => {
+      const isCompactPlannerNow = isSmallMobile();
+      const crossedCompactBreakpoint = wasCompactPlanner !== isCompactPlannerNow;
+      const previousView = calendarView;
+
+      applyResponsiveDefaultView();
+      wasCompactPlanner = isCompactPlannerNow;
+
+      if (!isSuperadmin(currentProfile) && (crossedCompactBreakpoint || previousView !== calendarView)) {
+        applyFilters();
+      }
+    }, 120);
   });
 
   try {

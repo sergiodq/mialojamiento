@@ -37,17 +37,19 @@ function renderTable(filtered = users) {
   tbody.innerHTML = filtered
     .map((user) => `
       <tr>
-        <td>
-          <strong>${user.nombre || '—'}</strong><br>
-          <small class="muted">${user.id}</small>
+        <td data-label="Usuario">
+          <div class="table-cell-content">
+            <strong>${user.nombre || '—'}</strong>
+            <small class="muted">${user.id}</small>
+          </div>
         </td>
-        <td>${user.email}</td>
-        <td>${user.rol}</td>
-        <td>${user.empresa_id || '—'}</td>
-        <td>${user.propiedad_ids?.length ? user.propiedad_ids.join(', ') : '—'}</td>
-        <td>${user.estado_registro}</td>
-        <td>${user.eliminado ? '<span class="badge red">Baja lógica</span>' : (user.activo ? '<span class="badge green">Activo</span>' : '<span class="badge orange">Inactivo</span>')}</td>
-        <td>
+        <td data-label="Email">${user.email}</td>
+        <td data-label="Rol">${user.rol}</td>
+        <td data-label="Ámbito">${user.empresa_id || '—'}</td>
+        <td data-label="Propiedades">${user.propiedad_ids?.length ? user.propiedad_ids.join(', ') : '—'}</td>
+        <td data-label="Registro">${user.estado_registro}</td>
+        <td data-label="Estado">${user.eliminado ? '<span class="badge red">Baja lógica</span>' : (user.activo ? '<span class="badge green">Activo</span>' : '<span class="badge orange">Inactivo</span>')}</td>
+        <td data-label="Acciones">
           <div class="table-actions">
             <a class="btn-secondary" href="nuevo_usuario.html?id=${user.id}">Editar</a>
             ${user.eliminado

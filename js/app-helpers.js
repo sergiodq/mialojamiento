@@ -627,8 +627,22 @@ function setupResponsiveSidebarControls() {
     document.body.appendChild(backdrop);
   }
 
-  const closeSidebar = () => body.classList.remove('sidebar-open');
-  const openSidebar = () => body.classList.add('sidebar-open');
+  const setSidebarExpanded = (expanded) => {
+    qsa('[data-sidebar-open]').forEach((btn) => {
+      btn.setAttribute('aria-expanded', String(expanded));
+    });
+  };
+  const closeSidebar = () => {
+    body.classList.remove('sidebar-open');
+    setSidebarExpanded(false);
+  };
+  const openSidebar = () => {
+    body.classList.add('sidebar-open');
+    setSidebarExpanded(true);
+    qs('[data-sidebar-close]')?.focus();
+  };
+
+  setSidebarExpanded(body.classList.contains('sidebar-open'));
 
   qsa('[data-sidebar-open]').forEach((btn) => {
     if (btn.dataset.sidebarBound === '1') return;
@@ -656,7 +670,13 @@ function setupResponsiveSidebarControls() {
   if (!window.__mialojamientoResponsiveSidebarResizeBound) {
     window.__mialojamientoResponsiveSidebarResizeBound = true;
     window.addEventListener('resize', () => {
-      if (window.innerWidth > 980) closeSidebar();
+      if (window.innerWidth > 1024) closeSidebar();
+    });
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && body.classList.contains('sidebar-open')) {
+        closeSidebar();
+        qs('[data-sidebar-open]')?.focus();
+      }
     });
   }
 }

@@ -79,17 +79,19 @@ function renderTable(filtered = properties) {
   tbody.innerHTML = filtered
     .map((property) => `
       <tr>
-        <td>
-          <strong>${property.nombre}</strong><br>
-          <small class="muted">${property.id}</small>
+        <td data-label="Propiedad">
+          <div class="table-cell-content">
+            <strong>${property.nombre}</strong>
+            <small class="muted">${property.id}</small>
+          </div>
         </td>
-        <td>${property.codigo || '—'}</td>
-        <td>${property.tipo || '—'}</td>
-        <td>${property.ciudad || '—'}</td>
-        <td>${property.empresa_id || '—'}</td>
-        <td>${property.check_in || '—'} / ${property.check_out || '—'}</td>
-        <td>${property.activo ? '<span class="badge green">Activa</span>' : '<span class="badge orange">Inactiva</span>'}</td>
-        <td>
+        <td data-label="Código">${property.codigo || '—'}</td>
+        <td data-label="Tipo">${property.tipo || '—'}</td>
+        <td data-label="Ciudad">${property.ciudad || '—'}</td>
+        <td data-label="Ámbito">${property.empresa_id || '—'}</td>
+        <td data-label="Horarios">${property.check_in || '—'} / ${property.check_out || '—'}</td>
+        <td data-label="Estado">${property.activo ? '<span class="badge green">Activa</span>' : '<span class="badge orange">Inactiva</span>'}</td>
+        <td data-label="Acciones">
           <div class="table-actions">
             <button class="btn-secondary btnEditProperty" data-id="${property.id}">Editar</button>
             <a class="btn-ghost" href="unidades.html?propiedad=${property.id}">Unidades</a>
