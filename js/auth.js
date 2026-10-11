@@ -12,7 +12,6 @@ import {
 } from './firebase-config.js';
 import {
   REGISTRATION_STATES,
-  getCurrentProfile,
   getCurrentProfileWithRetry,
   getEmailIndex,
   getUserById,
@@ -47,6 +46,29 @@ function clearResetPendingEmail() {
   try {
     localStorage.removeItem(RESET_PENDING_STORAGE_KEY);
   } catch {}
+}
+
+function userFacingAuthError(error, fallback = 'No pudimos completar la operación. Intentá nuevamente.') {
+  console.error('[MiAlojamiento] Error de autenticación:', error);
+
+  switch (error?.code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return 'El correo o la contraseña no son correctos.';
+    case 'auth/email-already-in-use':
+      return 'Ya existe una cuenta con este correo.';
+    case 'auth/invalid-email':
+      return 'Ingresá un correo válido.';
+    case 'auth/weak-password':
+      return 'Elegí una contraseña más segura, de al menos 6 caracteres.';
+    case 'auth/too-many-requests':
+      return 'Hiciste varios intentos seguidos. Esperá un momento y probá nuevamente.';
+    case 'auth/network-request-failed':
+      return 'No pudimos conectarnos. Revisá tu conexión e intentá nuevamente.';
+    default:
+      return error?.code ? fallback : (error?.message || fallback);
+  }
 }
 
 async function settleSessionAfterLogin(user) {
@@ -102,14 +124,14 @@ export async function loginUser(email, password) {
         profile = await getCurrentProfileWithRetry({ attempts: 4, delayMs: 260 });
       } else {
         await signOut(auth);
-        throw new Error('Esta cuenta fue reactivada. Antes de ingresar, usá “Olvidé mi clave” para definir una contraseña nueva.');
+        throw new Error('Esta cuenta fue reactivada. Usá “Olvidé mi clave” para crear una contraseña nueva antes de ingresar.');
       }
     }
   }
 
   if (!profile) {
     await signOut(auth);
-    throw new Error('La cuenta existe en Authentication, pero no tiene un perfil válido o activo en Firestore.');
+    throw new Error('No pudimos acceder a tu cuenta. Contactá al administrador.');
   }
 
   clearResetPendingEmail();
@@ -139,7 +161,7 @@ export async function registerPendingUser({ nombre, email, password }) {
   }
 
   if (userProfile && userProfile.uid && [REGISTRATION_STATES.ACTIVO, REGISTRATION_STATES.REQUIERE_RESET].includes(userProfile.estado_registro)) {
-    throw new Error('Ese correo ya tiene una cuenta registrada. Probá iniciar sesión o recuperar la contraseña.');
+    throw new Error('Ese correo ya tiene una cuenta. Probá ingresar o recuperar la contraseña.');
   }
 
   let credential;
@@ -147,11 +169,11 @@ export async function registerPendingUser({ nombre, email, password }) {
     credential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
   } catch (error) {
     if (error?.code === 'auth/email-already-in-use') {
-      const legacyUser = userProfile || await findUserCandidateByEmail(normalizedEmail);
-      if (legacyUser?.activo && !legacyUser.eliminado && legacyUser.uid) {
-        throw new Error('Ese correo ya tiene una cuenta creada. Entrá por “Ingresar” o usá “Olvidé mi clave”.');
+      const existingUser = userProfile || await findUserCandidateByEmail(normalizedEmail);
+      if (existingUser?.activo && !existingUser.eliminado && existingUser.uid) {
+        throw new Error('Ese correo ya tiene una cuenta. Entrá por “Ingresar” o usá “Olvidé mi clave”.');
       }
-      throw new Error('Ese correo ya existe en Authentication. Si es tuyo, probá iniciar sesión o recuperar la contraseña.');
+      throw new Error('Ya existe una cuenta con este correo. Probá ingresar o recuperar la contraseña.');
     }
     throw error;
   }
@@ -163,17 +185,17 @@ export async function registerPendingUser({ nombre, email, password }) {
 
     if (!userProfile) {
       await rollbackCreatedAuthUser(credential);
-      throw new Error('La cuenta Auth se creó, pero no existe un perfil válido en Firestore dado de alta por un administrador.');
+      throw new Error('No encontramos un usuario habilitado con ese correo. Contactá al administrador.');
     }
 
     if (!userProfile.activo || userProfile.eliminado) {
       await rollbackCreatedAuthUser(credential);
-      throw new Error('El perfil existe en Firestore, pero está dado de baja.');
+      throw new Error('Tu usuario está dado de baja. Contactá al administrador.');
     }
 
     if (userProfile.uid && userProfile.uid !== credential.user.uid) {
       await rollbackCreatedAuthUser(credential);
-      throw new Error('Ese correo ya estaba vinculado a otra cuenta. Probá iniciar sesión o recuperar la contraseña.');
+      throw new Error('Ese correo ya está vinculado a otra cuenta. Probá ingresar o recuperar la contraseña.');
     }
 
     await updateDoc(doc(db, 'usuarios', userProfile.id), {
@@ -246,11 +268,7 @@ function renderServerMessage() {
   if (!box) return;
 
   if (error === 'sin-perfil') {
-    setFeedback(
-      box,
-      'Tu cuenta existe, pero no tiene un perfil válido o activo en Firestore. Si es un caso legacy, la app intentará repararlo al volver a ingresar. Si no, contactá al administrador.',
-      'error'
-    );
+    setFeedback(box, 'No pudimos acceder a tu cuenta. Contactá al administrador.', 'error');
   } else {
     box.innerHTML = '';
   }
@@ -273,7 +291,6 @@ export function initLoginPage() {
     event.preventDefault();
     const feedback = qs('#loginFeedback');
     setFeedback(feedback, '');
-
     const email = qs('[name="login_email"]', loginForm)?.value || '';
     const password = qs('[name="login_password"]', loginForm)?.value || '';
     const submit = qs('button[type="submit"]', loginForm);
@@ -283,7 +300,7 @@ export function initLoginPage() {
       await loginUser(email, password);
       window.location.href = 'dashboard.html';
     } catch (error) {
-      setFeedback(feedback, error.message || 'No se pudo iniciar sesión.', 'error');
+      setFeedback(feedback, userFacingAuthError(error, 'No pudimos iniciar sesión. Intentá nuevamente.'), 'error');
     } finally {
       setButtonLoading(submit, false);
     }
@@ -293,7 +310,6 @@ export function initLoginPage() {
     event.preventDefault();
     const feedback = qs('#registerFeedback');
     setFeedback(feedback, '');
-
     const nombre = qs('[name="register_nombre"]', registerForm)?.value || '';
     const email = qs('[name="register_email"]', registerForm)?.value || '';
     const password = qs('[name="register_password"]', registerForm)?.value || '';
@@ -301,19 +317,14 @@ export function initLoginPage() {
     const submit = qs('button[type="submit"]', registerForm);
 
     try {
-      if (password.length < 6) {
-        throw new Error('La contraseña debe tener al menos 6 caracteres.');
-      }
-      if (password !== confirm) {
-        throw new Error('Las contraseñas no coinciden.');
-      }
-
+      if (password.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres.');
+      if (password !== confirm) throw new Error('Las contraseñas no coinciden.');
       setButtonLoading(submit, true, 'Registrando...');
       await registerPendingUser({ nombre, email, password });
-      showToast('Tu cuenta quedó vinculada correctamente. Ya podés entrar.', 'success', 'Registro completo');
+      showToast('Tu cuenta está lista. Ya podés ingresar.', 'success', 'Registro completo');
       window.location.href = 'dashboard.html';
     } catch (error) {
-      setFeedback(feedback, error.message || 'No se pudo completar el registro.', 'error');
+      setFeedback(feedback, userFacingAuthError(error, 'No pudimos completar el registro. Intentá nuevamente.'), 'error');
     } finally {
       setButtonLoading(submit, false);
     }
@@ -323,31 +334,20 @@ export function initLoginPage() {
     event.preventDefault();
     const feedback = qs('#resetFeedback');
     setFeedback(feedback, '');
-
     const email = qs('[name="reset_email"]', resetForm)?.value || '';
     const submit = qs('button[type="submit"]', resetForm);
 
     try {
       setButtonLoading(submit, true, 'Enviando...');
       await sendReset(email);
-      setFeedback(
-        feedback,
-        'Listo. Si el correo existe en Authentication, Firebase enviará el mail de recuperación. Después de cambiar la clave, volvé a ingresar.',
-        'success'
-      );
+      setFeedback(feedback, 'Te enviamos un enlace para cambiar tu contraseña. Revisá también la carpeta de spam.', 'success');
     } catch (error) {
-      setFeedback(feedback, error.message || 'No se pudo enviar el correo de recuperación.', 'error');
+      setFeedback(feedback, userFacingAuthError(error, 'No pudimos enviar el correo. Intentá nuevamente.'), 'error');
     } finally {
       setButtonLoading(submit, false);
     }
   });
 
   const footerHint = qs('#authFooterHint');
-  if (footerHint) {
-    footerHint.innerHTML = `
-      <span class="muted">
-        Si el usuario ya existía en Authentication, no vuelvas a registrarlo. Si fue reactivado, deberá pasar por <span class="codeish">Olvidé mi clave</span> antes de ingresar.
-      </span>
-    `;
-  }
+  if (footerHint) footerHint.innerHTML = '';
 }
