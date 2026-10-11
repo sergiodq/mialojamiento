@@ -2,99 +2,120 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#415f91">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MiAlojamiento · Acceso</title>
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/material3.css" data-material3>
+  <link rel="stylesheet" href="css/material3.css">
 </head>
-<body class="login-page">
-  <div class="hero-auth">
-    <section class="auth-side" aria-label="MiAlojamiento">
-      <div>
-        <div class="brand-badge">M</div>
-        <h1>MiAlojamiento</h1>
-        <p>Tu alojamiento, en orden.</p>
+<body class="login-page login-premium-page">
+  <div class="login-premium-shell">
+    <section class="login-premium-hero">
+      <div class="login-premium-overlay"></div>
+
+      <div class="login-premium-content">
+        <div class="login-brand-mark">M</div>
+
+        <span class="login-kicker">MiAlojamiento</span>
+        <h1>Gestioná reservas, propiedades y usuarios en un solo lugar</h1>
+        <p>
+          Una experiencia simple, moderna y pensada para trabajar cómodo desde el celular o la PC.
+        </p>
+
+        <div class="login-feature-pills">
+          <span>Reservas</span>
+          <span>Propiedades</span>
+          <span>Usuarios</span>
+        </div>
       </div>
     </section>
 
-    <section class="auth-panel-wrap">
-      <div class="auth-panel">
-        <div class="auth-tabs" role="tablist" aria-label="Opciones de acceso">
+    <section class="login-premium-panel-wrap">
+      <div class="login-premium-card">
+        <div class="login-card-head">
+          <div class="login-card-brand">
+            <div class="login-card-badge">M</div>
+            <div>
+              <strong>MiAlojamiento</strong>
+              <small>Acceso seguro</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-tabs auth-tabs-premium">
           <button type="button" class="auth-tab active" data-mode="login">Ingresar</button>
           <button type="button" class="auth-tab" data-mode="register">Registrarme</button>
           <button type="button" class="auth-tab" data-mode="reset">Recuperar</button>
         </div>
 
-        <div>
+        <div class="login-panel-copy">
           <h2>Bienvenido</h2>
           <p>Elegí una opción para continuar.</p>
         </div>
 
-        <div id="authMessage" aria-live="polite"></div>
+        <div id="authMessage"></div>
 
         <div class="auth-pane" data-mode="login">
           <form id="loginForm" class="grid">
             <div class="field">
               <label for="login_email">Correo</label>
-              <input id="login_email" name="login_email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required>
+              <input id="login_email" name="login_email" type="email" placeholder="usuario@empresa.com" required>
             </div>
 
             <div class="field">
               <label for="login_password">Contraseña</label>
-              <input id="login_password" name="login_password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+              <input id="login_password" name="login_password" type="password" placeholder="••••••••" required>
             </div>
 
-            <div id="loginFeedback" aria-live="polite"></div>
-            <button type="submit" class="btn">Ingresar</button>
+            <div id="loginFeedback"></div>
+
+            <button type="submit" class="btn btn-login-main">Continuar</button>
           </form>
         </div>
 
         <div class="auth-pane" data-mode="register" hidden>
-          <div class="notice">Tu usuario debe haber sido habilitado previamente por un administrador.</div>
-
           <form id="registerForm" class="grid">
             <div class="field">
               <label for="register_nombre">Nombre</label>
-              <input id="register_nombre" name="register_nombre" type="text" autocomplete="name" placeholder="Nombre y apellido" required>
+              <input id="register_nombre" name="register_nombre" type="text" placeholder="Nombre y apellido" required>
             </div>
 
             <div class="field">
               <label for="register_email">Correo</label>
-              <input id="register_email" name="register_email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required>
+              <input id="register_email" name="register_email" type="email" placeholder="usuario@empresa.com" required>
             </div>
 
             <div class="grid two">
               <div class="field">
                 <label for="register_password">Contraseña</label>
-                <input id="register_password" name="register_password" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" required>
+                <input id="register_password" name="register_password" type="password" placeholder="Mínimo 6 caracteres" required>
               </div>
 
               <div class="field">
                 <label for="register_password_confirm">Repetir contraseña</label>
-                <input id="register_password_confirm" name="register_password_confirm" type="password" autocomplete="new-password" placeholder="Repetí la contraseña" required>
+                <input id="register_password_confirm" name="register_password_confirm" type="password" placeholder="Repetí la contraseña" required>
               </div>
             </div>
 
-            <div id="registerFeedback" aria-live="polite"></div>
-            <button type="submit" class="btn">Crear mi acceso</button>
+            <div id="registerFeedback"></div>
+
+            <button type="submit" class="btn btn-login-main">Crear cuenta</button>
           </form>
         </div>
 
         <div class="auth-pane" data-mode="reset" hidden>
-          <div class="notice">Ingresá tu correo y te enviaremos un enlace para cambiar la contraseña.</div>
           <form id="resetForm" class="grid">
             <div class="field">
               <label for="reset_email">Correo</label>
-              <input id="reset_email" name="reset_email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required>
+              <input id="reset_email" name="reset_email" type="email" placeholder="usuario@empresa.com" required>
             </div>
 
-            <div id="resetFeedback" aria-live="polite"></div>
-            <button type="submit" class="btn-secondary">Enviar enlace</button>
+            <div id="resetFeedback"></div>
+
+            <button type="submit" class="btn btn-login-main">Enviar enlace</button>
           </form>
         </div>
 
-        <div id="authFooterHint"></div>
+        <div id="authFooterHint" class="login-panel-foot"></div>
       </div>
     </section>
   </div>
