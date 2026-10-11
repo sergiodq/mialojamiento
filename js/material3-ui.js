@@ -25,6 +25,15 @@ function normalizeLabel(label = '') {
   return String(label).trim().toLowerCase();
 }
 
+export function isMobileNavItemActive(item, currentHref = '', currentHash = '') {
+  const target = normalizeHref(item?.href || '');
+  const current = normalizeHref(currentHref || '');
+  if (target !== current) return false;
+  if (item?.label === 'Reservas') return currentHash === '#planningBoard';
+  if (item?.label === 'Inicio' && current === 'dashboard.html') return currentHash !== '#planningBoard';
+  return true;
+}
+
 export function buildMobileNavModel(links = [], currentHref = '') {
   const normalized = links.filter(item => item?.href).map(item => ({
     label: String(item.label || '').trim(),
@@ -66,12 +75,12 @@ function createIcon(name) {
 }
 
 function sanitizeVisibleText(root = document) {
-  const selectors = ['.callout', '.notice', '.toast', '#authMessage', '#loginFeedback', '#registerFeedback', '#resetFeedback', '#formFeedback', '.field small'];
+  const selectors = ['.callout', '.callout *', '.notice', '.notice *', '.toast', '.toast *', '#authMessage', '#loginFeedback', '#registerFeedback', '#resetFeedback', '#formFeedback', '.field small'];
   root.querySelectorAll?.(selectors.join(',')).forEach((node) => {
     const original = node.textContent?.trim();
-    if (!original) return;
+    if (!original || node.children.length) return;
     const clean = friendlyMessage(original);
-    if (clean !== original && node.children.length === 0) node.textContent = clean;
+    if (clean !== original) node.textContent = clean;
   });
   const emailHint = root.querySelector?.('#emailLockHint');
   if (emailHint) emailHint.textContent = 'El correo de este usuario no puede modificarse.';
@@ -119,8 +128,7 @@ function renderAdaptiveChrome() {
     const a = document.createElement('a');
     a.className = 'm3-bottom-nav-item';
     a.href = item.href;
-    const target = normalizeHref(item.href);
-    if (target === model.currentHref || (item.label === 'Reservas' && model.currentHref === 'dashboard.html' && window.location.hash === '#planningBoard')) a.classList.add('is-active');
+    if (isMobileNavItemActive(item, model.currentHref, window.location.hash)) a.classList.add('is-active');
     a.appendChild(createIcon(item.icon));
     const label = document.createElement('span');
     label.textContent = item.label;
@@ -168,6 +176,7 @@ function renderAdaptiveChrome() {
   backdrop.addEventListener('click', () => closeDrawer(drawer, backdrop));
   drawer.querySelector('[data-m3-close]')?.addEventListener('click', () => closeDrawer(drawer, backdrop));
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeDrawer(drawer, backdrop); });
+
   if (model.fab && model.currentHref !== normalizeHref(model.fab.href)) {
     document.querySelector('#quickNuevaReservaFab')?.setAttribute('hidden', '');
     const fab = document.createElement('a');
