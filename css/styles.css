@@ -5097,3 +5097,900 @@ body.dashboard-page #calendarMonthLabel {
     line-height: 1;
   }
 }
+/* =========================================================
+   RESPONSIVE FINAL CONSOLIDADO · Septiembre 2026
+   Capa de compatibilidad: prevalece sobre los bloques
+   responsive históricos sin alterar el escritorio grande.
+   ========================================================= */
+
+html,
+body {
+  max-width: 100%;
+}
+
+body {
+  overflow-x: clip;
+}
+
+.page-shell,
+.main,
+.page-frame,
+.card,
+.card.pad,
+.topbar,
+.topbar-leading,
+.topbar-actions,
+.toolbar,
+.toolbar-between,
+.grid,
+.split,
+.form-grid,
+.field,
+.table-wrap {
+  min-width: 0;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+.table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.sidebar-user,
+.title-block,
+.title-block p,
+.stat-item,
+.calendar-detail-card,
+.mobile-reservation-card,
+.mobile-unit-card {
+  overflow-wrap: anywhere;
+}
+
+/* Tablet / notebook angosta: elimina el conflicto del dashboard fit-viewport. */
+@media (max-width: 1180px) {
+  body.dashboard-page {
+    height: auto !important;
+    min-height: 100dvh;
+    overflow-y: auto !important;
+    overflow-x: clip !important;
+  }
+
+  body.dashboard-page .page-shell {
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+  }
+
+  body.dashboard-page .main {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.dashboard-page .dashboard-page-frame {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.dashboard-page .section.dashboard-focus,
+  body.dashboard-page .planner-card-fit,
+  body.dashboard-page .dashboard-calendar-card-fit {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  body.dashboard-page .planning-board-shell {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  body.dashboard-page .planning-board-scroll {
+    width: 100%;
+    max-width: 100%;
+    max-height: 68dvh;
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .grid.four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid.three {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Menú móvil único. Este breakpoint también cubre tablets de 1024px. */
+@media (max-width: 1040px) {
+  .page-shell {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100%;
+  }
+
+  .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0;
+    width: min(86vw, 320px) !important;
+    height: 100dvh !important;
+    padding: 18px 14px 22px !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    transform: translateX(-105%) !important;
+    transition: transform .22s ease !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    border-right: 1px solid rgba(215, 223, 235, .9) !important;
+    border-bottom: 0 !important;
+    box-shadow: 18px 0 55px rgba(15, 23, 42, .18) !important;
+    z-index: 100 !important;
+  }
+
+  body.sidebar-open .sidebar {
+    transform: translateX(0) !important;
+  }
+
+  body.sidebar-open {
+    overflow: hidden !important;
+  }
+
+  .mobile-sidebar-toggle,
+  .sidebar-close-btn {
+    display: inline-flex !important;
+    flex: 0 0 42px;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    z-index: 90 !important;
+  }
+
+  body.sidebar-open .sidebar-backdrop {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .sidebar .brand {
+    padding-right: 48px;
+  }
+
+  .sidebar .nav-group {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .sidebar .nav-link {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: none !important;
+  }
+
+  .sidebar-footer {
+    grid-template-columns: 1fr !important;
+    margin-top: 16px !important;
+  }
+
+  .sidebar-footer > * {
+    width: 100%;
+  }
+
+  .main {
+    width: 100%;
+    max-width: 100%;
+    padding: 16px !important;
+  }
+
+  .page-frame {
+    width: 100%;
+    max-width: 100% !important;
+  }
+
+  .topbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .topbar-leading {
+    width: 100%;
+    align-items: center !important;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+
+  .grid.two,
+  .form-grid,
+  .split {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .toolbar,
+  .toolbar-between {
+    align-items: stretch !important;
+  }
+
+  .toolbar .field,
+  .toolbar-between .field {
+    min-width: 0 !important;
+    max-width: 100%;
+  }
+
+  body.properties-page .property-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body.properties-page .property-form-grid > *,
+  body.user-form-page .form-grid > *,
+  body.reservation-page .form-grid > *,
+  body.units-page .form-grid > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  body.dashboard-page .dashboard-kpi-grid,
+  body.dashboard-page .dashboard-kpi-grid-planner,
+  body.dashboard-page .grid.six {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body.dashboard-page .planner-inline-tools,
+  body.dashboard-page .dashboard-inline-tools {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body.dashboard-page .dashboard-month-toolbar,
+  body.dashboard-page .planner-toolbar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  body.dashboard-page .planning-board-wrap {
+    width: max-content;
+    min-width: 780px !important;
+    max-width: none;
+  }
+}
+
+/* Celular estándar */
+@media (max-width: 720px) {
+  .main {
+    padding: 12px !important;
+  }
+
+  .card.pad {
+    padding: 16px !important;
+    border-radius: 18px !important;
+  }
+
+  .section {
+    margin-top: 14px;
+  }
+
+  .title-block h2 {
+    font-size: clamp(1.45rem, 7vw, 1.85rem) !important;
+    line-height: 1.08;
+  }
+
+  .title-block p {
+    margin-top: 6px;
+    font-size: .9rem;
+    line-height: 1.4;
+  }
+
+  .grid.six,
+  .grid.four,
+  .grid.three,
+  .grid.two,
+  .form-grid,
+  .split {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body.dashboard-page .dashboard-kpi-grid,
+  body.dashboard-page .dashboard-kpi-grid-planner,
+  body.dashboard-page .grid.six {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .topbar-actions,
+  .toolbar,
+  .toolbar-between,
+  .form-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .topbar-actions > *,
+  .form-actions > * {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .toolbar > *,
+  .toolbar-between > * {
+    max-width: 100%;
+  }
+
+  .field.inline {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .checkbox-list,
+  .chip-list {
+    width: 100%;
+  }
+
+  .checkbox-chip {
+    max-width: 100%;
+  }
+
+  .table-wrap {
+    width: 100%;
+    max-width: calc(100vw - 24px);
+    border-radius: 14px !important;
+  }
+
+  table {
+    min-width: 640px !important;
+  }
+
+  body.properties-page .propiedades-list-card table {
+    min-width: 760px !important;
+  }
+
+  .table-actions {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+  }
+
+  .table-actions > *,
+  .table-actions .btn,
+  .table-actions .btn-secondary,
+  .table-actions .btn-danger,
+  .table-actions .btn-ghost {
+    width: auto !important;
+    min-height: 36px;
+    padding: 8px 10px;
+  }
+
+  body.properties-page .property-form-grid,
+  body.properties-page .propiedades-form-card .checkbox-list {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body.properties-page .property-form-grid > * {
+    grid-column: 1 / -1 !important;
+    max-width: 100% !important;
+  }
+
+  body.dashboard-page .dashboard-inline-resume,
+  body.dashboard-page .planner-resume {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body.dashboard-page .planning-board-wrap {
+    min-width: 700px !important;
+  }
+
+  body.dashboard-page .planning-corner-header,
+  body.dashboard-page .planning-property-cell,
+  body.dashboard-page .planning-room-cell {
+    min-width: 164px !important;
+    width: 164px !important;
+  }
+
+  body.dashboard-page .planning-day-header,
+  body.dashboard-page .planning-day-cell,
+  body.dashboard-page .planning-reservation-cell {
+    min-width: 66px !important;
+    width: 66px !important;
+  }
+}
+
+/* Login: prioriza el formulario en teléfonos. */
+@media (max-width: 640px) {
+  .hero-auth {
+    min-height: 100dvh !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .auth-side {
+    min-height: auto !important;
+    padding: 18px 16px !important;
+    gap: 10px !important;
+  }
+
+  .auth-side h1 {
+    font-size: 1.75rem !important;
+    line-height: 1 !important;
+  }
+
+  .auth-side p,
+  .auth-kpis {
+    display: none !important;
+  }
+
+  .auth-side .brand-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+  }
+
+  .auth-panel-wrap {
+    padding: 12px !important;
+    place-items: start center !important;
+  }
+
+  .auth-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px !important;
+    border-radius: 20px !important;
+    gap: 14px !important;
+  }
+
+  .auth-tabs {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .auth-tab {
+    width: 100%;
+  }
+
+  .auth-panel h2 {
+    font-size: 1.45rem;
+  }
+
+  .sidebar {
+    width: min(88vw, 320px) !important;
+  }
+}
+
+/* Teléfonos angostos: dashboard estable sin desbordar el viewport. */
+@media (max-width: 520px) {
+  body.dashboard-page .main {
+    padding: 10px 9px 88px !important;
+  }
+
+  body.dashboard-page .dashboard-page-frame {
+    width: 100%;
+    max-width: 100%;
+    gap: 10px !important;
+  }
+
+  body.dashboard-page .dashboard-kpi-grid,
+  body.dashboard-page .dashboard-kpi-grid-planner {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  body.dashboard-page .dashboard-kpi-card,
+  body.dashboard-page .dashboard-kpi-card.compact,
+  body.dashboard-page .planner-kpi-card {
+    min-width: 0 !important;
+    min-height: 62px !important;
+    padding: 9px 10px !important;
+  }
+
+  body.dashboard-page .dashboard-kpi-card .kpi-label,
+  body.dashboard-page .planner-kpi-card .kpi-label {
+    font-size: .62rem !important;
+    overflow-wrap: anywhere;
+  }
+
+  body.dashboard-page .dashboard-kpi-card .kpi-value,
+  body.dashboard-page .planner-kpi-card .kpi-value {
+    font-size: 1.2rem !important;
+  }
+
+  body.dashboard-page .dashboard-calendar-card,
+  body.dashboard-page .dashboard-calendar-card-fit,
+  body.dashboard-page .planner-card-fit {
+    width: 100%;
+    max-width: 100%;
+    padding: 11px 9px !important;
+    overflow: hidden !important;
+  }
+
+  body.dashboard-page .dashboard-calendar-header,
+  body.dashboard-page .planner-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100%;
+    gap: 10px !important;
+  }
+
+  body.dashboard-page .dashboard-month-toolbar,
+  body.dashboard-page .planner-toolbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    gap: 7px !important;
+  }
+
+  body.dashboard-page .dashboard-view-switch {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  body.dashboard-page .dashboard-view-btn,
+  body.dashboard-page #calendarPrev,
+  body.dashboard-page #calendarNext,
+  body.dashboard-page #calendarMonthLabel {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 40px !important;
+    padding: 0 10px !important;
+    white-space: normal !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  body.dashboard-page .planner-inline-tools {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body.dashboard-page .dashboard-inline-resume,
+  body.dashboard-page .planner-resume {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  body.dashboard-page .dashboard-inline-stat {
+    min-width: 0;
+    min-height: 64px !important;
+    padding: 9px !important;
+  }
+
+  body.dashboard-page .planner-legend {
+    width: 100%;
+    gap: 6px !important;
+  }
+
+  body.dashboard-page .planner-legend-item {
+    max-width: 100%;
+  }
+
+  body.dashboard-page .planning-board-shell {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden !important;
+    border-radius: 14px !important;
+  }
+
+  body.dashboard-page .planning-board-scroll {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 !important;
+    overflow: auto !important;
+  }
+
+  body.dashboard-page .planning-board-wrap {
+    min-width: 660px !important;
+  }
+
+  body.dashboard-page .mobile-planner-stack,
+  body.dashboard-page .mobile-property-card,
+  body.dashboard-page .mobile-unit-card,
+  body.dashboard-page .mobile-reservation-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  body.dashboard-page .mobile-reservation-actions {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  body.dashboard-page .mobile-reservation-actions .planning-action-btn {
+    width: auto !important;
+    flex: 0 0 auto;
+  }
+
+  body.dashboard-page .fab-dashboard {
+    position: fixed !important;
+    width: 58px !important;
+    min-width: 58px !important;
+    height: 58px !important;
+    min-height: 58px !important;
+    right: 12px !important;
+    left: auto !important;
+    bottom: 12px !important;
+    padding: 0 !important;
+    border-radius: 999px !important;
+    z-index: 110 !important;
+  }
+}
+
+/* Pantallas extremadamente angostas. */
+@media (max-width: 380px) {
+  .main {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .card.pad {
+    padding: 13px !important;
+  }
+
+  body.dashboard-page .dashboard-kpi-grid,
+  body.dashboard-page .dashboard-kpi-grid-planner,
+  body.dashboard-page .dashboard-inline-resume,
+  body.dashboard-page .planner-resume {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body.dashboard-page .planning-board-wrap {
+    min-width: 620px !important;
+  }
+}
+
+
+/* =========================================================
+   LOGIN MOBILE APP · Consolidado octubre 2026
+   Pantalla completa, menos texto y controles touch grandes
+   ========================================================= */
+
+body.login-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+body.login-page .auth-panel > div:nth-child(2) p {
+  max-width: 420px;
+}
+
+@media (max-width: 640px) {
+  body.login-page {
+    min-height: 100dvh;
+    overflow-x: hidden;
+    background: #fff;
+  }
+
+  body.login-page .hero-auth {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex !important;
+    flex-direction: column;
+    grid-template-columns: none !important;
+    background: #fff;
+  }
+
+  /* Encabezado compacto tipo app */
+  body.login-page .auth-side {
+    flex: 0 0 auto;
+    min-height: 0 !important;
+    padding: 18px 20px 16px !important;
+    display: block !important;
+    border-radius: 0;
+  }
+
+  body.login-page .auth-side > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  body.login-page .auth-side .brand-badge {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    margin: 0 !important;
+    border-radius: 14px;
+    font-size: 1rem;
+  }
+
+  body.login-page .auth-side h1 {
+    margin: 0;
+    font-size: clamp(1.55rem, 7vw, 1.9rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+
+  body.login-page .auth-side p,
+  body.login-page .auth-kpis {
+    display: none !important;
+  }
+
+  /* El panel ocupa todo el resto de la pantalla */
+  body.login-page .auth-panel-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block !important;
+    padding: 0 !important;
+    background: #fff;
+  }
+
+  body.login-page .auth-panel {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100%;
+    padding: 18px 18px max(24px, env(safe-area-inset-bottom)) !important;
+    gap: 16px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none;
+    background: #fff;
+  }
+
+  /* Los tres modos siempre en una sola fila */
+  body.login-page .auth-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    padding: 6px !important;
+    border-radius: 18px !important;
+    background: var(--primary-soft);
+  }
+
+  body.login-page .auth-tab {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 54px !important;
+    padding: 0 6px !important;
+    border-radius: 14px !important;
+    font-size: 0.88rem;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  body.login-page .auth-panel h2 {
+    margin: 2px 0 0;
+    font-size: 1.55rem;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+  }
+
+  body.login-page .auth-panel > div:nth-child(2) p {
+    margin-top: 5px;
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  body.login-page .auth-pane form.grid,
+  body.login-page #loginForm,
+  body.login-page #registerForm,
+  body.login-page #resetForm {
+    gap: 14px !important;
+  }
+
+  body.login-page .field {
+    gap: 7px;
+  }
+
+  body.login-page .field label {
+    font-size: 0.9rem;
+  }
+
+  /* 16px evita zoom automático de Safari/iOS */
+  body.login-page input[type="email"],
+  body.login-page input[type="password"],
+  body.login-page input[type="text"] {
+    min-height: 54px !important;
+    height: 54px;
+    padding: 0 15px !important;
+    border-radius: 16px !important;
+    font-size: 16px !important;
+  }
+
+  body.login-page #loginForm > button[type="submit"],
+  body.login-page #registerForm > button[type="submit"],
+  body.login-page #resetForm > button[type="submit"] {
+    width: 100% !important;
+    min-height: 56px !important;
+    padding: 0 18px !important;
+    border-radius: 16px !important;
+    font-size: 1rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.login-page .notice {
+    padding: 11px 12px;
+    border-radius: 14px;
+    font-size: 0.84rem;
+    line-height: 1.35;
+  }
+
+  body.login-page #loginFeedback:empty,
+  body.login-page #registerFeedback:empty,
+  body.login-page #resetFeedback:empty,
+  body.login-page #authMessage:empty {
+    display: none;
+  }
+
+  /* En celular esta ayuda repetía lo que ya dicen los modos. */
+  body.login-page .divider,
+  body.login-page #authFooterHint {
+    display: none !important;
+  }
+}
+
+@media (max-width: 390px) {
+  body.login-page .auth-side {
+    padding: 16px 16px 14px !important;
+  }
+
+  body.login-page .auth-panel {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  body.login-page .auth-tab {
+    min-height: 52px !important;
+    font-size: 0.82rem;
+    padding-inline: 3px !important;
+  }
+}
+
+@media (max-height: 700px) and (max-width: 640px) {
+  body.login-page .auth-side {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  body.login-page .auth-side .brand-badge {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  body.login-page .auth-panel {
+    padding-top: 14px !important;
+    gap: 12px !important;
+  }
+
+  body.login-page .auth-panel > div:nth-child(2) p {
+    display: none;
+  }
+
+  body.login-page .auth-tab,
+  body.login-page input[type="email"],
+  body.login-page input[type="password"],
+  body.login-page input[type="text"] {
+    min-height: 50px !important;
+    height: 50px;
+  }
+
+  body.login-page #loginForm > button[type="submit"],
+  body.login-page #registerForm > button[type="submit"],
+  body.login-page #resetForm > button[type="submit"] {
+    min-height: 52px !important;
+  }
+}
