@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { friendlyMessage, buildMobileNavModel } from '../js/material3-ui.js';
+import { friendlyMessage, buildMobileNavModel, isMobileNavItemActive } from '../js/material3-ui.js';
 
 test('friendlyMessage hides Firebase and Firestore implementation details', () => {
   assert.equal(
@@ -36,4 +36,22 @@ test('buildMobileNavModel does not invent admin links for reception', () => {
   assert.deepEqual(model.primary.map(item => item.label), ['Inicio', 'Reservas']);
   assert.equal(model.fab?.href, 'nueva_reserva.html');
   assert.deepEqual(model.secondary, []);
+});
+
+test('dashboard reservation target keeps its planning hash distinct from Inicio', () => {
+  const model = buildMobileNavModel([
+    { label: 'Dashboard', href: 'dashboard.html' },
+    { label: 'Nueva reserva', href: 'nueva_reserva.html' }
+  ], 'dashboard.html');
+  assert.equal(model.primary.find(item => item.label === 'Inicio').href, 'dashboard.html');
+  assert.equal(model.primary.find(item => item.label === 'Reservas').href, 'dashboard.html#planningBoard');
+});
+
+test('only one dashboard destination is active at a time', () => {
+  const inicio = { label: 'Inicio', href: 'dashboard.html' };
+  const reservas = { label: 'Reservas', href: 'dashboard.html#planningBoard' };
+  assert.equal(isMobileNavItemActive(inicio, 'dashboard.html', ''), true);
+  assert.equal(isMobileNavItemActive(reservas, 'dashboard.html', ''), false);
+  assert.equal(isMobileNavItemActive(inicio, 'dashboard.html', '#planningBoard'), false);
+  assert.equal(isMobileNavItemActive(reservas, 'dashboard.html', '#planningBoard'), true);
 });
