@@ -6398,3 +6398,170 @@ body.login-page .auth-panel > div:nth-child(2) p {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* =========================================================
+   LOGIN PREMIUM VIBRANTE · inspiración delivery app
+   ========================================================= */
+
+.login-premium-page {
+  background:
+    radial-gradient(circle at top left, rgba(255, 122, 0, 0.26), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(255, 0, 92, 0.24), transparent 32%),
+    linear-gradient(135deg, #ff2f6d 0%, #ff005c 42%, #ff5a5f 72%, #ff7a00 100%);
+  color: #ffffff;
+}
+
+.login-premium-hero::before {
+  opacity: 0.23;
+}
+
+.login-premium-overlay {
+  background:
+    linear-gradient(135deg, rgba(255, 0, 92, 0.52), rgba(255, 122, 0, 0.36));
+}
+
+.login-brand-mark {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.24);
+  box-shadow: 0 18px 42px rgba(132, 21, 62, 0.24);
+}
+
+.login-kicker {
+  color: rgba(255,255,255,0.88);
+}
+
+.login-premium-content h1 {
+  color: #ffffff;
+}
+
+.login-premium-content p {
+  color: rgba(255,255,255,0.92);
+}
+
+.login-feature-pills span {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+.login-premium-card {
+  background: rgba(255,255,255,0.95);
+  color: #1f1728;
+  box-shadow:
+    0 20px 64px rgba(127, 16, 58, 0.22),
+    0 6px 24px rgba(127, 16, 58, 0.12);
+}
+
+.login-card-badge {
+  background: linear-gradient(135deg, #ff2f6d, #ff7a00);
+  box-shadow: 0 12px 26px rgba(255, 47, 109, 0.28);
+}
+
+.login-card-brand strong {
+  color: #241826;
+}
+
+.login-card-brand small {
+  color: #7a6677;
+}
+
+.auth-tabs-premium {
+  background: #ffe9f0;
+}
+
+.auth-tabs-premium .auth-tab {
+  color: #6c5564;
+}
+
+.auth-tabs-premium .auth-tab.active {
+  background: linear-gradient(135deg, #ff2f6d, #ff7a00);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(255, 47, 109, 0.24);
+}
+
+.login-panel-copy h2 {
+  color: #231727;
+}
+
+.login-panel-copy p {
+  color: #7b6677;
+}
+
+.login-premium-card .field label {
+  color: #39283b;
+}
+
+.login-premium-card input,
+.login-premium-card select,
+.login-premium-card textarea {
+  border: 1px solid #e4c9d2;
+  background: #fff8fa;
+  color: #241826;
+}
+
+.login-premium-card input::placeholder,
+.login-premium-card textarea::placeholder {
+  color: #b28d99;
+}
+
+.login-premium-card input:focus,
+.login-premium-card select:focus,
+.login-premium-card textarea:focus {
+  border-color: #ff2f6d;
+  box-shadow: 0 0 0 4px rgba(255, 47, 109, 0.15);
+  background: #ffffff;
+}
+
+.btn-login-main {
+  background: linear-gradient(135deg, #ff2f6d, #ff7a00);
+  color: #fff;
+  box-shadow: 0 14px 32px rgba(255, 47, 109, 0.30);
+}
+
+.btn-login-main:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.btn-login-main:active {
+  transform: translateY(0);
+}
+
+.login-premium-card .callout,
+.login-premium-card .notice {
+  background: #fff3f6;
+  border: 1px solid #ffd1dd;
+  color: #7f2848;
+}
+
+.feedback-success,
+.success,
+.alert-success {
+  background: #fff3f6 !important;
+  color: #93254f !important;
+  border: 1px solid #ffcedd !important;
+}
+
+.feedback-error,
+.error,
+.alert-error {
+  background: #fff0f2 !important;
+  color: #9b1c42 !important;
+  border: 1px solid #ffc3d4 !important;
+}
+
+/* un poco más vibrante en móvil */
+@media (max-width: 640px) {
+  .login-premium-page {
+    background:
+      linear-gradient(160deg, #ff2f6d 0%, #ff005c 46%, #ff7a00 100%);
+  }
+
+  .login-premium-card {
+    background: rgba(255,255,255,0.97);
+  }
+
+  .auth-tabs-premium .auth-tab {
+    font-size: 0.86rem;
+  }
+}
