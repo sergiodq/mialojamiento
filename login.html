@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MiAlojamiento · Acceso</title>
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body class="login-page">
   <div class="hero-auth">
@@ -13,10 +12,7 @@
       <div>
         <div class="brand-badge" style="margin-bottom:18px;">M</div>
         <h1>MiAlojamiento</h1>
-        <p>
-          Gestión web de propiedades, unidades, usuarios y reservas con un flujo realista:
-          el administrador da de alta el perfil y cada usuario completa su cuenta desde esta pantalla.
-        </p>
+        <p>Administrá propiedades, reservas y usuarios desde un solo lugar.</p>
       </div>
 
       <div class="auth-kpis">
@@ -40,12 +36,12 @@
         <div class="auth-tabs">
           <button type="button" class="auth-tab active" data-mode="login">Ingresar</button>
           <button type="button" class="auth-tab" data-mode="register">Registrarme</button>
-          <button type="button" class="auth-tab" data-mode="reset">Olvidé mi clave</button>
+          <button type="button" class="auth-tab" data-mode="reset">Recuperar</button>
         </div>
 
         <div>
           <h2>Acceso seguro</h2>
-          <p>Usá el modo correcto según tu estado. Si tu perfil fue dado de alta por un admin y nunca tuviste cuenta, primero usá “Registrarme”. Si el usuario fue reactivado, deberá usar “Olvidé mi clave”.</p>
+          <p>Elegí una opción para continuar.</p>
         </div>
 
         <div id="authMessage"></div>
@@ -70,7 +66,7 @@
 
         <div class="auth-pane" data-mode="register" hidden>
           <div class="notice">
-            Este registro no es abierto. Funciona si tu perfil ya fue dado de alta en Firestore por un administrador y todavía no tenías cuenta en Authentication. Si tu usuario fue reactivado, no podrás entrar hasta usar “Olvidé mi clave”.
+            Tu usuario debe haber sido creado previamente por un administrador.
           </div>
 
           <form id="registerForm" class="grid">
