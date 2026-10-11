@@ -124,10 +124,12 @@ function renderAdaptiveChrome() {
   const nav = document.createElement('nav');
   nav.className = 'm3-bottom-nav';
   nav.setAttribute('aria-label', 'Navegación principal');
+
   model.primary.forEach(item => {
     const a = document.createElement('a');
     a.className = 'm3-bottom-nav-item';
     a.href = item.href;
+    a.dataset.m3Label = item.label;
     if (isMobileNavItemActive(item, model.currentHref, window.location.hash)) a.classList.add('is-active');
     a.appendChild(createIcon(item.icon));
     const label = document.createElement('span');
@@ -135,6 +137,7 @@ function renderAdaptiveChrome() {
     a.appendChild(label);
     nav.appendChild(a);
   });
+
   const more = document.createElement('button');
   more.type = 'button';
   more.className = 'm3-bottom-nav-item';
@@ -144,6 +147,17 @@ function renderAdaptiveChrome() {
   more.appendChild(moreLabel);
   nav.appendChild(more);
   document.body.appendChild(nav);
+
+  const refreshActiveState = () => {
+    nav.querySelectorAll('a.m3-bottom-nav-item').forEach((link) => {
+      link.classList.toggle('is-active', isMobileNavItemActive({
+        label: link.dataset.m3Label,
+        href: link.getAttribute('href') || ''
+      }, model.currentHref, window.location.hash));
+    });
+  };
+  window.addEventListener('hashchange', refreshActiveState);
+  refreshActiveState();
 
   const backdrop = document.createElement('div');
   backdrop.className = 'm3-drawer-backdrop';
@@ -162,6 +176,7 @@ function renderAdaptiveChrome() {
     a.appendChild(label);
     drawerLinks.appendChild(a);
   });
+
   const sidebarUser = sidebar.querySelector('.sidebar-user');
   const profile = drawer.querySelector('.m3-drawer-profile');
   if (sidebarUser) profile.appendChild(sidebarUser.cloneNode(true));
@@ -171,6 +186,7 @@ function renderAdaptiveChrome() {
   logout.textContent = 'Cerrar sesión';
   logout.addEventListener('click', () => sidebar.querySelector('#btnLogoutSidebar')?.click());
   profile.appendChild(logout);
+
   document.body.append(backdrop, drawer);
   more.addEventListener('click', () => openDrawer(drawer, backdrop));
   backdrop.addEventListener('click', () => closeDrawer(drawer, backdrop));
