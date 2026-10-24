@@ -515,7 +515,7 @@ export function canManageUsers(profile) {
 }
 
 export function canManageProperties(profile) {
-  return isAdmin(profile);
+  return isSuperadmin(profile) || isAdmin(profile);
 }
 
 export function canCreateReservations(profile) {
@@ -1250,6 +1250,19 @@ export async function listScopedReservations(profile) {
 
 export function buildUserPayloadFromForm(form, actorProfile, existingUser = null) {
   const rol = qs('[name="rol"]', form)?.value || ROLES.RECEPCION;
+  if (!canManageUsers(actorProfile) || (existingUser && !canManageTargetUser(actorProfile, existingUser))) {
+    throw new Error('No tenés permisos para modificar este usuario.');
+  }
+  if (!isSuperadmin(actorProfile) && rol === ROLES.SUPERADMIN) {
+    throw new Error('Solo un superadmin puede asignar ese rol.');
+  }
+  const isSelf = existingUser && (
+    (actorProfile.id && actorProfile.id === existingUser.id) ||
+    (actorProfile.uid && actorProfile.uid === existingUser.uid)
+  );
+  if (isSuperadmin(actorProfile) && isSelf && rol !== ROLES.SUPERADMIN) {
+    throw new Error('No podés cambiar tu propio rol de superadmin. Otro superadmin debe realizar ese cambio.');
+  }
   const email = normalizeEmail(qs('[name="email"]', form)?.value);
   const propertyIds = rol === ROLES.RECEPCION
     ? uniqueStrings(getMultiSelectValues(qs('[name="propiedad_ids"]', form)))

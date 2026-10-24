@@ -10,6 +10,7 @@ import {
 import {
   requireAuth,
   canManageUsers,
+  canManageTargetUser,
   isSuperadmin,
   isAdmin,
   ROLES,
@@ -144,6 +145,12 @@ function fillForm() {
   qs('[name="nombre"]').value = existingUser.nombre || '';
   qs('[name="email"]').value = existingUser.email || '';
   qs('[name="rol"]').value = existingUser.rol || ROLES.RECEPCION;
+  const ownSuperadmin = isSuperadmin(currentProfile) && (
+    (currentProfile.id && currentProfile.id === existingUser.id) ||
+    (currentProfile.uid && currentProfile.uid === existingUser.uid)
+  );
+  qs('[name="rol"]').disabled = Boolean(ownSuperadmin);
+  qs('#roleLockHint').hidden = !ownSuperadmin;
   qs('[name="empresa_id"]').value = existingUser.empresa_id || '';
   fillMultiSelect(qs('[name="propiedad_ids"]'), existingUser.propiedad_ids || []);
   renderPropertyCheckboxes(existingUser.propiedad_ids || []);
@@ -281,6 +288,10 @@ async function init() {
     existingUser = await getUserById(userId);
     if (!existingUser) {
       setFeedback(qs('#formFeedback'), 'El usuario que querés editar no existe.', 'error');
+      return;
+    }
+    if (!canManageTargetUser(currentProfile, existingUser)) {
+      setFeedback(qs('#formFeedback'), 'No tenés permisos para modificar este usuario.', 'error');
       return;
     }
     fillForm();

@@ -9,6 +9,7 @@ import {
 import {
   requireAuth,
   canManageProperties,
+  canCreateReservations,
   BED_OPTIONS,
   UNIT_TYPES,
   UNIT_AMENITIES,
@@ -232,7 +233,7 @@ async function init() {
     subtitle: 'Administrá habitaciones, departamentos o cabañas reservables dentro de la propiedad seleccionada.',
     actionsHtml: `
       <a class="btn-ghost" href="propiedades.html">Volver a propiedades</a>
-      <a class="btn-secondary" href="nueva_reserva.html?propiedad=${currentProperty.id}">Reservar en esta propiedad</a>
+      ${canCreateReservations(currentProfile) ? `<a class="btn-secondary" href="nueva_reserva.html?propiedad=${currentProperty.id}">Reservar en esta propiedad</a>` : ''}
     `
   });
 
