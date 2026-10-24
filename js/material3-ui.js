@@ -83,9 +83,13 @@ function sanitizeVisibleText(root = document) {
     if (clean !== original) node.textContent = clean;
   });
   const emailHint = root.querySelector?.('#emailLockHint');
-  if (emailHint) emailHint.textContent = 'El correo de este usuario no puede modificarse.';
+  const emailHintText = 'El correo de este usuario no puede modificarse.';
+  // Reassigning even identical text creates a childList mutation and would
+  // retrigger our observer forever on the user form.
+  if (emailHint && emailHint.textContent !== emailHintText) emailHint.textContent = emailHintText;
   const propertiesHint = root.querySelector?.('#propiedadesSelectedHint');
-  if (propertiesHint) propertiesHint.textContent = 'Seleccioná una o varias propiedades para este usuario.';
+  const propertiesHintText = 'Seleccioná una o varias propiedades para este usuario.';
+  if (propertiesHint && propertiesHint.textContent !== propertiesHintText) propertiesHint.textContent = propertiesHintText;
 }
 
 function decorateTables(root = document) {
