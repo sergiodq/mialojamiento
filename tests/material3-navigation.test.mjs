@@ -24,16 +24,18 @@ function cleanup(dom){dom.window.dispatchEvent(new dom.window.Event('pagehide'))
 test('adaptive navigation derives authorized destinations from actual sidebar markup with icons',async()=>{
   const dom=await setup();
   try{
-    assert.deepEqual([...document.querySelectorAll('.m3-bottom-nav a')].map(a=>a.textContent.trim()),['Inicio','Reservas','Propiedades']);
+    assert.deepEqual([...document.querySelectorAll('.m3-bottom-nav a')].map(a=>a.textContent.trim()),['Usuarios','Inicio','Reservas','Propiedades']);
     assert.equal(document.querySelector('.m3-fab')?.getAttribute('href'),'nueva_reserva.html');
-    assert.equal(document.querySelector('.m3-drawer-link')?.textContent.trim(),'Usuarios');
+    assert.equal(document.querySelector('.m3-bottom-nav button'),null);
+    assert.equal(document.querySelector('.m3-drawer-link'),null);
+    assert.ok(document.querySelector('.m3-account-button'));
     assert.equal(document.querySelector('.nav-icon svg')?.getAttribute('aria-hidden'),'true');
   }finally{cleanup(dom);}
 });
 test('drawer contains keyboard focus and restores it on Escape',async()=>{
   const dom=await setup();
   try{
-    const more=document.querySelector('.m3-bottom-nav button');
+    const more=document.querySelector('.m3-account-button');
     more.focus();more.click();
     const drawer=document.querySelector('.m3-drawer');
     assert.equal(drawer.getAttribute('role'),'dialog');
@@ -54,6 +56,7 @@ test('updated authorized sidebar removes stale creation actions without duplicat
     await settle();
     assert.equal(document.querySelectorAll('.m3-bottom-nav').length,1);
     assert.equal(document.querySelector('.m3-fab'),null);
+    assert.deepEqual([...document.querySelectorAll('.m3-bottom-nav a')].map(a=>a.textContent.trim()),['Usuarios','Inicio','Reservas','Propiedades']);
     assert.equal(document.querySelectorAll('.m3-drawer').length,1);
     initMaterial3UI();
     await settle();
@@ -63,7 +66,7 @@ test('updated authorized sidebar removes stale creation actions without duplicat
 test('resizing to expanded desktop closes the modal drawer and unlocks scrolling',async()=>{
   const dom=await setup();
   try{
-    document.querySelector('.m3-bottom-nav button').click();
+    document.querySelector('.m3-account-button').click();
     window.innerWidth=1280;
     window.dispatchEvent(new dom.window.Event('resize'));
     assert.equal(document.body.classList.contains('m3-drawer-open'),false);
@@ -77,5 +80,22 @@ test('replacing sidebar contents with the same profile restores vector icons wit
     await settle();
     assert.equal(document.querySelectorAll('#sidebar .nav-icon svg').length,4);
     assert.equal(document.querySelectorAll('.m3-bottom-nav').length,1);
+  }finally{cleanup(dom);}
+});
+
+test('account button is restored after topbar is rebuilt, without adding Más to navigation',async()=>{
+  const dom=await setup();
+  try{
+    document.querySelector('main').insertAdjacentHTML('beforebegin','<header id="topbar"></header>');
+    await settle();
+    const account=document.querySelector('.m3-account-button');
+    assert.ok(account);
+    const header=document.querySelector('#topbar');
+    header.appendChild(account);
+    header.innerHTML='<strong>Nuevo encabezado</strong>';
+    await settle();
+    assert.equal(header.querySelectorAll('.m3-account-button').length,1);
+    assert.equal(document.querySelectorAll('.m3-bottom-nav .m3-bottom-nav-item').length,4);
+    assert.equal(document.querySelector('.m3-bottom-nav button'),null);
   }finally{cleanup(dom);}
 });
