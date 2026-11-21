@@ -18,12 +18,46 @@
       <div class="page-frame propiedades-page-frame">
         <header id="topbar" class="topbar"></header>
 
-        <section class="propiedades-stack">
-          <div class="card pad propiedades-form-card">
+        <section class="propiedades-stack management-layout">
+          <div class="card pad propiedades-list-card management-list" id="propertyList"> 
+            <div class="management-list-heading"><div><h3>Alojamientos</h3><p>Consultá los alojamientos y administrá sus habitaciones.</p></div><button id="btnNuevaPropiedad" type="button" class="btn">+ Nuevo alojamiento</button></div>
+            <p id="propertyListCount" class="management-list-count" role="status"></p>
+            <div class="toolbar">
+              <div class="field" style="flex:1 1 280px;">
+                <label for="filtroPropiedad">Buscar</label>
+                <input id="filtroPropiedad" type="text" placeholder="Nombre, código, ciudad, tipo...">
+              </div>
+
+              <label class="checkbox-chip" style="margin-top:28px;">
+                <input id="verInactivas" type="checkbox">
+                <span>Ver inactivas</span>
+              </label>
+            </div>
+
+            <div class="table-wrap" style="margin-top:18px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Propiedad</th>
+                    <th>Código</th>
+                    <th>Tipo</th>
+                    <th>Ciudad</th>
+                    <th>Ámbito</th>
+                    <th>Horarios</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="propiedadesBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card pad propiedades-form-card management-editor" id="propertyEditor" hidden>
             <div class="toolbar-between">
               <div>
-                <h3 id="propertyFormTitle" style="margin:0 0 6px;">Nueva propiedad</h3>
-                <div class="muted">Completá los datos del alojamiento.</div>
+                <h3 id="propertyFormTitle" style="margin:0 0 6px;">Nuevo alojamiento</h3>
+                <p id="propertyEditorContext" class="management-editor-context">Completá los datos para crear un alojamiento.</p>
+                
               </div>
             </div>
 
@@ -159,6 +193,7 @@
               <div class="field full property-col ident-active form-final-toggle">
                 <label class="checkbox-chip property-toggle-chip">
                   <input name="activo" type="checkbox" checked>
+                  
                   <span>Propiedad activa</span>
                 </label>
               </div>
@@ -166,43 +201,12 @@
               <div id="formFeedback" class="full"></div>
 
               <div class="form-actions full">
-                <button id="btnCancelarEdicionPropiedad" type="button" class="btn-ghost">Limpiar</button>
-                <button type="submit" class="btn">Guardar propiedad</button>
+                <button id="btnCancelarEdicionPropiedad" type="button" class="btn-ghost">Volver al listado</button>
+                <button type="submit" class="btn">Crear alojamiento</button>
               </div>
             </form>
           </div>
 
-          <div class="card pad propiedades-list-card">
-            <div class="toolbar">
-              <div class="field" style="flex:1 1 280px;">
-                <label for="filtroPropiedad">Buscar</label>
-                <input id="filtroPropiedad" type="text" placeholder="Nombre, código, ciudad, tipo...">
-              </div>
-
-              <label class="checkbox-chip" style="margin-top:28px;">
-                <input id="verInactivas" type="checkbox">
-                <span>Ver inactivas</span>
-              </label>
-            </div>
-
-            <div class="table-wrap" style="margin-top:18px;">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Propiedad</th>
-                    <th>Código</th>
-                    <th>Tipo</th>
-                    <th>Ciudad</th>
-                    <th>Ámbito</th>
-                    <th>Horarios</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="propiedadesBody"></tbody>
-              </table>
-            </div>
-          </div>
         </section>
       </div>
     </main>
