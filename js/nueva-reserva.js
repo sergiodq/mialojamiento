@@ -15,6 +15,8 @@ import {
   buildReservationPayload,
   saveReservationWithLocks,
   formatDate,
+  todayISO,
+  addDaysISO,
   qs,
   fillSelectOptions,
   showToast,
@@ -67,6 +69,7 @@ function fillStatuses() {
   const select = qs('[name="estado"]');
   if (!select) return;
   select.innerHTML = RESERVATION_STATUSES
+    .filter((status) => getUrlParams().reservationId || status !== 'cancelada')
     .map((status) => `<option value="${status}">${status}</option>`)
     .join('');
 }
@@ -172,9 +175,31 @@ async function fillEditData() {
   updateCapacityHint();
 
   updateReservationPageChrome();
+  updateDateLimits();
+}
+
+function updateDateLimits() {
+  const arrival = qs('[name="fecha_inicio"]');
+  const departure = qs('[name="fecha_fin"]');
+  if (!arrival || !departure) return;
+  if (!editingReservation) {
+    arrival.min = todayISO();
+    departure.min = addDaysISO(arrival.value && arrival.value >= arrival.min ? arrival.value : arrival.min, 1);
+  } else {
+    // Ediciones históricas: mostrar las fechas existentes sin ocultarlas.
+    arrival.removeAttribute('min');
+    departure.removeAttribute('min');
+  }
+  if (departure.value && arrival.value && departure.value <= arrival.value) {
+    departure.setCustomValidity('La salida debe ser posterior al ingreso.');
+  } else {
+    departure.setCustomValidity('');
+  }
 }
 
 function bindFormInteractions() {
+  qs('[name="fecha_inicio"]')?.addEventListener('change', updateDateLimits);
+  qs('[name="fecha_fin"]')?.addEventListener('change', updateDateLimits);
   qs('[name="propiedad_id"]')?.addEventListener('change', async (event) => {
     await loadUnits(event.target.value);
   });
@@ -219,6 +244,13 @@ async function saveReservation(event) {
       throw new Error('Ingresá el nombre o código de la unidad manual.');
     }
 
+    if (!editingReservation && selectedProperty.activo === false) {
+      throw new Error('Este alojamiento está inactivo y no admite nuevas reservas.');
+    }
+    if (!manual && !editingReservation && selectedUnit.activa === false) {
+      throw new Error('La habitación está inactiva y no admite nuevas reservas.');
+    }
+    if (!form.reportValidity()) return;
     const payload = buildReservationPayload({
       form,
       actorProfile: currentProfile,
@@ -279,6 +311,7 @@ async function init() {
   } else {
     await loadUnits(qs('[name="propiedad_id"]')?.value || '');
   }
+  updateDateLimits();
   if (isSoporte(currentProfile)) {
     for (const input of qs('#reservaForm').querySelectorAll('input,select,textarea')) {
       input.disabled = input.name !== 'observaciones';

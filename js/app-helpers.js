@@ -1433,32 +1433,59 @@ export function buildReservationPayload({
   };
 }
 
-export function validateReservationData(reservation) {
-  if (!reservation.cliente) {
+export function validateReservationData(reservation, { existingReservation = null, dateToday = todayISO() } = {}) {
+  if (!String(reservation.cliente || '').trim()) {
     throw new Error('Ingresá el nombre del huésped o cliente.');
   }
   if (!reservation.propiedad_id) {
-    throw new Error('Seleccioná una propiedad.');
+    throw new Error('Seleccioná un alojamiento válido.');
   }
-  if (!reservation.unidad_key) {
-    throw new Error('Seleccioná una unidad o cargá una manual.');
+  if (!String(reservation.unidad_key || '').trim()) {
+    throw new Error('Seleccioná una habitación o cargá una manual.');
   }
-  if (!reservation.fecha_inicio || !reservation.fecha_fin) {
-    throw new Error('Completá fecha de check-in y check-out.');
+  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+  if (!datePattern.test(reservation.fecha_inicio || '') || !datePattern.test(reservation.fecha_fin || '')) {
+    throw new Error('Completá fechas válidas de ingreso y salida.');
+  }
+  const validISODate = value => {
+    const [year, month, day] = value.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.toISOString().slice(0, 10) === value;
+  };
+  if (!validISODate(reservation.fecha_inicio) || !validISODate(reservation.fecha_fin)) {
+    throw new Error('Ingresá fechas reales de calendario.');
   }
   if (reservation.fecha_inicio >= reservation.fecha_fin) {
-    throw new Error('La fecha de salida debe ser posterior a la fecha de entrada.');
+    throw new Error('La salida debe ser posterior al ingreso (mínimo una noche).');
   }
-  if (reservation.huespedes <= 0) {
-    throw new Error('La cantidad de huéspedes debe ser mayor a cero.');
+  // Ediciones históricas conservan el período anterior. No se permite trasladar
+  // una reserva a nuevas fechas que ya pasaron.
+  const sameHistoricalPeriod = existingReservation &&
+    reservation.fecha_inicio === existingReservation.fecha_inicio &&
+    reservation.fecha_fin === existingReservation.fecha_fin;
+  if (reservation.fecha_inicio < dateToday && !sameHistoricalPeriod) {
+    throw new Error('No se pueden crear reservas con fecha de ingreso anterior a hoy.');
+  }
+  if (!RESERVATION_STATUSES.includes(reservation.estado)) {
+    throw new Error('El estado de la reserva no es válido.');
+  }
+  if (!existingReservation && reservation.estado === 'cancelada') {
+    throw new Error('No se puede crear una reserva ya cancelada.');
+  }
+  if (!Number.isInteger(reservation.huespedes) || reservation.huespedes < 1) {
+    throw new Error('Indicá una cantidad entera de huéspedes, mayor a cero.');
+  }
+  if (!Number.isFinite(reservation.total) || reservation.total < 0) {
+    throw new Error('El importe total no puede ser negativo.');
   }
   if (reservation.capacidad_unidad > 0 && reservation.huespedes > reservation.capacidad_unidad) {
-    throw new Error('La cantidad de huéspedes supera la capacidad de la unidad.');
+    throw new Error('La cantidad de huéspedes supera la capacidad de la habitación.');
   }
 }
 
 export async function saveReservationWithLocks(reservationPayload, reservationId = '') {
-  validateReservationData(reservationPayload);
+  // Revalidar al guardar; no alcanza con ocultar fechas en el calendario.
+  if (!reservationId) validateReservationData(reservationPayload);
 
   const reservationRef = reservationId
     ? doc(db, 'reservas', reservationId)
@@ -1473,6 +1500,7 @@ export async function saveReservationWithLocks(reservationPayload, reservationId
       }
       previous = normalizeReservationDoc(currentSnap.data(), currentSnap.id);
     }
+    validateReservationData(reservationPayload, { existingReservation: previous });
 
     const previousLocks = new Set(reservationLockIdsFromData(previous || {}));
     const nextLocks = new Set(reservationLockIdsFromData(reservationPayload));
