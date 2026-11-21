@@ -1,0 +1,168 @@
+/* MiAlojamiento · capa visual 2026: colores vivos, accesibilidad y mobile-first.
+   Se carga DESPUÉS de material3.css sin alterar permisos ni datos. */
+:root {
+  --m3-primary:#ff385c; --m3-on-primary:#ffffff;
+  --m3-primary-container:#ffe1e7; --m3-on-primary-container:#7c1230;
+  --m3-secondary:#00a995; --m3-secondary-container:#d2f8f1; --m3-on-secondary-container:#00675b;
+  --m3-surface:#f7f8fc; --m3-surface-container-low:#ffffff;
+  --m3-surface-container:#f0f3f9; --m3-surface-container-high:#e9edf6;
+  --m3-on-surface:#202238; --m3-on-surface-variant:#63687b;
+  --m3-outline:#8990a2; --m3-outline-variant:#e0e5ee;
+  --m3-success:#008e79; --m3-success-container:#d3f8ed;
+  --m3-warning:#a95000; --m3-warning-container:#fff0d1;
+  --m3-elevation-2:0 6px 18px rgba(30,35,69,.06),0 1px 3px rgba(30,35,69,.04);
+  --m3-elevation-3:0 12px 32px rgba(30,35,69,.14);
+  --ux-coral:#ff385c; --ux-orange:#ff7900; --ux-teal:#00bfa6;
+  --ux-violet:#6748fa; --ux-ink:#202238; --ux-muted:#63687b;
+}
+html {scroll-behavior:smooth}
+body:not(.login-page) { background:var(--m3-surface)!important; }
+body:not(.login-page) .sidebar { background:#fff!important; border-right:1px solid #edf0f6!important; }
+body:not(.login-page) .brand-badge {background:linear-gradient(135deg,var(--ux-coral),var(--ux-orange))!important;box-shadow:0 6px 18px #ff385c2b!important}
+body:not(.login-page) .sidebar .nav-link.active {background:#ffe5ea!important;color:#ba1743!important;font-weight:750}
+body:not(.login-page) .sidebar .nav-link:hover {background:#fff0f3!important}
+body:not(.login-page) .topbar {border-bottom:0!important;padding-bottom:8px!important;margin-bottom:18px!important}
+body:not(.login-page) .title-block h2 {color:var(--ux-ink)!important;font-weight:800!important;letter-spacing:-.045em}
+body:not(.login-page) .title-block p {font-size:.84rem!important}
+body:not(.login-page) .card {background:#fff!important;border:1px solid #edf0f6!important;border-radius:22px!important;box-shadow:var(--m3-elevation-2)!important}
+body:not(.login-page) .card.pad {padding:clamp(16px,2vw,26px)!important}
+body:not(.login-page) .btn,
+body:not(.login-page) button[type=submit].btn,
+body:not(.login-page) .m3-fab,
+body.dashboard-page .fab-dashboard {background:linear-gradient(120deg,var(--ux-coral),#ff6845)!important;color:#fff!important;border:0!important;box-shadow:0 7px 20px #ff385c30!important;font-weight:750!important}
+body:not(.login-page) .btn:hover,
+body:not(.login-page) button[type=submit].btn:hover {filter:brightness(1.03);transform:translateY(-1px)}
+body:not(.login-page) .btn-ghost,
+body:not(.login-page) .btn-secondary {border:1px solid #e3e6ef!important;background:#fff!important;color:#343b58!important}
+body:not(.login-page) .btn:focus-visible,
+body:not(.login-page) button:focus-visible,
+body:not(.login-page) a:focus-visible {outline:3px solid #ff385c!important;outline-offset:3px}
+body:not(.login-page) input:focus,
+body:not(.login-page) select:focus,
+body:not(.login-page) textarea:focus {border-color:var(--ux-coral)!important;box-shadow:0 0 0 3px #ff385c23!important}
+body:not(.login-page) input,
+body:not(.login-page) select,
+body:not(.login-page) textarea {background:#fff!important;border:1px solid #dfe4ee!important;border-radius:13px!important}
+body:not(.login-page) input:disabled,
+body:not(.login-page) select:disabled,
+body:not(.login-page) textarea:disabled {background:#f1f3f7!important}
+body:not(.login-page) .form-block-title {color:var(--ux-coral)!important;font-weight:800!important}
+body:not(.login-page) .form-actions {gap:12px}
+body:not(.login-page) .table-wrap {border-radius:16px;overflow:auto}
+body:not(.login-page) table {border-collapse:separate;border-spacing:0}
+body:not(.login-page) thead th {position:sticky;top:0;z-index:2;background:#f8f9fc!important;color:#454963!important;font-size:.75rem;letter-spacing:.015em}
+body:not(.login-page) tbody tr:hover {background:#fff6f8!important}
+body:not(.login-page) .stat-item {border-color:#edf0f6!important}
+body:not(.login-page) .m3-bottom-nav {background:#fff!important;border-top:1px solid #e9edf5!important;box-shadow:0 -6px 24px #1820390d}
+body:not(.login-page) .m3-bottom-nav-item.is-active {color:#e62a51!important}
+body:not(.login-page) .m3-bottom-nav-item.is-active .m3-icon {background:#ffe2e9!important;color:#cf2048!important}
+body:not(.login-page) .m3-fab {background:var(--ux-coral)!important;border-radius:19px!important}
+body:not(.login-page) .checkbox-chip {border-radius:14px}
+body:not(.login-page) .checkbox-chip:has(input:checked) {border-color:#ff9baa!important;background:#fff0f4!important}
+
+/* Inicio: información más clara y sin párrafos redundantes. */
+body.dashboard-page .dashboard-kpi-grid {gap:12px!important}
+body.dashboard-page .dashboard-kpi-card {min-width:0!important;position:relative;overflow:hidden;border:1px solid #eff1f7!important;box-shadow:var(--m3-elevation-2)!important}
+body.dashboard-page .dashboard-kpi-card .kpi-label {font-weight:750!important;color:#555b70!important;font-size:.77rem!important}
+body.dashboard-page .dashboard-kpi-card .kpi-value {font-weight:850!important;font-size:clamp(1.9rem,3vw,2.7rem)!important;line-height:1.15;color:#29304c!important}
+body.dashboard-page .dashboard-kpi-card .kpi-foot {display:none!important}
+body.dashboard-page .dashboard-kpi-card:nth-child(3) {background:#fff3e8!important}
+body.dashboard-page .dashboard-kpi-card:nth-child(3) .kpi-value {color:#d95c00!important}
+body.dashboard-page .dashboard-kpi-card:nth-child(4) {background:#e8fbf6!important}
+body.dashboard-page .dashboard-kpi-card:nth-child(4) .kpi-value {color:#008e79!important}
+body.dashboard-page .dashboard-kpi-card:nth-child(5) {background:#fff0f3!important}
+body.dashboard-page .dashboard-kpi-card:nth-child(5) .kpi-value {color:#df2b50!important}
+body.dashboard-page .dashboard-kpi-card:nth-child(6) {background:#f1edff!important}
+body.dashboard-page .dashboard-kpi-card:nth-child(6) .kpi-value {color:#6541db!important}
+body.dashboard-page .planner-titleblock h3 {font-size:clamp(1.1rem,2vw,1.45rem)!important;font-weight:800!important}
+body.dashboard-page .planner-titleblock .muted {display:none!important}
+body.dashboard-page .planner-toolbar {gap:8px!important}
+body.dashboard-page .planner-toolbar .dashboard-month-label {color:#28314f;font-weight:800}
+body.dashboard-page #calendarToday {border-color:#ffb4c0!important;background:#fff0f3!important;color:#c6264a!important;font-weight:750}
+body.dashboard-page .planner-inline-tools {gap:10px!important}
+body.dashboard-page .planner-legend {gap:8px!important}
+body.dashboard-page .planner-legend-item {border-radius:999px!important;font-weight:700!important}
+body.dashboard-page .planning-board-scroll {overscroll-behavior-x:contain;scrollbar-color:#ffb4c0 #f3f5fa}
+
+/* Formularios: jerarquía y espacio para completar datos sin distracciones. */
+body.reservation-page .reservation-primary-card {max-width:980px;margin:0 auto;width:100%}
+body.reservation-page .reservation-intro {color:var(--ux-muted);font-size:.87rem}
+body.reservation-page .reservation-steps-header {display:none}
+body.reservation-page .reservation-step {display:contents}
+body.reservation-page .reservation-technical-note {display:none!important}
+body.reservation-page .reservation-form-actions {background:#fff;border-radius:16px}
+body.reservation-page #legacyHint:empty {display:none}
+body.user-form-page #userFormTitle,
+body.properties-page #propertyFormTitle,
+body.units-page #unitFormTitle {font-weight:800}
+body.user-form-page #usuarioForm .field small,
+body.properties-page .field small,
+body.units-page .field small {font-size:.75rem}
+
+/* Login: un mismo lenguaje visual en todas las pantallas. */
+body.login-page {background:linear-gradient(140deg,#ff385c 0%,#ff6548 52%,#ff9c2b 100%)!important}
+body.login-page .login-premium-card {background:#fff!important;border:0!important;box-shadow:0 16px 54px #46193124!important}
+body.login-page .login-brand-mark,
+body.login-page .login-card-badge {background:linear-gradient(130deg,var(--ux-coral),var(--ux-orange))!important;color:#fff!important}
+body.login-page .btn-login-main {background:linear-gradient(120deg,var(--ux-coral),#ff7041)!important;color:#fff!important}
+body.login-page .auth-tab.active {color:#c9284b!important}
+
+/* Teléfono: ocupa el ancho real, sin desplazamientos ni cajas diminutas. */
+@media (max-width: 839px) {
+  body:not(.login-page) .main {padding:12px 12px calc(var(--m3-bottom-nav-h) + 35px + env(safe-area-inset-bottom))!important}
+  body:not(.login-page) .page-frame {max-width:100%!important}
+  body:not(.login-page) .card.pad {padding:16px!important;border-radius:20px!important}
+  body:not(.login-page) .topbar {gap:8px!important;margin-bottom:12px!important;min-height:0!important}
+  body:not(.login-page) .title-block h2 {font-size:1.4rem!important}
+  body:not(.login-page) .title-block p {display:none!important}
+  body:not(.login-page) .topbar-actions {gap:8px}
+  body:not(.login-page) .form-grid {grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+  body:not(.login-page) .form-grid > * {grid-column:1/-1!important}
+  body:not(.login-page) .field input,
+  body:not(.login-page) .field select,
+  body:not(.login-page) .field textarea {max-width:100%;width:100%;font-size:16px!important;min-height:48px}
+  body:not(.login-page) .form-actions {gap:10px;flex-wrap:wrap}
+  body:not(.login-page) .form-actions > * {min-height:50px}
+  body.dashboard-page .dashboard-kpi-grid {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  body.dashboard-page .dashboard-kpi-card {min-height:85px!important;padding:13px!important}
+  body.dashboard-page .dashboard-kpi-card:nth-child(2),
+  body.dashboard-page .dashboard-kpi-card:nth-child(6) {display:none!important}
+  body.dashboard-page .dashboard-kpi-card .kpi-value {font-size:2rem!important}
+  body.dashboard-page .planner-toolbar {display:flex!important;flex-wrap:wrap!important;justify-content:center}
+  body.dashboard-page .planner-toolbar .dashboard-view-switch {width:100%;justify-content:center}
+  body.dashboard-page .planner-toolbar .dashboard-month-label {order:1;flex:1;text-align:center}
+  body.dashboard-page #calendarPrev {order:0}
+  body.dashboard-page #calendarNext {order:2}
+  body.dashboard-page #calendarToday {order:3}
+  body.dashboard-page .planner-inline-tools {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.dashboard-page .planner-inline-search {grid-column:1/-1}
+  body.dashboard-page .planning-board-shell {margin-inline:-8px}
+  body.dashboard-page .planning-board-scroll {max-height:none!important}
+  body.reservation-page .reservation-steps-header {display:flex;align-items:center;justify-content:center;gap:8px;margin:14px 0 8px}
+  body.reservation-page .reservation-step {display:block}
+  body.reservation-page .reservation-step[hidden] {display:none!important}
+  body.reservation-page .reservation-step-pill {display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;flex:1;border-radius:20px;padding:9px 3px;background:#f0f2f8;color:#6a7083;font-size:.75rem;font-weight:750}
+  body.reservation-page .reservation-step-pill.is-active {background:#ffe4ea;color:#c3244c}
+  body.reservation-page .reservation-step-pill.is-done {background:#d9f7ef;color:#007d6e}
+  body.reservation-page .reservation-step-title {margin:14px 0 14px;color:#29304c;font-size:1rem}
+  body.reservation-page .reservation-step .form-grid {display:grid}
+  body.reservation-page .reservation-form-actions {position:sticky;bottom:calc(var(--m3-bottom-nav-h) + env(safe-area-inset-bottom) + 6px);z-index:15;display:flex!important;gap:8px!important;padding:10px 0;box-shadow:0 -8px 18px #fff!important}
+  body.reservation-page .reservation-form-actions > * {flex:1 1 0;min-width:0!important}
+  body.reservation-page .reservation-form-actions .btn {white-space:normal}
+  body.reservation-page #reservationWizardBack[hidden],
+  body.reservation-page #reservationWizardNext[hidden] {display:none!important}
+  body.reservation-page .reservation-form-actions a[hidden],
+  body.reservation-page .reservation-form-actions button[hidden] {display:none!important}
+  body.login-page .login-premium-hero {min-height:165px!important}
+  body.login-page .login-premium-content h1 {font-size:1.55rem!important}
+  body.login-page .login-premium-panel-wrap {padding:0 12px 24px}
+}
+@media (max-width:380px) {
+  body.dashboard-page .planner-inline-tools {grid-template-columns:1fr!important}
+  body.dashboard-page .planner-inline-search {grid-column:auto}
+  body.dashboard-page .dashboard-kpi-card .kpi-label {font-size:.72rem!important}
+}
+@media (prefers-reduced-motion:reduce) {
+  html{scroll-behavior:auto}
+  body:not(.login-page) .btn{transition:none!important}
+}
