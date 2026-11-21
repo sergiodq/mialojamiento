@@ -151,7 +151,12 @@ function renderAdaptiveChrome(session) {
     link.setAttribute('aria-label', links.find(item => item.href === link.getAttribute('href'))?.label || 'Navegar');
     if (link.classList.contains('active')) link.setAttribute('aria-current','page');
   });
-  if (signature === session.signature) return;
+  if (signature === session.signature) {
+    // El encabezado puede reconstruirse al cambiar de página interna/estado.
+    const host = doc.querySelector('#topbar') || doc.body;
+    if (session.accountButton && !session.accountButton.isConnected) host.appendChild(session.accountButton);
+    return;
+  }
   session.disposeChrome?.();
   session.signature = signature;
   const model = buildMobileNavModel(links, win.location.pathname.split('/').pop() || 'dashboard.html');
@@ -183,6 +188,7 @@ function renderAdaptiveChrome(session) {
   account.append(createIcon('group'),doc.createTextNode('Cuenta'));
   const accountHost = doc.querySelector('#topbar') || doc.body;
   accountHost.appendChild(account);
+  session.accountButton = account;
 
   const backdrop = doc.createElement('div');
   backdrop.className = 'm3-drawer-backdrop';
@@ -289,6 +295,7 @@ function renderAdaptiveChrome(session) {
     win.removeEventListener('hashchange',refresh);
     win.removeEventListener('resize',resize);
     [nav,backdrop,drawer,fab,account].forEach(el=>el?.remove());
+    session.accountButton = null;
   };
 }
 
