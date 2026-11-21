@@ -154,7 +154,7 @@ async function fillEditData() {
   qs('[name="fecha_fin"]').value = editingReservation.fecha_fin || '';
   // Mantener sincronizado el calendario Material 3 al abrir una reserva existente.
   for (const fieldName of ['fecha_inicio','fecha_fin']) {
-    qs(`[name="${fieldName}"]`)?.dispatchEvent(new Event('input'));
+    qs(`[name="${fieldName}"]`)?.dispatchEvent(new window.Event('input'));
   }
   qs('[name="estado"]').value = editingReservation.estado || 'pendiente';
   qs('[name="huespedes"]').value = editingReservation.huespedes || 1;
