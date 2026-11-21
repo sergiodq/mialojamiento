@@ -152,6 +152,10 @@ async function fillEditData() {
   qs('[name="cliente"]').value = editingReservation.cliente || '';
   qs('[name="fecha_inicio"]').value = editingReservation.fecha_inicio || '';
   qs('[name="fecha_fin"]').value = editingReservation.fecha_fin || '';
+  // Mantener sincronizado el calendario Material 3 al abrir una reserva existente.
+  for (const fieldName of ['fecha_inicio','fecha_fin']) {
+    qs(`[name="${fieldName}"]`)?.dispatchEvent(new Event('input'));
+  }
   qs('[name="estado"]').value = editingReservation.estado || 'pendiente';
   qs('[name="huespedes"]').value = editingReservation.huespedes || 1;
   qs('[name="total"]').value = editingReservation.total || '';
