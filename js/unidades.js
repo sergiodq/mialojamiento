@@ -288,6 +288,8 @@ async function init() {
     `
   });
 
+  const propertyContext = qs('#unitPropertyContext');
+  if (propertyContext) propertyContext.textContent = `${currentProperty.nombre} · ${currentProperty.ciudad || currentProperty.codigo || 'Alojamiento'}`;
   bindCommonActions();
   fillTypeOptions();
   resetForm();
