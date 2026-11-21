@@ -1,6 +1,9 @@
 import {
   requireAuth,
   canManageUsers,
+  canReadUsers,
+  canManageTargetUser,
+  escapeHtml,
   listScopedUsers,
   markUserAsDeleted,
   reactivateUser,
@@ -22,6 +25,7 @@ function bindCommonActions() {
 function roleLabel(role = '') {
   return {
     superadmin: 'Superadmin',
+    soporte: 'Soporte',
     admin: 'Administrador',
     recepcion: 'Recepción'
   }[role] || role || '—';
@@ -47,21 +51,21 @@ function renderTable(filtered = users) {
   tbody.innerHTML = filtered
     .map((user) => `
       <tr>
-        <td data-label="Usuario"><strong>${user.nombre || '—'}</strong></td>
-        <td data-label="Email">${user.email}</td>
-        <td data-label="Rol">${roleLabel(user.rol)}</td>
-        <td data-label="Ámbito">${user.empresa_id || '—'}</td>
+        <td data-label="Usuario"><strong>${escapeHtml(user.nombre || '—')}</strong></td>
+        <td data-label="Email">${escapeHtml(user.email)}</td>
+        <td data-label="Rol">${escapeHtml(roleLabel(user.rol))}</td>
+        <td data-label="Ámbito">${escapeHtml(user.empresa_id || '—')}</td>
         <td data-label="Propiedades">${user.propiedad_ids?.length ? `${user.propiedad_ids.length} asignada${user.propiedad_ids.length === 1 ? '' : 's'}` : '—'}</td>
         <td data-label="Acceso">${accessLabel(user.estado_registro)}</td>
         <td data-label="Estado">${user.eliminado ? '<span class="badge red">Desactivado</span>' : (user.activo ? '<span class="badge green">Activo</span>' : '<span class="badge orange">Inactivo</span>')}</td>
         <td data-label="Acciones">
           <div class="table-actions">
-            <a class="btn-secondary" href="nuevo_usuario.html?id=${user.id}">Editar</a>
-            ${user.eliminado
-              ? `<button class="btn btnReactivateUser" data-id="${user.id}">Reactivar</button>`
+            ${canManageTargetUser(currentProfile, user) ? `<a class="btn-secondary" href="nuevo_usuario.html?id=${encodeURIComponent(user.id)}">Editar</a>` : ''}
+            ${canManageTargetUser(currentProfile, user) && user.rol !== 'superadmin' ? (user.eliminado
+              ? `<button class="btn btnReactivateUser" data-id="${escapeHtml(user.id)}">Reactivar</button>`
               : ((user.id !== currentProfile?.id && user.uid !== currentProfile?.uid)
-                  ? `<button class="btn-danger btnDeleteUser" data-id="${user.id}">Desactivar</button>`
-                  : '')}
+                  ? `<button class="btn-danger btnDeleteUser" data-id="${escapeHtml(user.id)}">Desactivar</button>`
+                  : '')) : ''}
           </div>
         </td>
       </tr>
@@ -132,13 +136,13 @@ async function loadUsers() {
 
 async function init() {
   primeSidebarFromCache('usuarios');
-  currentProfile = await requireAuth({ roles: ['superadmin', 'admin'], pageKey: 'usuarios' });
-  if (!currentProfile || !canManageUsers(currentProfile)) return;
+  currentProfile = await requireAuth({ roles: ['superadmin', 'admin', 'soporte'], pageKey: 'usuarios' });
+  if (!currentProfile || !canReadUsers(currentProfile)) return;
 
   renderTopbar({
     title: 'Usuarios',
-    subtitle: 'Administrá los accesos de tu equipo.',
-    actionsHtml: `<a class="btn" href="nuevo_usuario.html">Nuevo usuario</a>`
+    subtitle: canManageUsers(currentProfile) ? 'Administrá los accesos de tu equipo.' : 'Consulta global de usuarios. Los accesos solo pueden modificarse por un administrador autorizado.',
+    actionsHtml: canManageUsers(currentProfile) ? `<a class="btn" href="nuevo_usuario.html">Nuevo usuario</a>` : ''
   });
 
   bindCommonActions();

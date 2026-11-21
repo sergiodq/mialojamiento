@@ -46,7 +46,7 @@ export function buildMobileNavModel(links = [], currentHref = '') {
   const newReservation = byLabel('nueva reserva');
   const primary = [];
   if (dashboard) primary.push({ label: 'Inicio', href: dashboard.href, icon: 'home' });
-  if (newReservation && dashboard) primary.push({ label: 'Reservas', href: `${normalizeHref(dashboard.href)}#planningBoard`, icon: 'calendar_month' });
+  if (dashboard) primary.push({ label: 'Reservas', href: `${normalizeHref(dashboard.href)}#planningBoard`, icon: 'calendar_month' });
   if (properties) primary.push({ label: 'Propiedades', href: properties.href, icon: 'apartment' });
   return {
     primary,

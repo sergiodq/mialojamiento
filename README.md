@@ -5,9 +5,9 @@ Aplicación web de gestión hotelera hecha con HTML + CSS + JavaScript vanilla, 
 ## Qué incluye
 
 - Login + registro controlado + recuperación de contraseña
-- Soft delete de usuarios
+- Bajas lógicas de usuarios y unidades; cancelación de reservas conservando historial
 - Reactivación por email existente
-- Roles: `superadmin`, `admin`, `recepcion`
+- Roles: `superadmin`, `soporte`, `admin`, `recepcion`
 - Propiedades con datos completos
 - Unidades por propiedad
 - Reservas con validación de capacidad
@@ -16,6 +16,43 @@ Aplicación web de gestión hotelera hecha con HTML + CSS + JavaScript vanilla, 
 - Compatibilidad gradual con datos legacy
 
 ## Arquitectura aplicada
+
+### Roles y permisos
+
+| Rol | Consulta | Modificaciones |
+| --- | --- | --- |
+| `superadmin` | Todas las empresas, incluido inventario inactivo | Administración funcional global; solo este rol asigna roles globales |
+| `soporte` | Usuarios, propiedades, unidades y reservas de todas las empresas | Solo observaciones de reservas y teléfono, email de contacto y observaciones internas de propiedades |
+| `admin` | Su empresa | Usuarios locales (`admin`/`recepcion`), propiedades, unidades y reservas de su empresa |
+| `recepcion` | Su empresa y propiedades asignadas | Reservas de esas propiedades |
+
+La autorización efectiva está en `firestore.rules`. `usuarios` es la autoridad canónica; `usuarios_auth` permite localizar el perfil y debe reflejar sus datos. Una baja canónica revoca el acceso aunque el espejo esté desactualizado. Los vínculos `usuario_id` de espejos e índices no pueden redirigirse desde el cliente.
+
+Soporte no puede crear ni dar de baja usuarios, modificar roles, empresa, propiedades asignadas, correo de acceso, importes, fechas, estados o bloqueos de ocupación. El registro propio conserva los accesos previamente asignados.
+
+No se borran documentos de negocio. Cancelar una reserva libera sus bloqueos técnicos en una transacción. Desactivar una unidad conserva su documento. Los superadmins habilitados y vinculados no pueden degradarse ni darse de baja desde el cliente; los cambios excepcionales requieren un procedimiento privilegiado.
+
+### Verificación y despliegue de permisos
+
+Con Node.js 22.13 o posterior y Java 21 o posterior completo en `JAVA_HOME`/`PATH`:
+
+```text
+npm ci
+npm test
+npm run test:rules
+```
+
+La suite de reglas usa exclusivamente `demo-mialojamiento` y el emulador en `127.0.0.1:8088`; no requiere credenciales de producción. CI ejecuta ambas suites. Se cubren capacidades, DOM, escrituras directas, registro legacy y transacciones reales. Referencia: [pruebas de reglas con el emulador de Firebase](https://firebase.google.com/docs/firestore/security/test-rules-emulator).
+
+Antes de desplegar:
+
+- Esta implementación se preparó y probó localmente. No migra datos ni despliega automáticamente.
+- Revisar perfiles/espejos existentes: UID, correo normalizado, rol, empresa, estado y asignaciones. Máximo 20 elementos en `propiedad_ids`; el singular legacy debe estar incluido en ese array cuando exista. Perfiles inconsistentes requieren reparación administrativa, no ampliación automática de permisos.
+- Probar cuentas de los cuatro roles en un entorno de prueba y desplegar reglas e interfaz coordinadamente. Las reglas antiguas no protegen los nuevos controles de interfaz.
+- La transacción de reservas protege los locks existentes. Las reglas no demuestran que un cliente alternativo haya creado todos los locks de una estadía arbitraria; una garantía completa ante clientes hostiles requiere un backend de reservas.
+- `npm audit` conserva avisos moderados en dependencias transitivas de las herramientas de desarrollo de Firebase; no se forzaron cambios incompatibles. gRPC se actualizó mediante `overrides` para resolver los avisos altos.
+
+Las reglas son un prototipo verificado en emulador y requieren revisión con datos reales antes de compartir ampliamente la aplicación.
 
 ### Colecciones principales
 - `usuarios`

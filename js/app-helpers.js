@@ -25,6 +25,7 @@ export const APP_NAME = 'MiAlojamiento';
 
 export const ROLES = Object.freeze({
   SUPERADMIN: 'superadmin',
+  SOPORTE: 'soporte',
   ADMIN: 'admin',
   RECEPCION: 'recepcion'
 });
@@ -510,6 +511,40 @@ export function isRecepcion(profile) {
   return profile?.rol === ROLES.RECEPCION;
 }
 
+export function isSoporte(profile) {
+  return profile?.rol === ROLES.SOPORTE;
+}
+
+export function canReadGlobally(profile) {
+  return isSuperadmin(profile) || isSoporte(profile);
+}
+
+export function canReadUsers(profile) {
+  return canReadGlobally(profile) || isAdmin(profile);
+}
+
+export function canReadProperties(profile) {
+  return canReadGlobally(profile) || isAdmin(profile);
+}
+
+export const SUPPORT_FIELDS = Object.freeze({
+  reservas: Object.freeze(['observaciones']),
+  propiedades: Object.freeze(['telefono', 'email_contacto', 'observaciones_internas'])
+});
+
+export function buildSupportPatch(actor, collectionName, changes) {
+  if (!isSoporte(actor) || !actor.uid) throw new Error('No tenés permisos para esta operación.');
+  const allowed = SUPPORT_FIELDS[collectionName];
+  if (!allowed || !Object.keys(changes).length || Object.keys(changes).some(key => !allowed.includes(key))) {
+    throw new Error('La modificación incluye campos no permitidos para soporte.');
+  }
+  for (const [key, value] of Object.entries(changes)) {
+    if (typeof value !== 'string') throw new Error('Los campos de soporte deben ser texto.');
+    if (value.length > (key.startsWith('observaciones') ? 10000 : 320)) throw new Error('El texto es demasiado largo.');
+  }
+  return { ...changes, updated_at: serverTimestamp(), actualizado_por: actor.uid };
+}
+
 export function canManageUsers(profile) {
   return isSuperadmin(profile) || isAdmin(profile);
 }
@@ -519,29 +554,31 @@ export function canManageProperties(profile) {
 }
 
 export function canCreateReservations(profile) {
-  return isAdmin(profile) || isRecepcion(profile);
+  return isSuperadmin(profile) || isAdmin(profile) || isRecepcion(profile);
 }
 
 export function canManageTargetUser(actor, target) {
   if (!actor || !target) return false;
   if (isSuperadmin(actor)) return true;
   if (!isAdmin(actor)) return false;
-  if (target.rol === ROLES.SUPERADMIN) return false;
+  if ([ROLES.SUPERADMIN, ROLES.SOPORTE].includes(target.rol)) return false;
   return actor.empresa_id && actor.empresa_id === target.empresa_id;
 }
 
 export function canAccessProperty(profile, propiedad) {
   if (!profile || !propiedad) return false;
-  if (isSuperadmin(profile)) return true;
+  if (canReadGlobally(profile)) return true;
   if (isAdmin(profile)) return profile.empresa_id === propiedad.empresa_id;
+  if (!isRecepcion(profile)) return false;
   const allowed = new Set(profile.propiedad_ids || []);
   return allowed.has(propiedad.id);
 }
 
 export function canAccessReservation(profile, reserva) {
   if (!profile || !reserva) return false;
-  if (isSuperadmin(profile)) return true;
+  if (canReadGlobally(profile)) return true;
   if (isAdmin(profile)) return profile.empresa_id === reserva.empresa_id;
+  if (!isRecepcion(profile)) return false;
   const allowed = new Set(profile.propiedad_ids || []);
   return allowed.has(reserva.propiedad_id);
 }
@@ -549,8 +586,8 @@ export function canAccessReservation(profile, reserva) {
 export function getNavItems(profile) {
   return [
     { key: 'dashboard', label: 'Dashboard', href: 'dashboard.html', show: true, icon: '⌂' },
-    { key: 'usuarios', label: 'Usuarios', href: 'usuarios.html', show: canManageUsers(profile), icon: 'U' },
-    { key: 'propiedades', label: 'Propiedades', href: 'propiedades.html', show: canManageProperties(profile), icon: 'P' },
+    { key: 'usuarios', label: 'Usuarios', href: 'usuarios.html', show: canReadUsers(profile), icon: 'U' },
+    { key: 'propiedades', label: 'Propiedades', href: 'propiedades.html', show: canReadProperties(profile), icon: 'P' },
     { key: 'nueva-reserva', label: 'Nueva reserva', href: 'nueva_reserva.html', show: canCreateReservations(profile), icon: 'R' }
   ].filter(item => item.show);
 }
@@ -862,8 +899,6 @@ async function repairUserDocumentForAuthUser(profile, currentUser, { activate = 
       estado_registro: nextState,
       activo: true,
       eliminado: false,
-      propiedad_id: profile.propiedad_id || '',
-      propiedad_ids: selectedPropertyIds(profile),
       updated_at: serverTimestamp(),
       actualizado_por: currentUser.uid
     });
@@ -1085,6 +1120,9 @@ export async function upsertUserSupportDocs(userId, payload, { previousEmail = '
 }
 
 export async function markUserAsDeleted(actorProfile, userProfile) {
+  if (!canManageTargetUser(actorProfile, userProfile) || userProfile.rol === ROLES.SUPERADMIN) {
+    throw new Error('No tenés permisos para desactivar este usuario.');
+  }
   const sameDocument = actorProfile?.id && userProfile?.id && actorProfile.id === userProfile.id;
   const sameAuthUser = actorProfile?.uid && userProfile?.uid && actorProfile.uid === userProfile.uid;
 
@@ -1112,6 +1150,7 @@ export async function markUserAsDeleted(actorProfile, userProfile) {
 }
 
 export async function reactivateUser(actorProfile, userProfile) {
+  if (!canManageTargetUser(actorProfile, userProfile)) throw new Error('No tenés permisos para reactivar este usuario.');
   if (!userProfile?.id) {
     throw new Error('No se pudo identificar el usuario a reactivar.');
   }
@@ -1173,7 +1212,7 @@ export async function listScopedProperties(profile, { includeInactive = false } 
   if (!profile) return [];
   let items = [];
 
-  if (isSuperadmin(profile)) {
+  if (canReadGlobally(profile)) {
     const snap = await getDocs(query(collection(db, 'propiedades'), orderBy('nombre')));
     items = snap.docs.map(docSnap => normalizePropertyDoc(docSnap.data(), docSnap.id));
   } else if (isAdmin(profile)) {
@@ -1182,7 +1221,7 @@ export async function listScopedProperties(profile, { includeInactive = false } 
       where('empresa_id', '==', profile.empresa_id)
     ));
     items = snap.docs.map(docSnap => normalizePropertyDoc(docSnap.data(), docSnap.id));
-  } else {
+  } else if (isRecepcion(profile)) {
     const ids = selectedPropertyIds(profile);
     const docs = await Promise.all(ids.map((id) => getPropertyById(id)));
     items = docs.filter(Boolean);
@@ -1200,10 +1239,10 @@ export async function listUnitsByProperty(propertyId, { includeInactive = false 
 }
 
 export async function listScopedUsers(profile, { includeDeleted = false } = {}) {
-  if (!profile || !canManageUsers(profile)) return [];
+  if (!profile || !canReadUsers(profile)) return [];
   let items = [];
 
-  if (isSuperadmin(profile)) {
+  if (canReadGlobally(profile)) {
     const snap = await getDocs(collection(db, 'usuarios'));
     items = snap.docs.map(docSnap => normalizeUserDoc(docSnap.data(), docSnap.id));
   } else {
@@ -1220,17 +1259,17 @@ export async function listScopedReservations(profile) {
   if (!profile) return [];
   let items = [];
 
-  if (isSuperadmin(profile)) {
+  if (canReadGlobally(profile)) {
     const snap = await getDocs(collection(db, 'reservas'));
     items = snap.docs.map(docSnap => normalizeReservationDoc(docSnap.data(), docSnap.id));
   } else if (isAdmin(profile)) {
     const snap = await getDocs(query(collection(db, 'reservas'), where('empresa_id', '==', profile.empresa_id)));
     items = snap.docs.map(docSnap => normalizeReservationDoc(docSnap.data(), docSnap.id));
-  } else {
+  } else if (isRecepcion(profile)) {
     const propertyIds = selectedPropertyIds(profile);
     const snapshots = await Promise.all(
       propertyIds.map((propId) =>
-        getDocs(query(collection(db, 'reservas'), where('propiedad_id', '==', propId)))
+        getDocs(query(collection(db, 'reservas'), where('propiedad_id', '==', propId), where('empresa_id', '==', profile.empresa_id)))
       )
     );
 
@@ -1253,7 +1292,8 @@ export function buildUserPayloadFromForm(form, actorProfile, existingUser = null
   if (!canManageUsers(actorProfile) || (existingUser && !canManageTargetUser(actorProfile, existingUser))) {
     throw new Error('No tenés permisos para modificar este usuario.');
   }
-  if (!isSuperadmin(actorProfile) && rol === ROLES.SUPERADMIN) {
+  if (!Object.values(ROLES).includes(rol)) throw new Error('Rol no válido.');
+  if (!isSuperadmin(actorProfile) && [ROLES.SUPERADMIN, ROLES.SOPORTE].includes(rol)) {
     throw new Error('Solo un superadmin puede asignar ese rol.');
   }
   const isSelf = existingUser && (
@@ -1262,6 +1302,9 @@ export function buildUserPayloadFromForm(form, actorProfile, existingUser = null
   );
   if (isSuperadmin(actorProfile) && isSelf && rol !== ROLES.SUPERADMIN) {
     throw new Error('No podés cambiar tu propio rol de superadmin. Otro superadmin debe realizar ese cambio.');
+  }
+  if (existingUser?.rol === ROLES.SUPERADMIN && rol !== ROLES.SUPERADMIN) {
+    throw new Error('La degradación de un superadmin requiere un procedimiento privilegiado.');
   }
   const email = normalizeEmail(qs('[name="email"]', form)?.value);
   const propertyIds = rol === ROLES.RECEPCION
@@ -1274,9 +1317,9 @@ export function buildUserPayloadFromForm(form, actorProfile, existingUser = null
     email,
     email_normalizado: email,
     rol,
-    empresa_id: isSuperadmin(actorProfile) && rol === ROLES.SUPERADMIN
+    empresa_id: isSuperadmin(actorProfile) && [ROLES.SUPERADMIN, ROLES.SOPORTE].includes(rol)
       ? ''
-      : (qs('[name="empresa_id"]', form)?.value.trim() || existingUser?.empresa_id || actorProfile.empresa_id || ''),
+      : (isSuperadmin(actorProfile) ? (qs('[name="empresa_id"]', form)?.value.trim() || existingUser?.empresa_id || '') : actorProfile.empresa_id || ''),
     propiedad_id: propertyId,
     propiedad_ids: propertyIds,
     activo: true,
@@ -1490,7 +1533,12 @@ export async function deleteReservationWithLocks(reservationId) {
     const currentReservation = normalizeReservationDoc(currentSnap.data(), currentSnap.id);
     const currentLocks = new Set(reservationLockIdsFromData(currentReservation));
 
-    transaction.delete(reservationRef);
+    // Preserve the booking history; only technical occupancy locks are removed.
+    transaction.update(reservationRef, {
+      estado: 'cancelada',
+      updated_at: serverTimestamp(),
+      actualizado_por: auth.currentUser?.uid || ''
+    });
 
     for (const lockId of currentLocks) {
       transaction.delete(doc(db, 'reserva_ocupacion', lockId));
@@ -1499,7 +1547,9 @@ export async function deleteReservationWithLocks(reservationId) {
 }
 
 export async function deletePropertyUnit(propertyId, unitId) {
-  await deleteDoc(doc(db, 'propiedades', propertyId, 'unidades', unitId));
+  await updateDoc(doc(db, 'propiedades', propertyId, 'unidades', unitId), {
+    activa: false, updated_at: serverTimestamp(), actualizado_por: auth.currentUser?.uid || ''
+  });
 }
 
 export function reservationMatchesFilters(reserva, text = '', status = '') {

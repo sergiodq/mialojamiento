@@ -2,7 +2,7 @@ name: Verificar proyecto
 
 on:
   push:
-    branches: [main, "fix/**", "audit/**"]
+    branches: [main, "fix/**", "audit/**", "codex/**"]
   pull_request:
 
 permissions:
@@ -21,5 +21,12 @@ jobs:
           cache: npm
       - name: Instalar dependencias
         run: npm ci
+      - name: Instalar Java para emulador
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
       - name: Ejecutar pruebas
         run: npm test
+      - name: Verificar reglas de Firestore
+        run: npm run test:rules

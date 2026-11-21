@@ -177,8 +177,6 @@ export async function registerPendingUser({ nombre, email, password }) {
       estado_registro: REGISTRATION_STATES.ACTIVO,
       activo: true,
       eliminado: false,
-      propiedad_id: userProfile.propiedad_id || '',
-      propiedad_ids: userProfile.propiedad_ids || [],
       updated_at: serverTimestamp(),
       actualizado_por: credential.user.uid
     });

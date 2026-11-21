@@ -3,6 +3,8 @@ import {
   canManageUsers,
   canManageProperties,
   canCreateReservations,
+  canReadGlobally,
+  isSoporte,
   isSuperadmin,
   listScopedProperties,
   listScopedReservations,
@@ -147,7 +149,7 @@ function bindCommonActions() {
 
 function configureDashboardMode() {
   const superadminMode = isSuperadmin(currentProfile);
-  qs('#regularDashboardSection')?.toggleAttribute('hidden', superadminMode);
+  qs('#regularDashboardSection')?.removeAttribute('hidden');
   qs('#superadminSummarySection')?.toggleAttribute('hidden', !superadminMode);
 }
 
@@ -155,7 +157,7 @@ function renderQuickActions() {
   const btnReservation = qs('#quickNuevaReserva');
   const btnReservationFab = qs('#quickNuevaReservaFab');
 
-  if (isSuperadmin(currentProfile)) {
+  if (!canCreateReservations(currentProfile)) {
     btnReservation?.setAttribute('hidden', 'hidden');
     btnReservationFab?.setAttribute('hidden', 'hidden');
     return;
@@ -190,6 +192,7 @@ function buildRoomRow({ property, unit = null, legacyLabel = '' }, scopedReserva
   if (unit?.tipo_unidad) subtitleBits.push(unit.tipo_unidad);
   if (unit?.capacidad_max) subtitleBits.push(`${unit.capacidad_max} pax`);
   if (!unit && legacyLabel) subtitleBits.push('unidad manual');
+  if (unit && !unit.activa) subtitleBits.push('unidad inactiva');
 
   const legacyKey = normalizeText(legacyLabel || unit?.nombre || unit?.codigo || 'unidad-manual');
   const unitKeys = new Set([
@@ -394,8 +397,8 @@ function renderReservationCell(item, span) {
           </div>
         </div>
         <div class="planning-reservation-actions compact-actions">
-          <a class="planning-action-btn" href="nueva_reserva.html?id=${encodeURIComponent(item.id)}">Editar</a>
-          <button type="button" class="planning-action-btn danger btnDeleteReservation" data-id="${escapeHtml(item.id)}" data-cliente="${escapeHtml(item.cliente || '')}" aria-label="Eliminar reserva">×</button>
+          <a class="planning-action-btn" href="nueva_reserva.html?id=${encodeURIComponent(item.id)}">${isSoporte(currentProfile) ? 'Ver / notas' : 'Editar'}</a>
+          ${canCreateReservations(currentProfile) && item.estado !== 'cancelada' ? `<button type="button" class="planning-action-btn danger btnDeleteReservation" data-id="${escapeHtml(item.id)}" data-cliente="${escapeHtml(item.cliente || '')}" aria-label="Cancelar reserva">×</button>` : ''}
         </div>
       </div>
     </td>
@@ -529,8 +532,8 @@ function renderMobilePlanningBoard() {
                                 <span><strong>Salida:</strong> ${formatDate(item.fecha_fin)}</span>
                               </div>
                               <div class="mobile-reservation-actions">
-                                <a class="planning-action-btn" href="nueva_reserva.html?id=${encodeURIComponent(item.id)}">Editar</a>
-                                <button type="button" class="planning-action-btn danger btnDeleteReservation" data-id="${escapeHtml(item.id)}" data-cliente="${escapeHtml(item.cliente || '')}" aria-label="Eliminar reserva">Eliminar</button>
+                                <a class="planning-action-btn" href="nueva_reserva.html?id=${encodeURIComponent(item.id)}">${isSoporte(currentProfile) ? 'Ver / notas' : 'Editar'}</a>
+                                ${canCreateReservations(currentProfile) && item.estado !== 'cancelada' ? `<button type="button" class="planning-action-btn danger btnDeleteReservation" data-id="${escapeHtml(item.id)}" data-cliente="${escapeHtml(item.cliente || '')}" aria-label="Cancelar reserva">Cancelar</button>` : ''}
                               </div>
                             </article>
                           `;
@@ -621,7 +624,7 @@ function renderPlanningBoard() {
             <div class="planning-property-meta">
               <span>${group.rows.length} unidades</span>
               <span>${visibleCount} reservas visibles</span>
-              <span>${group.property.tipo || 'propiedad'}</span>
+              <span>${escapeHtml(group.property.tipo || 'propiedad')}${group.property.activo ? '' : ' · Inactiva'}</span>
             </div>
           </th>
           <td colspan="${visibleDates.length}" class="planning-property-summary planning-property-summary-spacer"></td>
@@ -706,7 +709,6 @@ function applyFilters() {
 
   if (isSuperadmin(currentProfile)) {
     renderSuperadminSummary();
-    return;
   }
 
   renderPlannerResume();
@@ -714,16 +716,17 @@ function applyFilters() {
 }
 
 async function loadData() {
-  properties = await listScopedProperties(currentProfile, { includeInactive: false });
+  const globalConsultation = canReadGlobally(currentProfile);
+  properties = await listScopedProperties(currentProfile, { includeInactive: globalConsultation });
   const allReservations = await listScopedReservations(currentProfile);
 
   unitsCache.clear();
   const unitsEntries = await Promise.all(
-    properties.map(async (property) => [property.id, await listUnitsByProperty(property.id, { includeInactive: false })])
+    properties.map(async (property) => [property.id, await listUnitsByProperty(property.id, { includeInactive: globalConsultation })])
   );
   unitsEntries.forEach(([propertyId, units]) => unitsCache.set(propertyId, units));
 
-  reservations = allReservations.filter(reservationBelongsToActiveInventory);
+  reservations = globalConsultation ? allReservations : allReservations.filter(reservationBelongsToActiveInventory);
 
   updatePropertyFilterOptions();
   filteredReservations = [...reservations];
@@ -732,22 +735,21 @@ async function loadData() {
 
   if (isSuperadmin(currentProfile)) {
     renderSuperadminSummary();
-  } else {
-    renderPlannerResume();
-    renderPlanningBoard();
   }
+  renderPlannerResume();
+  renderPlanningBoard();
 }
 
 async function handleDeleteReservation(reservationId, clientName = '') {
-  if (!reservationId) return;
+  if (!reservationId || !canCreateReservations(currentProfile)) return;
 
-  if (!window.confirm(`Se eliminará la reserva de ${clientName || 'este cliente'}. ¿Continuar?`)) {
+  if (!window.confirm(`Se cancelará la reserva de ${clientName || 'este cliente'}, conservando su historial. ¿Continuar?`)) {
     return;
   }
 
   try {
     await deleteReservationWithLocks(reservationId);
-    showToast('La reserva fue eliminada correctamente.', 'success', 'Reserva eliminada');
+    showToast('La reserva fue cancelada. Se conserva su historial.', 'success', 'Reserva cancelada');
     await loadData();
     applyFilters();
   } catch (error) {
@@ -756,7 +758,6 @@ async function handleDeleteReservation(reservationId, clientName = '') {
 }
 
 function bindFilters() {
-  if (isSuperadmin(currentProfile)) return;
 
   qs('#filtroTexto')?.addEventListener('input', applyFilters);
   qs('#filtroEstado')?.addEventListener('change', applyFilters);
@@ -831,7 +832,7 @@ async function init() {
       applyResponsiveDefaultView();
       wasCompactPlanner = isCompactPlannerNow;
 
-      if (!isSuperadmin(currentProfile) && (crossedCompactBreakpoint || previousView !== calendarView)) {
+      if (crossedCompactBreakpoint || previousView !== calendarView) {
         applyFilters();
       }
     }, 120);

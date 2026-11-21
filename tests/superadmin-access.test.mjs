@@ -53,3 +53,37 @@ test('admin cannot edit superadmin or another company profile',()=>{
   assert.throws(()=>build(admin,owner,'admin'),/permisos/i);
   assert.throws(()=>build(admin,{...reception,empresa_id:'b'},'recepcion'),/permisos/i);
 });
+
+const support = { id:'support',uid:'support-uid',rol:'soporte',empresa_id:'' };
+test('superadmin can create reservations and support only has global consultation',()=>{
+  assert.equal(helpers.canCreateReservations(owner),true);
+  assert.equal(helpers.canCreateReservations(support),false);
+  assert.equal(helpers.canManageUsers(support),false);
+  assert.equal(helpers.canManageProperties(support),false);
+  assert.equal(helpers.canReadUsers(support),true);
+  assert.equal(helpers.canReadProperties(support),true);
+  assert.equal(helpers.canAccessProperty(support,{id:'pb',empresa_id:'b'}),true);
+  assert.equal(helpers.canAccessReservation(support,{propiedad_id:'pb',empresa_id:'b'}),true);
+  assert.deepEqual(helpers.getNavItems(support).map(x=>x.href),['dashboard.html','usuarios.html','propiedades.html']);
+});
+test('admin cannot assign support or edit support accounts',()=>{
+  assert.throws(()=>build(admin,null,'soporte'),/superadmin/i);
+  assert.throws(()=>build(admin,{...support,empresa_id:'a'},'recepcion'),/permisos/i);
+});
+test('unknown roles cannot access assigned properties or reservations',()=>{
+  const unknown = {rol:'otro',propiedad_ids:['pa']};
+  assert.equal(helpers.canAccessProperty(unknown,{id:'pa'}),false);
+  assert.equal(helpers.canAccessReservation(unknown,{propiedad_id:'pa'}),false);
+});
+test('support payloads reject critical and mixed edits rather than dropping them',()=>{
+  assert.deepEqual(helpers.buildSupportPatch(support,'reservas',{observaciones:'Revisado'}),{
+    observaciones:'Revisado',updated_at:null,actualizado_por:'support-uid'
+  });
+  assert.deepEqual(helpers.buildSupportPatch(support,'propiedades',{telefono:'123',email_contacto:'hotel@example.com',observaciones_internas:'Nota'}),{
+    telefono:'123',email_contacto:'hotel@example.com',observaciones_internas:'Nota',updated_at:null,actualizado_por:'support-uid'
+  });
+  assert.throws(()=>helpers.buildSupportPatch(support,'reservas',{observaciones:'Nota',total:0}),/permitid/i);
+  assert.throws(()=>helpers.buildSupportPatch(support,'usuarios',{nombre:'Otro'}),/permitid/i);
+  assert.throws(()=>helpers.buildSupportPatch(reception,'reservas',{observaciones:'Nota'}),/permisos/i);
+  assert.throws(()=>helpers.buildSupportPatch(support,'reservas',{observaciones:'x'.repeat(10001)}),/largo/i);
+});

@@ -1,252 +1,234 @@
 rules_version = '2';
+// Canonical identity: usuarios/{id}, uid/email immutable once linked, rol enum,
+// empresa_id string, propiedad_ids string[] (max 20), activo/eliminado bool.
+// usuarios_auth/{uid} and email_index/{email} must mirror the canonical identity.
+// propiedades: empresa_id/nombre/codigo strings, activo bool; optional contact strings.
+// unidades: codigo/nombre strings, capacities >= 0, activa bool.
+// reservas: empresa_id/propiedad_id/unidad_key strings, ISO dates, estado enum,
+// cliente string, huespedes > 0, total >= 0, optional observaciones string.
+// reserva_ocupacion: reserva_id/propiedad_id/unidad_key/fecha/estado strings.
+// Retain business records. Only obsolete technical indexes and locks can be deleted.
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function signedIn() {
-      return request.auth != null;
+    function signedIn() { return request.auth != null; }
+    function authEmail() { return request.auth.token.get('email', ''); }
+    function mirror() {
+      let path = /databases/$(database)/documents/usuarios_auth/$(request.auth.uid);
+      return exists(path) ? get(path).data : {};
     }
-
-    function authEmail() {
-      return signedIn() && request.auth.token.email != null
-        ? request.auth.token.email
-        : "";
+    function me() {
+      let id = mirror().get('usuario_id', '_missing');
+      let path = /databases/$(database)/documents/usuarios/$(id);
+      return exists(path) ? get(path).data : {};
     }
-
-    function authMirror() {
-      return signedIn()
-        ? get(/databases/$(database)/documents/usuarios_auth/$(request.auth.uid))
-        : null;
+    function enabled(data) { return data.get('activo', false) == true && data.get('eliminado', false) == false; }
+    function role() {
+      return roleFor(me());
     }
-
-    function hasMirror() {
-      return signedIn() && authMirror() != null && authMirror().data.usuario_id != null;
+    function roleFor(user) {
+      return signedIn() && user.get('uid', '') == request.auth.uid && enabled(user) &&
+        user.get('estado_registro', '') == 'activo' ? user.get('rol','') : '';
     }
-
-    function myRole() {
-      return hasMirror() ? authMirror().data.rol : null;
+    function authorized() { return signedIn() && role() in ['superadmin','soporte','admin','recepcion']; }
+    function isSuper() { return signedIn() && role() == 'superadmin'; }
+    function isAdmin() { return signedIn() && role() == 'admin'; }
+    function isSupport() { return signedIn() && role() == 'soporte'; }
+    function globalRead() { return signedIn() && role() in ['superadmin','soporte']; }
+    function sameCompany(id) { return id is string && id != '' && id == me().empresa_id; }
+    function assigned(id) {
+      return signedIn() && role() == 'recepcion' && propertyIds(me()).hasAny([id]);
     }
-
-    function myCompany() {
-      return hasMirror() ? authMirror().data.empresa_id : null;
+    function propertyIds(data) {
+      return data.get('propiedad_ids', []).concat(data.get('propiedad_id', '') == '' ? [] : [data.propiedad_id]);
     }
-
-    function myUserId() {
-      return hasMirror() ? authMirror().data.usuario_id : null;
+    function ownRead(data) {
+      return signedIn() && (data.get('uid', '') == request.auth.uid ||
+        (authEmail() != '' && (data.get('email','') == authEmail() || data.get('email_normalizado','') == authEmail())));
     }
-
-    function myPropertyIds() {
-      return hasMirror() ? authMirror().data.propiedad_ids : [];
+    function own(data) {
+      return signedIn() && (data.get('uid', '') == request.auth.uid ||
+        (data.get('uid', '') == '' && authEmail() != '' && data.email == authEmail()));
     }
-
-    function isSuper() {
-      return myRole() == 'superadmin';
+    function localRole(role) { return role in ['admin', 'recepcion']; }
+    function manageable(data) {
+      return isSuper() || (isAdmin() && sameCompany(data.empresa_id) && localRole(data.rol));
     }
-
-    function isAdmin() {
-      return myRole() == 'admin';
+    function manageUserUpdate() {
+      let actor = me();
+      let actorRole = roleFor(actor);
+      return actorRole == 'superadmin' || (actorRole == 'admin' && actor.empresa_id != '' &&
+        resource.data.empresa_id == actor.empresa_id && request.resource.data.empresa_id == actor.empresa_id &&
+        localRole(resource.data.rol) && localRole(request.resource.data.rol));
     }
-
-    function isReception() {
-      return myRole() == 'recepcion';
+    function stringAt(ids, i) {
+      return ids.size() <= i || ids[i] is string;
     }
-
-    function sameCompany(companyId) {
-      return companyId != null && companyId == myCompany();
+    function validIds(ids) {
+      return ids is list && ids.size() <= 20 &&
+        stringAt(ids,0) && stringAt(ids,1) && stringAt(ids,2) && stringAt(ids,3) &&
+        stringAt(ids,4) && stringAt(ids,5) && stringAt(ids,6) && stringAt(ids,7) &&
+        stringAt(ids,8) && stringAt(ids,9) && stringAt(ids,10) && stringAt(ids,11) &&
+        stringAt(ids,12) && stringAt(ids,13) && stringAt(ids,14) && stringAt(ids,15) &&
+        stringAt(ids,16) && stringAt(ids,17) && stringAt(ids,18) && stringAt(ids,19);
     }
-
-    function isOwnUserData(data) {
-      return signedIn() && (
-        (data.uid != null && data.uid == request.auth.uid) ||
-        (authEmail() != "" && (
-          data.email == authEmail() ||
-          data.email_normalizado == authEmail()
-        ))
-      );
+    function optionalText(data, key, max) {
+      return !(key in data) || (data[key] is string && data[key].size() <= max);
     }
-
-    function canReadUserData(data) {
-      return isSuper() ||
-        (isAdmin() && sameCompany(data.empresa_id)) ||
-        isOwnUserData(data) ||
-        (myUserId() != null && myUserId() == data.uid);
+    function validUser(data) {
+      return data.rol in ['superadmin','soporte','admin','recepcion'] &&
+        data.empresa_id is string && (data.rol in ['superadmin','soporte'] || data.empresa_id != '') &&
+        data.uid is string && data.email is string && data.email.size() > 0 && data.email.size() <= 320 &&
+        data.email_normalizado == data.email && data.nombre is string && data.nombre.size() <= 320 &&
+        data.activo is bool && data.eliminado is bool &&
+        data.estado_registro in ['activo','pendiente_auth','requiere_reset'] && validIds(data.get('propiedad_ids', []));
     }
-
-    function targetUserData(userId) {
-      return get(/databases/$(database)/documents/usuarios/$(userId)).data;
+    function linkedIdentityUnchanged() {
+      return resource.data.get('uid', '') == '' ||
+        (request.resource.data.uid == resource.data.uid && request.resource.data.email == resource.data.email);
     }
-
-    function canSelfBootstrapUserUpdate(userId) {
-      return signedIn() &&
-        isOwnUserData(resource.data) &&
-        request.resource.data.email == resource.data.email &&
-        request.resource.data.rol == resource.data.rol &&
-        request.resource.data.empresa_id == resource.data.empresa_id &&
-        request.resource.data.activo == true &&
-        request.resource.data.eliminado == false &&
-        request.resource.data.uid == request.auth.uid;
+    function keepSuper() {
+      return resource.data.rol != 'superadmin' || resource.data.get('uid', '') == '' || !enabled(resource.data) ||
+        (request.resource.data.rol == 'superadmin' && enabled(request.resource.data) &&
+          request.resource.data.uid == resource.data.uid && request.resource.data.email == resource.data.email);
     }
-
-    function canSelfWriteSupportFor(userId) {
-      let target = targetUserData(userId);
-      return signedIn() &&
-        (
-          target.email == authEmail() ||
-          target.email_normalizado == authEmail()
-        ) &&
-        (
-          target.uid == null ||
-          target.uid == "" ||
-          target.uid == request.auth.uid
-        );
+    function selfUpdate() {
+      return own(resource.data) && enabled(resource.data) &&
+        request.resource.data.uid == request.auth.uid && request.resource.data.email == authEmail() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'nombre','uid','email_normalizado','estado_registro','activo','eliminado','updated_at','actualizado_por'
+        ]) && enabled(request.resource.data) && request.resource.data.estado_registro == 'activo';
     }
-
-    function canReadPropertyData(data, propertyId) {
-      return isSuper() ||
-        (isAdmin() && sameCompany(data.empresa_id)) ||
-        (isReception() && myPropertyIds().hasAny([propertyId]));
+    function matchingIdentity(data, target) {
+      return data.uid == target.uid && data.email == target.email && data.rol == target.rol &&
+        data.empresa_id == target.empresa_id && data.activo == target.activo && data.eliminado == target.eliminado &&
+        data.estado_registro == target.estado_registro && ((own(target) && enabled(target)) || manageable(target));
     }
-
-    function canReadReservationData(data) {
-      return isSuper() ||
-        (isAdmin() && sameCompany(data.empresa_id)) ||
-        (isReception() && myPropertyIds().hasAny([data.propiedad_id]));
+    function matchingMirror(data) {
+      let target = getAfter(/databases/$(database)/documents/usuarios/$(data.usuario_id)).data;
+      return matchingIdentity(data,target) && data.get('propiedad_ids', []).toSet() == propertyIds(target).toSet() &&
+        data.get('propiedad_id', '') == target.get('propiedad_id', '');
     }
-
-    match /email_index/{emailKey} {
-      allow get: if signedIn() && (
-        isAdmin() ||
-        isSuper() ||
-        emailKey == authEmail()
-      );
-      allow list: if false;
-
-      allow create, update: if signedIn() && (
-        isAdmin() ||
-        isSuper() ||
-        (
-          emailKey == authEmail() &&
-          request.resource.data.email == authEmail() &&
-          request.resource.data.uid == request.auth.uid &&
-          request.resource.data.email_normalizado == emailKey &&
-          canSelfWriteSupportFor(request.resource.data.usuario_id) &&
-          request.resource.data.rol == targetUserData(request.resource.data.usuario_id).rol &&
-          request.resource.data.empresa_id == targetUserData(request.resource.data.usuario_id).empresa_id &&
-          request.resource.data.activo == true &&
-          request.resource.data.eliminado == false
-        )
-      );
-
-      allow delete: if isAdmin() || isSuper();
+    function matchingIndex(data) {
+      let target = getAfter(/databases/$(database)/documents/usuarios/$(data.usuario_id)).data;
+      return matchingIdentity(data,target);
     }
-
-    match /usuarios_auth/{uid} {
-      allow get: if signedIn() && (
-        uid == request.auth.uid ||
-        isAdmin() ||
-        isSuper()
-      );
-      allow list: if isAdmin() || isSuper();
-
-      allow create, update: if signedIn() && (
-        isAdmin() ||
-        isSuper() ||
-        (
-          uid == request.auth.uid &&
-          request.resource.data.uid == request.auth.uid &&
-          request.resource.data.email == authEmail() &&
-          canSelfWriteSupportFor(request.resource.data.usuario_id) &&
-          request.resource.data.rol == targetUserData(request.resource.data.usuario_id).rol &&
-          request.resource.data.empresa_id == targetUserData(request.resource.data.usuario_id).empresa_id &&
-          request.resource.data.activo == true &&
-          request.resource.data.eliminado == false
-        )
-      );
-
-      allow delete: if isSuper();
+    function validMirror(data) {
+      return data.usuario_id is string && data.usuario_id.size() > 0 && data.uid is string &&
+        data.email is string && data.email_normalizado == data.email &&
+        data.rol in ['superadmin','soporte','admin','recepcion'] && data.empresa_id is string &&
+        data.activo is bool && data.eliminado is bool && validIds(data.get('propiedad_ids', []));
     }
-
+    function propertyData(id) { return get(/databases/$(database)/documents/propiedades/$(id)).data; }
+    function readProperty(data, id) {
+      return globalRead() || (isAdmin() && sameCompany(data.empresa_id)) || (assigned(id) && sameCompany(data.empresa_id));
+    }
+    function manageProperty(id) { return isSuper() || (isAdmin() && sameCompany(propertyData(id).empresa_id)); }
+    function readReservation(data) {
+      return globalRead() || (isAdmin() && sameCompany(data.empresa_id)) ||
+        (assigned(data.propiedad_id) && sameCompany(data.empresa_id));
+    }
+    function writeReservation(data) {
+      let actorRole = role();
+      return actorRole == 'superadmin' || (actorRole in ['admin','recepcion'] && sameCompany(data.empresa_id) &&
+        propertyData(data.propiedad_id).empresa_id == data.empresa_id &&
+        (actorRole == 'admin' || propertyIds(me()).hasAny([data.propiedad_id])));
+    }
+    function validProperty(data) {
+      return data.empresa_id is string && data.empresa_id != '' && data.nombre is string &&
+        data.nombre.size() > 0 && data.nombre.size() <= 320 && data.codigo is string && data.activo is bool &&
+        optionalText(data,'telefono',320) && optionalText(data,'email_contacto',320) && optionalText(data,'observaciones_internas',10000);
+    }
+    function validUnit(data) {
+      return data.codigo is string && data.nombre is string && data.nombre.size() > 0 &&
+        data.capacidad_max is number && data.capacidad_max > 0 && data.activa is bool &&
+        data.capacidad_adultos is number && data.capacidad_adultos >= 0 && data.capacidad_ninos is number &&
+        data.capacidad_ninos >= 0 && data.capacidad_adultos + data.capacidad_ninos <= data.capacidad_max;
+    }
+    function activeReservation(data) { return data.estado in ['confirmada','pendiente','pendiente de pago','bloqueada','mantenimiento']; }
+    function validReservation(data) {
+      return data.empresa_id is string && data.propiedad_id is string && data.unidad_key is string && data.unidad_key.size() > 0 &&
+        data.cliente is string && data.cliente.size() > 0 && data.cliente.size() <= 320 &&
+        data.fecha_inicio is string && data.fecha_fin is string &&
+        data.fecha_inicio.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') && data.fecha_fin.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+        data.fecha_inicio < data.fecha_fin && (activeReservation(data) || data.estado == 'cancelada') &&
+        data.huespedes is number && data.huespedes > 0 && data.total is number && data.total >= 0 && optionalText(data,'observaciones',10000);
+    }
+    function supportUpdate(fields) {
+      return isSupport() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields.concat([
+        'updated_at','actualizado_por'
+      ])) && (!('actualizado_por' in request.resource.data) || request.resource.data.actualizado_por == request.auth.uid);
+    }
+    function lockReservation(data) { return getAfter(/databases/$(database)/documents/reservas/$(data.reserva_id)).data; }
+    function validLock(data, id) {
+      let reservation = lockReservation(data);
+      return data.reserva_id is string && data.propiedad_id is string && data.unidad_key is string && data.fecha is string &&
+        data.estado is string && id == data.propiedad_id + '__' + data.unidad_key + '__' + data.fecha &&
+        data.propiedad_id == reservation.propiedad_id && data.unidad_key == reservation.unidad_key &&
+        data.fecha >= reservation.fecha_inicio && data.fecha < reservation.fecha_fin && data.estado == reservation.estado &&
+        activeReservation(reservation) && writeReservation(reservation);
+    }
+    function obsoleteLock(data) {
+      let reservation = lockReservation(data);
+      return writeReservation(reservation) && (!activeReservation(reservation) || data.propiedad_id != reservation.propiedad_id ||
+        data.unidad_key != reservation.unidad_key || data.fecha < reservation.fecha_inicio || data.fecha >= reservation.fecha_fin);
+    }
     match /usuarios/{userId} {
-      allow get, list: if signedIn() && canReadUserData(resource.data);
-
-      allow create: if signedIn() && (isAdmin() || isSuper());
-
-      allow update: if signedIn() && (
-        isSuper() ||
-        (isAdmin() && sameCompany(resource.data.empresa_id)) ||
-        canSelfBootstrapUserUpdate(userId)
+      allow get, list: if signedIn() && (ownRead(resource.data) || globalRead() || (isAdmin() && sameCompany(resource.data.empresa_id)));
+      allow create: if signedIn() && validUser(request.resource.data) && manageable(request.resource.data);
+      allow update: if signedIn() && validUser(request.resource.data) && linkedIdentityUnchanged() && keepSuper() && (
+        selfUpdate() || (manageUserUpdate() &&
+          (resource.data.get('uid','') != request.auth.uid || enabled(request.resource.data)))
       );
-
       allow delete: if false;
     }
-
-    match /propiedades/{propertyId} {
-      allow get, list: if signedIn() && canReadPropertyData(resource.data, propertyId);
-
-      allow create: if signedIn() && (isSuper() || isAdmin());
-
-      allow update: if signedIn() && (
-        isSuper() ||
-        (isAdmin() && sameCompany(resource.data.empresa_id))
-      );
-
+    match /usuarios_auth/{uid} {
+      allow get: if signedIn() && (uid == request.auth.uid || isSuper() ||
+        (isAdmin() && sameCompany(resource.data.empresa_id) && localRole(resource.data.rol)));
+      allow list: if isSuper();
+      allow create: if signedIn() && request.resource.data.uid == uid && validMirror(request.resource.data) && matchingMirror(request.resource.data);
+      allow update: if signedIn() && request.resource.data.usuario_id == resource.data.usuario_id &&
+        request.resource.data.uid == uid && validMirror(request.resource.data) && matchingMirror(request.resource.data);
       allow delete: if false;
-
+    }
+    match /email_index/{emailKey} {
+      allow get: if signedIn() && (emailKey == authEmail() || isSuper() ||
+        (isAdmin() && (!exists(/databases/$(database)/documents/email_index/$(emailKey)) || sameCompany(resource.data.empresa_id))));
+      allow list: if false;
+      allow create: if signedIn() && request.resource.data.email == emailKey && validMirror(request.resource.data) && matchingIndex(request.resource.data);
+      allow update: if signedIn() && request.resource.data.usuario_id == resource.data.usuario_id &&
+        request.resource.data.email == emailKey && validMirror(request.resource.data) && matchingIndex(request.resource.data);
+      allow delete: if signedIn() && manageable(get(/databases/$(database)/documents/usuarios/$(resource.data.usuario_id)).data) &&
+        getAfter(/databases/$(database)/documents/usuarios/$(resource.data.usuario_id)).data.email != emailKey;
+    }
+    match /propiedades/{propertyId} {
+      allow get, list: if signedIn() && readProperty(resource.data,propertyId);
+      allow create: if validProperty(request.resource.data) && (isSuper() || (isAdmin() && sameCompany(request.resource.data.empresa_id)));
+      allow update: if validProperty(request.resource.data) && (isSuper() ||
+        (isAdmin() && sameCompany(resource.data.empresa_id) && sameCompany(request.resource.data.empresa_id)) ||
+        supportUpdate(['telefono','email_contacto','observaciones_internas']));
+      allow delete: if false;
       match /unidades/{unitId} {
-        allow get, list: if signedIn() &&
-          (
-            isSuper() ||
-            (isAdmin() && sameCompany(get(/databases/$(database)/documents/propiedades/$(propertyId)).data.empresa_id)) ||
-            (isReception() && myPropertyIds().hasAny([propertyId]))
-          );
-
-        allow create, update, delete: if signedIn() &&
-          (
-            isSuper() ||
-            (isAdmin() && sameCompany(get(/databases/$(database)/documents/propiedades/$(propertyId)).data.empresa_id))
-          );
+        allow get, list: if signedIn() && readProperty(propertyData(propertyId),propertyId);
+        allow create, update: if validUnit(request.resource.data) && manageProperty(propertyId);
+        allow delete: if false;
       }
     }
-
     match /reservas/{reservationId} {
-      allow get, list: if signedIn() && canReadReservationData(resource.data);
-
-      allow create, update: if signedIn() &&
-        (
-          isSuper() ||
-          (isAdmin() && request.resource.data.empresa_id == myCompany()) ||
-          (isReception() && myPropertyIds().hasAny([request.resource.data.propiedad_id]))
-        );
-
+      allow get, list: if signedIn() && readReservation(resource.data);
+      allow create: if validReservation(request.resource.data) && writeReservation(request.resource.data);
+      allow update: if validReservation(request.resource.data) && (
+        (writeReservation(resource.data) && writeReservation(request.resource.data)) || supportUpdate(['observaciones']));
       allow delete: if false;
     }
-
     match /reserva_ocupacion/{lockId} {
-      allow get, list: if signedIn() &&
-        (
-          isSuper() ||
-          canReadPropertyData(
-            get(/databases/$(database)/documents/propiedades/$(resource.data.propiedad_id)).data,
-            resource.data.propiedad_id
-          )
-        );
-
-      allow create, update: if signedIn() &&
-        (
-          isSuper() ||
-          canReadPropertyData(
-            get(/databases/$(database)/documents/propiedades/$(request.resource.data.propiedad_id)).data,
-            request.resource.data.propiedad_id
-          )
-        );
-
-      allow delete: if signedIn() &&
-        (
-          isSuper() ||
-          canReadPropertyData(
-            get(/databases/$(database)/documents/propiedades/$(resource.data.propiedad_id)).data,
-            resource.data.propiedad_id
-          )
-        );
+      // Transactions read missing locks before creating reservations.
+      allow get: if authorized() && (globalRead() || !exists(/databases/$(database)/documents/reserva_ocupacion/$(lockId)) ||
+        readProperty(propertyData(resource.data.propiedad_id),resource.data.propiedad_id));
+      allow list: if signedIn() && readProperty(propertyData(resource.data.propiedad_id),resource.data.propiedad_id);
+      allow create: if authorized() && validLock(request.resource.data,lockId);
+      allow update: if authorized() && validLock(request.resource.data,lockId) &&
+        (request.resource.data.reserva_id == resource.data.reserva_id || obsoleteLock(resource.data));
+      allow delete: if authorized() && obsoleteLock(resource.data);
     }
   }
 }

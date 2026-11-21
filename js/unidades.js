@@ -8,7 +8,9 @@ import {
 } from './firebase-config.js';
 import {
   requireAuth,
+  escapeHtml,
   canManageProperties,
+  canReadProperties,
   canCreateReservations,
   BED_OPTIONS,
   UNIT_TYPES,
@@ -106,17 +108,17 @@ function renderUnits() {
   tbody.innerHTML = units
     .map((unit) => `
       <tr>
-        <td data-label="Código"><strong>${unit.codigo || '—'}</strong></td>
-        <td data-label="Nombre">${unit.nombre || '—'}</td>
-        <td data-label="Tipo">${unit.tipo_unidad || '—'}</td>
+        <td data-label="Código"><strong>${escapeHtml(unit.codigo || '—')}</strong></td>
+        <td data-label="Nombre">${escapeHtml(unit.nombre || '—')}</td>
+        <td data-label="Tipo">${escapeHtml(unit.tipo_unidad || '—')}</td>
         <td data-label="Cap. máx">${unit.capacidad_max || 0}</td>
         <td data-label="Adultos">${unit.capacidad_adultos || 0}</td>
         <td data-label="Niños">${unit.capacidad_ninos || 0}</td>
         <td data-label="Estado">${unit.activa ? '<span class="badge green">Activa</span>' : '<span class="badge orange">Inactiva</span>'}</td>
         <td data-label="Acciones">
           <div class="table-actions">
-            <button class="btn-secondary btnEditUnit" data-id="${unit.id}">Editar</button>
-            <button class="btn-danger btnDeleteUnit" data-id="${unit.id}">Eliminar</button>
+            ${canManageProperties(currentProfile) ? `<button class="btn-secondary btnEditUnit" data-id="${escapeHtml(unit.id)}">Editar</button>
+            <button class="btn-danger btnDeleteUnit" data-id="${escapeHtml(unit.id)}" ${unit.activa ? '' : 'disabled'}>Desactivar</button>` : 'Solo consulta'}
           </div>
         </td>
       </tr>
@@ -131,6 +133,7 @@ async function loadUnits() {
 
 async function saveUnit(event) {
   event.preventDefault();
+  if (!canManageProperties(currentProfile)) return;
   const form = event.currentTarget;
   const feedback = qs('#formFeedback');
   const submit = qs('button[type="submit"]', form);
@@ -184,13 +187,14 @@ async function editUnit(unitId) {
 }
 
 async function deleteUnit(unitId) {
+  if (!canManageProperties(currentProfile)) return;
   const unit = units.find((item) => item.id === unitId);
   if (!unit) return;
-  if (!window.confirm(`Se eliminará la unidad ${unit.nombre || unit.codigo}. ¿Continuar?`)) return;
+  if (!window.confirm(`Se desactivará la unidad ${unit.nombre || unit.codigo}, conservando su historial. ¿Continuar?`)) return;
 
   try {
     await deletePropertyUnit(currentProperty.id, unitId);
-    showToast('Unidad eliminada.', 'success', 'Hecho');
+    showToast('Unidad desactivada. Se conserva su historial.', 'success', 'Hecho');
     await loadUnits();
   } catch (error) {
     showToast(error.message || 'No se pudo eliminar la unidad.', 'error', 'Error');
@@ -213,8 +217,8 @@ function bindTableActions() {
 
 async function init() {
   primeSidebarFromCache('propiedades');
-  currentProfile = await requireAuth({ roles: ['superadmin', 'admin'], pageKey: 'propiedades' });
-  if (!currentProfile || !canManageProperties(currentProfile)) return;
+  currentProfile = await requireAuth({ roles: ['superadmin', 'admin', 'soporte'], pageKey: 'propiedades' });
+  if (!currentProfile || !canReadProperties(currentProfile)) return;
 
   const propertyId = getPropertyIdFromUrl();
   if (!propertyId) {
@@ -229,7 +233,7 @@ async function init() {
   }
 
   renderTopbar({
-    title: `Unidades · ${currentProperty.nombre}`,
+    title: `Unidades · ${escapeHtml(currentProperty.nombre)}`,
     subtitle: 'Administrá habitaciones, departamentos o cabañas reservables dentro de la propiedad seleccionada.',
     actionsHtml: `
       <a class="btn-ghost" href="propiedades.html">Volver a propiedades</a>
@@ -240,15 +244,19 @@ async function init() {
   bindCommonActions();
   fillTypeOptions();
   resetForm();
+  if (!canManageProperties(currentProfile)) {
+    qs('#unidadForm').hidden = true;
+    qs('#unitFormTitle').textContent = 'Unidades · solo consulta';
+  }
   bindTableActions();
 
   qs('#unidadForm')?.addEventListener('submit', saveUnit);
   qs('#btnCancelarEdicionUnidad')?.addEventListener('click', resetForm);
   qs('#propertyResume').innerHTML = `
-    <div class="stat-item"><span>Propiedad</span><strong>${currentProperty.nombre}</strong></div>
-    <div class="stat-item"><span>Código</span><strong>${currentProperty.codigo || '—'}</strong></div>
-    <div class="stat-item"><span>Ciudad</span><strong>${currentProperty.ciudad || '—'}</strong></div>
-    <div class="stat-item"><span>Check-in / out</span><strong>${currentProperty.check_in} / ${currentProperty.check_out}</strong></div>
+    <div class="stat-item"><span>Propiedad</span><strong>${escapeHtml(currentProperty.nombre)}</strong></div>
+    <div class="stat-item"><span>Código</span><strong>${escapeHtml(currentProperty.codigo || '—')}</strong></div>
+    <div class="stat-item"><span>Ciudad</span><strong>${escapeHtml(currentProperty.ciudad || '—')}</strong></div>
+    <div class="stat-item"><span>Check-in / out</span><strong>${escapeHtml(currentProperty.check_in)} / ${escapeHtml(currentProperty.check_out)}</strong></div>
   `;
 
   try {
