@@ -19,7 +19,10 @@ service cloud.firestore {
     }
 
     function hasMirror() {
-      return signedIn() && authMirror() != null && authMirror().data.usuario_id != null;
+      return signedIn() && authMirror() != null &&
+        authMirror().data.usuario_id != null &&
+        authMirror().data.get('activo', true) == true &&
+        authMirror().data.get('eliminado', false) == false;
     }
 
     function myRole() {
@@ -80,6 +83,8 @@ service cloud.firestore {
         isOwnUserData(resource.data) &&
         request.resource.data.email == resource.data.email &&
         request.resource.data.rol == resource.data.rol &&
+        request.resource.data.propiedad_id == resource.data.get('propiedad_id', '') &&
+        request.resource.data.propiedad_ids == resource.data.get('propiedad_ids', []) &&
         request.resource.data.empresa_id == resource.data.empresa_id &&
         request.resource.data.activo == true &&
         request.resource.data.eliminado == false &&
@@ -103,26 +108,29 @@ service cloud.firestore {
     function canReadPropertyData(data, propertyId) {
       return isSuper() ||
         (isAdmin() && sameCompany(data.empresa_id)) ||
-        (isReception() && myPropertyIds().hasAny([propertyId]));
+        (isReception() && sameCompany(data.empresa_id) && myPropertyIds().hasAny([propertyId]));
     }
 
     function canReadReservationData(data) {
       return isSuper() ||
         (isAdmin() && sameCompany(data.empresa_id)) ||
-        (isReception() && myPropertyIds().hasAny([data.propiedad_id]));
+        (isReception() && sameCompany(data.empresa_id) && myPropertyIds().hasAny([data.propiedad_id]));
     }
 
     match /email_index/{emailKey} {
       allow get: if signedIn() && (
-        isAdmin() ||
         isSuper() ||
+        (isAdmin() && sameCompany(resource.data.empresa_id)) ||
         emailKey == authEmail()
       );
       allow list: if false;
 
       allow create, update: if signedIn() && (
-        isAdmin() ||
         isSuper() ||
+        (isAdmin() && request.resource.data.empresa_id == myCompany() &&
+          request.resource.data.rol != 'superadmin' &&
+          (!exists(/databases/$(database)/documents/email_index/$(emailKey)) ||
+            (resource.data.empresa_id == myCompany() && resource.data.rol != 'superadmin'))) ||
         (
           emailKey == authEmail() &&
           request.resource.data.email == authEmail() &&
@@ -136,20 +144,24 @@ service cloud.firestore {
         )
       );
 
-      allow delete: if isAdmin() || isSuper();
+      allow delete: if isSuper() || (isAdmin() && sameCompany(resource.data.empresa_id));
     }
 
     match /usuarios_auth/{uid} {
       allow get: if signedIn() && (
         uid == request.auth.uid ||
-        isAdmin() ||
-        isSuper()
+        isSuper() ||
+        (isAdmin() && sameCompany(resource.data.empresa_id))
       );
-      allow list: if isAdmin() || isSuper();
+      allow list: if isSuper() ||
+        (isAdmin() && sameCompany(resource.data.empresa_id));
 
       allow create, update: if signedIn() && (
-        isAdmin() ||
         isSuper() ||
+        (isAdmin() && request.resource.data.empresa_id == myCompany() &&
+          request.resource.data.rol != 'superadmin' &&
+          (!exists(/databases/$(database)/documents/usuarios_auth/$(uid)) ||
+            (resource.data.empresa_id == myCompany() && resource.data.rol != 'superadmin'))) ||
         (
           uid == request.auth.uid &&
           request.resource.data.uid == request.auth.uid &&
@@ -157,6 +169,8 @@ service cloud.firestore {
           canSelfWriteSupportFor(request.resource.data.usuario_id) &&
           request.resource.data.rol == targetUserData(request.resource.data.usuario_id).rol &&
           request.resource.data.empresa_id == targetUserData(request.resource.data.usuario_id).empresa_id &&
+          request.resource.data.propiedad_id == targetUserData(request.resource.data.usuario_id).get('propiedad_id', '') &&
+          request.resource.data.propiedad_ids == targetUserData(request.resource.data.usuario_id).get('propiedad_ids', []) &&
           request.resource.data.activo == true &&
           request.resource.data.eliminado == false
         )
@@ -168,11 +182,16 @@ service cloud.firestore {
     match /usuarios/{userId} {
       allow get, list: if signedIn() && canReadUserData(resource.data);
 
-      allow create: if signedIn() && (isAdmin() || isSuper());
+      allow create: if signedIn() && (isSuper() ||
+        (isAdmin() && request.resource.data.empresa_id == myCompany() &&
+          request.resource.data.rol != 'superadmin'));
 
       allow update: if signedIn() && (
         isSuper() ||
-        (isAdmin() && sameCompany(resource.data.empresa_id)) ||
+        (isAdmin() && sameCompany(resource.data.empresa_id) &&
+          resource.data.rol != 'superadmin' &&
+          request.resource.data.rol != 'superadmin' &&
+          request.resource.data.empresa_id == myCompany()) ||
         canSelfBootstrapUserUpdate(userId)
       );
 
@@ -182,11 +201,13 @@ service cloud.firestore {
     match /propiedades/{propertyId} {
       allow get, list: if signedIn() && canReadPropertyData(resource.data, propertyId);
 
-      allow create: if signedIn() && (isSuper() || isAdmin());
+      allow create: if signedIn() && (isSuper() ||
+        (isAdmin() && request.resource.data.empresa_id == myCompany()));
 
       allow update: if signedIn() && (
         isSuper() ||
-        (isAdmin() && sameCompany(resource.data.empresa_id))
+        (isAdmin() && sameCompany(resource.data.empresa_id) &&
+          request.resource.data.empresa_id == myCompany())
       );
 
       allow delete: if false;
@@ -196,7 +217,9 @@ service cloud.firestore {
           (
             isSuper() ||
             (isAdmin() && sameCompany(get(/databases/$(database)/documents/propiedades/$(propertyId)).data.empresa_id)) ||
-            (isReception() && myPropertyIds().hasAny([propertyId]))
+            (isReception() &&
+              sameCompany(get(/databases/$(database)/documents/propiedades/$(propertyId)).data.empresa_id) &&
+              myPropertyIds().hasAny([propertyId]))
           );
 
         allow create, update, delete: if signedIn() &&
@@ -210,12 +233,22 @@ service cloud.firestore {
     match /reservas/{reservationId} {
       allow get, list: if signedIn() && canReadReservationData(resource.data);
 
-      allow create, update: if signedIn() &&
-        (
-          isSuper() ||
-          (isAdmin() && request.resource.data.empresa_id == myCompany()) ||
-          (isReception() && myPropertyIds().hasAny([request.resource.data.propiedad_id]))
-        );
+      allow create: if signedIn() && (
+        isSuper() ||
+        (request.resource.data.empresa_id == myCompany() &&
+          (isAdmin() ||
+            (isReception() && myPropertyIds().hasAny([request.resource.data.propiedad_id]))))
+      );
+
+      allow update: if signedIn() && (
+        isSuper() ||
+        (resource.data.empresa_id == myCompany() &&
+          request.resource.data.empresa_id == myCompany() &&
+          (isAdmin() ||
+            (isReception() &&
+              myPropertyIds().hasAny([resource.data.propiedad_id]) &&
+              myPropertyIds().hasAny([request.resource.data.propiedad_id]))))
+      );
 
       allow delete: if false;
     }
@@ -230,14 +263,21 @@ service cloud.firestore {
           )
         );
 
-      allow create, update: if signedIn() &&
-        (
-          isSuper() ||
-          canReadPropertyData(
-            get(/databases/$(database)/documents/propiedades/$(request.resource.data.propiedad_id)).data,
-            request.resource.data.propiedad_id
-          )
-        );
+      allow create: if signedIn() && (
+        isSuper() ||
+        canReadPropertyData(
+          get(/databases/$(database)/documents/propiedades/$(request.resource.data.propiedad_id)).data,
+          request.resource.data.propiedad_id
+        )
+      );
+
+      allow update: if signedIn() && (
+        isSuper() ||
+        (canReadPropertyData(
+          get(/databases/$(database)/documents/propiedades/$(resource.data.propiedad_id)).data,
+          resource.data.propiedad_id
+        ) && request.resource.data.propiedad_id == resource.data.propiedad_id)
+      );
 
       allow delete: if signedIn() &&
         (
