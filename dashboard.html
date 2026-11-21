@@ -64,6 +64,7 @@
               <div class="dashboard-calendar-titleblock planner-titleblock">
                 <h3>Planning de habitaciones</h3>
                 <div class="muted">Elegí un período y consultá la disponibilidad.</div>
+                <a href="nueva_reserva.html" id="quickNuevaReservaPlanning" class="btn planner-mobile-new-reservation" hidden>+ Nueva reserva</a>
               </div>
 
               <div class="toolbar dashboard-month-toolbar planner-toolbar">
@@ -72,10 +73,12 @@
                   <button id="viewWeekBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn">Semana</button>
                   <button id="viewDayBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn">Día</button>
                 </div>
-                <button id="calendarPrev" class="btn-ghost btn-compact" aria-label="Período anterior" title="Período anterior">‹</button>
-                <strong id="calendarMonthLabel" class="codeish dashboard-month-label" aria-live="polite">Mes</strong>
-                <button id="calendarNext" class="btn-ghost btn-compact" aria-label="Período siguiente" title="Período siguiente">›</button>
-                <button id="calendarToday" type="button" class="btn-ghost btn-compact">Hoy</button>
+                <div class="planner-period-controls">
+                  <button id="calendarPrev" type="button" class="btn-ghost btn-compact" aria-label="Período anterior" title="Período anterior">‹</button>
+                  <strong id="calendarMonthLabel" class="codeish dashboard-month-label" aria-live="polite">Mes</strong>
+                  <button id="calendarNext" type="button" class="btn-ghost btn-compact" aria-label="Período siguiente" title="Período siguiente">›</button>
+                  <button id="calendarToday" type="button" class="btn-ghost btn-compact">Hoy</button>
+                </div>
               </div>
             </div>
 
