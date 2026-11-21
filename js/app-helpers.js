@@ -1443,7 +1443,7 @@ export function validateReservationData(reservation, { existingReservation = nul
   if (!String(reservation.unidad_key || '').trim()) {
     throw new Error('Seleccioná una habitación o cargá una manual.');
   }
-  const datePattern = /^\\d{4}-\\d{2}-\\d{2}$/;
+  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
   if (!datePattern.test(reservation.fecha_inicio || '') || !datePattern.test(reservation.fecha_fin || '')) {
     throw new Error('Completá fechas válidas de ingreso y salida.');
   }
