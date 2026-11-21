@@ -69,6 +69,7 @@ function fillStatuses() {
   const select = qs('[name="estado"]');
   if (!select) return;
   select.innerHTML = RESERVATION_STATUSES
+    .filter((status) => getUrlParams().reservationId || status !== 'cancelada')
     .map((status) => `<option value="${status}">${status}</option>`)
     .join('');
 }
