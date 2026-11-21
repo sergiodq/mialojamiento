@@ -21,8 +21,8 @@ service cloud.firestore {
     function hasMirror() {
       return signedIn() && authMirror() != null &&
         authMirror().data.usuario_id != null &&
-        authMirror().data.activo == true &&
-        authMirror().data.eliminado == false;
+        authMirror().data.get('activo', true) == true &&
+        authMirror().data.get('eliminado', false) == false;
     }
 
     function myRole() {
