@@ -22,7 +22,7 @@
           <div class="toolbar-between">
             <div>
               <h3 id="userFormTitle" style="margin:0 0 6px;">Alta de usuario</h3>
-              <div class="muted">Si el correo ya existía dado de baja, la app reactivará el mismo documento en lugar de crear uno nuevo.</div>
+              <div class="muted">Creá o actualizá el acceso de una persona del equipo.</div>
             </div>
           </div>
 
@@ -35,13 +35,13 @@
             <div class="field">
               <label for="email">Correo</label>
               <input id="email" name="email" type="email" placeholder="usuario@empresa.com" required>
-              <small id="emailLockHint" hidden>Este email está bloqueado porque el usuario ya tiene Auth vinculado.</small>
+              <small id="emailLockHint" hidden>El correo de una cuenta activa no se puede modificar.</small>
             </div>
 
             <div class="field">
               <label for="rol">Rol</label>
               <select id="rol" name="rol"></select>
-              <small id="roleLockHint" hidden>Un superadmin habilitado conserva su rol y acceso. Los cambios excepcionales requieren un procedimiento privilegiado.</small>
+              <small id="roleLockHint" hidden>Este rol está protegido para mantener el acceso general.</small>
             </div>
 
             <div id="empresaField" class="field">
@@ -53,7 +53,7 @@
               <label for="propiedad_ids">Propiedades asignadas</label>
               <div id="propiedadIdsChips" class="checkbox-list property-checkbox-grid"></div>
               <select id="propiedad_ids" name="propiedad_ids" multiple hidden></select>
-              <small id="propiedadesSelectedHint">Marcá una o varias propiedades para este usuario de recepción. Se mantiene compatibilidad con el campo legacy <span class="codeish">propiedad_id</span>.</small>
+              <small id="propiedadesSelectedHint">Elegí los alojamientos a los que podrá acceder este usuario.</small>
             </div>
 
             <div id="formFeedback" class="full"></div>
