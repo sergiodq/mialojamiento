@@ -6,6 +6,7 @@
   <title>MiAlojamiento · Acceso</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/material3.css">
+  <link rel="stylesheet" href="css/auth-flows.css">
 </head>
 <body class="login-page login-premium-page">
   <div class="login-premium-shell">
@@ -41,15 +42,14 @@
           </div>
         </div>
 
-        <div class="auth-tabs auth-tabs-premium">
-          <button type="button" class="auth-tab active" data-mode="login">Ingresar</button>
-          <button type="button" class="auth-tab" data-mode="register">Registrarme</button>
-          <button type="button" class="auth-tab" data-mode="reset">Recuperar</button>
+        <div class="auth-tabs auth-tabs-premium" role="tablist" aria-label="Tipo de acceso">
+          <button type="button" class="auth-tab active" data-auth-mode="login" role="tab" aria-selected="true">Ingresar</button>
+          <button type="button" class="auth-tab" data-auth-mode="register" role="tab" aria-selected="false">Activar cuenta</button>
         </div>
 
         <div class="login-panel-copy">
-          <h2>Bienvenido</h2>
-          <p>Elegí una opción para continuar.</p>
+          <h2 id="authPaneTitle">Bienvenido</h2>
+          <p id="authPaneDescription">Ingresá con tu correo y contraseña.</p>
         </div>
 
         <div id="authMessage"></div>
@@ -58,12 +58,13 @@
           <form id="loginForm" class="grid">
             <div class="field">
               <label for="login_email">Correo</label>
-              <input id="login_email" name="login_email" type="email" placeholder="usuario@empresa.com" required>
+              <input id="login_email" name="login_email" type="email" autocomplete="username" inputmode="email" placeholder="usuario@empresa.com" required>
             </div>
 
             <div class="field">
               <label for="login_password">Contraseña</label>
-              <input id="login_password" name="login_password" type="password" placeholder="••••••••" required>
+              <input id="login_password" name="login_password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+              <button type="button" class="auth-text-link auth-forgot" data-auth-mode="reset">¿Olvidaste tu contraseña?</button>
             </div>
 
             <div id="loginFeedback"></div>
@@ -76,29 +77,30 @@
           <form id="registerForm" class="grid">
             <div class="field">
               <label for="register_nombre">Nombre</label>
-              <input id="register_nombre" name="register_nombre" type="text" placeholder="Nombre y apellido" required>
+              <input id="register_nombre" name="register_nombre" type="text" autocomplete="name" placeholder="Nombre y apellido" required>
             </div>
 
             <div class="field">
               <label for="register_email">Correo</label>
-              <input id="register_email" name="register_email" type="email" placeholder="usuario@empresa.com" required>
+              <input id="register_email" name="register_email" type="email" autocomplete="username" inputmode="email" placeholder="usuario@empresa.com" required>
             </div>
 
             <div class="grid two">
               <div class="field">
                 <label for="register_password">Contraseña</label>
-                <input id="register_password" name="register_password" type="password" placeholder="Mínimo 6 caracteres" required>
+                <input id="register_password" name="register_password" type="password" autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres" required>
               </div>
 
               <div class="field">
                 <label for="register_password_confirm">Repetir contraseña</label>
-                <input id="register_password_confirm" name="register_password_confirm" type="password" placeholder="Repetí la contraseña" required>
+                <input id="register_password_confirm" name="register_password_confirm" type="password" autocomplete="new-password" minlength="6" placeholder="Repetí la contraseña" required>
               </div>
             </div>
 
             <div id="registerFeedback"></div>
 
-            <button type="submit" class="btn btn-login-main">Crear cuenta</button>
+            <button type="submit" class="btn btn-login-main">Activar mi acceso</button>
+            <button type="button" class="auth-text-link" data-auth-mode="login">Ya tengo una cuenta</button>
           </form>
         </div>
 
@@ -106,12 +108,13 @@
           <form id="resetForm" class="grid">
             <div class="field">
               <label for="reset_email">Correo</label>
-              <input id="reset_email" name="reset_email" type="email" placeholder="usuario@empresa.com" required>
+              <input id="reset_email" name="reset_email" type="email" autocomplete="username" inputmode="email" placeholder="usuario@empresa.com" required>
             </div>
 
             <div id="resetFeedback"></div>
 
-            <button type="submit" class="btn btn-login-main">Enviar enlace</button>
+            <button type="submit" class="btn btn-login-main">Enviar enlace de recuperación</button>
+            <button type="button" class="auth-text-link" data-auth-mode="login">Volver a ingresar</button>
           </form>
         </div>
 

@@ -1,0 +1,54 @@
+/* Authentication: distinct access, activation and recovery actions. */
+.login-premium-card .auth-tabs-premium {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+}
+.login-premium-card .auth-tabs-premium .auth-tab {
+  min-width: 0;
+  white-space: normal;
+  font-size: .92rem;
+}
+.login-premium-card .auth-text-link {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  justify-content: center;
+  width: auto;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: none;
+  border: 0;
+  border-radius: 12px;
+  color: #b71d57;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.login-premium-card .auth-text-link:hover {
+  color: #8f1648;
+  background: #fff0f5;
+}
+.login-premium-card .auth-text-link:focus-visible {
+  outline: 3px solid #ff5383;
+  outline-offset: 2px;
+}
+.login-premium-card .auth-forgot {
+  margin-top: 3px;
+  align-self: flex-end;
+}
+.login-premium-card .auth-pane[hidden] {
+  display: none !important;
+}
+@media (max-width: 599px) {
+  .login-premium-card .auth-tabs-premium .auth-tab {
+    font-size: .87rem;
+    padding-inline: 9px !important;
+  }
+  .login-premium-card .auth-forgot {
+    align-self: center;
+  }
+}
