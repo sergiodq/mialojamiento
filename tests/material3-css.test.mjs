@@ -23,6 +23,6 @@ test('primary mobile controls meet Material touch sizes', () => {
 });
 
 test('mobile tables are rendered as cards instead of horizontal tables', () => {
-  assert.match(css, /\.m3-responsive-table thead\{display:none/);
-  assert.match(css, /\.m3-responsive-table tbody tr\{display:grid/);
+  assert.match(css, /\.m3-responsive-table:not\(\.planning-board-table\) thead\s*\{\s*display:\s*none/);
+  assert.match(css, /\.m3-responsive-table:not\(\.planning-board-table\) tbody tr\s*\{\s*display:\s*grid/);
 });

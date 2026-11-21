@@ -2,10 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#4259a8">
   <title>MiAlojamiento · Dashboard</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/material3.css" data-material3>
 </head>
 <body class="dashboard-page">
   <div class="page-shell">
@@ -120,13 +122,13 @@
           <div class="grid two">
             <article class="card pad">
               <h3 style="margin-top:0;">Resumen de reservas por estado</h3>
-              <div class="muted" style="margin-bottom:14px;">Vista ejecutiva para superadmin, sin planning operativo.</div>
+              <div class="muted" style="margin-bottom:14px;">Toda la actividad, en una vista.</div>
               <div id="superadminStateSummary" class="stat-list"></div>
             </article>
 
             <article class="card pad">
               <h3 style="margin-top:0;">Últimas reservas visibles</h3>
-              <div class="muted" style="margin-bottom:14px;">Solo resumen, sin edición directa desde el dashboard.</div>
+              <div class="muted" style="margin-bottom:14px;">Actividad reciente de todas las propiedades.</div>
               <div id="superadminRecentReservations" class="stat-list"></div>
             </article>
           </div>

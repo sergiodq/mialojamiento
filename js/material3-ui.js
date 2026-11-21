@@ -69,8 +69,28 @@ function createIcon(name) {
   const span = document.createElement('span');
   span.className = 'm3-icon';
   span.setAttribute('aria-hidden', 'true');
-  const icons = { home: '⌂', calendar_month: '▣', apartment: '▦', group: '●●', more_horiz: '•••', add: '+', close: '×' };
-  span.textContent = icons[name] || '•';
+  const paths = {
+    home: 'M3 10 12 3l9 7M5 9v12h5v-7h4v7h5V9',
+    calendar_month: 'M5 5h14a2 2 0 0 1 2 2v13H3V7a2 2 0 0 1 2-2ZM7 3v4M17 3v4M3 10h18M7 14h2M15 14h2M7 17h2M15 17h2',
+    apartment: 'M4 21V5h10v16M14 10h6v11M2 21h20M7 8h4M7 12h4M7 16h4M17 13h1M17 17h1',
+    group: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM17 4a4 4 0 0 1 0 8M22 21v-2a4 4 0 0 0-3-3.87',
+    more_horiz: 'M4 12h.01M12 12h.01M20 12h.01',
+    add: 'M12 5v14M5 12h14',
+    close: 'M6 6l12 12M18 6 6 18',
+    logout: 'M9 4H4v16h5M14 8l4 4-4 4M8 12h12'
+  };
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', name === 'more_horiz' ? '4' : '1.8');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', paths[name] || paths.home);
+  svg.appendChild(path);
+  span.appendChild(svg);
   return span;
 }
 
@@ -104,134 +124,186 @@ function decorateTables(root = document) {
   });
 }
 
-function openDrawer(drawer, backdrop) {
-  drawer.classList.add('is-open');
-  backdrop.classList.add('is-open');
-  document.body.classList.add('m3-drawer-open');
-}
-
-function closeDrawer(drawer, backdrop) {
-  drawer.classList.remove('is-open');
-  backdrop.classList.remove('is-open');
-  document.body.classList.remove('m3-drawer-open');
-}
+const sessions = new WeakMap();
 
 function getSidebarLinks(sidebar) {
-  return [...sidebar.querySelectorAll('.nav-link')].map(link => ({ label: link.textContent.trim(), href: link.getAttribute('href') || '' }));
+  return [...sidebar.querySelectorAll('.nav-link')].map(link => ({
+    label: (link.querySelector('span:not(.nav-icon)')?.textContent || link.textContent).trim(),
+    href: link.getAttribute('href') || ''
+  }));
 }
 
-function renderAdaptiveChrome() {
-  if (document.body.classList.contains('login-page')) return;
-  const sidebar = document.querySelector('#sidebar');
-  if (!sidebar || !sidebar.querySelector('.nav-link') || document.querySelector('.m3-bottom-nav')) return;
-  const model = buildMobileNavModel(getSidebarLinks(sidebar), window.location.pathname.split('/').pop() || 'dashboard.html');
-  const nav = document.createElement('nav');
-  nav.className = 'm3-bottom-nav';
-  nav.setAttribute('aria-label', 'Navegación principal');
+function renderAdaptiveChrome(session) {
+  const { doc, win } = session;
+  if (doc.body.classList.contains('login-page')) return;
+  const sidebar = doc.querySelector('#sidebar');
+  if (!sidebar?.querySelector('.nav-link')) return;
+  const links = getSidebarLinks(sidebar);
+  const profileHtml = sidebar.querySelector('.sidebar-user')?.innerHTML || '';
+  const signature = JSON.stringify([links, profileHtml]);
+  const iconFor = { 'dashboard.html':'home', 'usuarios.html':'group', 'propiedades.html':'apartment', 'nueva_reserva.html':'add' };
+  sidebar.querySelectorAll('.nav-link').forEach(link => {
+    const icon = link.querySelector('.nav-icon');
+    if (icon && !icon.querySelector('svg')) icon.replaceChildren(createIcon(iconFor[normalizeHref(link.getAttribute('href'))]));
+    link.setAttribute('aria-label', links.find(item => item.href === link.getAttribute('href'))?.label || 'Navegar');
+    if (link.classList.contains('active')) link.setAttribute('aria-current','page');
+  });
+  if (signature === session.signature) return;
+  session.disposeChrome?.();
+  session.signature = signature;
+  const model = buildMobileNavModel(links, win.location.pathname.split('/').pop() || 'dashboard.html');
 
-  model.primary.forEach(item => {
-    const a = document.createElement('a');
+  const nav = doc.createElement('nav');
+  nav.className = 'm3-bottom-nav';
+  nav.setAttribute('aria-label','Navegación principal');
+  for (const item of model.primary) {
+    const a = doc.createElement('a');
     a.className = 'm3-bottom-nav-item';
     a.href = item.href;
     a.dataset.m3Label = item.label;
-    if (isMobileNavItemActive(item, model.currentHref, window.location.hash)) a.classList.add('is-active');
     a.appendChild(createIcon(item.icon));
-    const label = document.createElement('span');
+    const label = doc.createElement('span');
     label.textContent = item.label;
     a.appendChild(label);
     nav.appendChild(a);
-  });
-
-  const more = document.createElement('button');
+  }
+  const more = doc.createElement('button');
   more.type = 'button';
   more.className = 'm3-bottom-nav-item';
+  more.setAttribute('aria-expanded','false');
+  more.setAttribute('aria-controls','m3-options-drawer');
+  more.setAttribute('aria-haspopup','dialog');
   more.appendChild(createIcon('more_horiz'));
-  const moreLabel = document.createElement('span');
+  const moreLabel = doc.createElement('span');
   moreLabel.textContent = 'Más';
   more.appendChild(moreLabel);
   nav.appendChild(more);
-  document.body.appendChild(nav);
 
-  const refreshActiveState = () => {
-    nav.querySelectorAll('a.m3-bottom-nav-item').forEach((link) => {
-      link.classList.toggle('is-active', isMobileNavItemActive({
-        label: link.dataset.m3Label,
-        href: link.getAttribute('href') || ''
-      }, model.currentHref, window.location.hash));
-    });
-  };
-  window.addEventListener('hashchange', refreshActiveState);
-  refreshActiveState();
-
-  const backdrop = document.createElement('div');
+  const backdrop = doc.createElement('div');
   backdrop.className = 'm3-drawer-backdrop';
-  const drawer = document.createElement('aside');
+  backdrop.hidden = true;
+  backdrop.setAttribute('aria-hidden','true');
+  const drawer = doc.createElement('aside');
+  drawer.id = 'm3-options-drawer';
   drawer.className = 'm3-drawer';
-  drawer.setAttribute('aria-label', 'Más opciones');
-  drawer.innerHTML = `<div class="m3-drawer-header"><div><strong>MiAlojamiento</strong><span>Más opciones</span></div><button type="button" class="m3-icon-button" data-m3-close aria-label="Cerrar">×</button></div><div class="m3-drawer-links"></div><div class="m3-drawer-profile"></div>`;
-  const drawerLinks = drawer.querySelector('.m3-drawer-links');
-  model.secondary.forEach(item => {
-    const a = document.createElement('a');
+  drawer.hidden = true;
+  drawer.inert = true;
+  drawer.setAttribute('role','dialog');
+  drawer.setAttribute('aria-modal','true');
+  drawer.setAttribute('aria-label','Más opciones');
+  drawer.setAttribute('aria-hidden','true');
+  drawer.innerHTML = '<div class="m3-drawer-header"><div><strong>MiAlojamiento</strong><span>Tu espacio de gestión</span></div><button type="button" class="m3-icon-button" data-m3-close aria-label="Cerrar menú"></button></div><div class="m3-drawer-links"></div><div class="m3-drawer-profile"></div>';
+  const closeButton = drawer.querySelector('[data-m3-close]');
+  closeButton.appendChild(createIcon('close'));
+  for (const item of model.secondary) {
+    const a = doc.createElement('a');
     a.className = 'm3-drawer-link';
     a.href = item.href;
     a.appendChild(createIcon(item.icon));
-    const label = document.createElement('span');
+    const label = doc.createElement('span');
     label.textContent = item.label;
     a.appendChild(label);
-    drawerLinks.appendChild(a);
-  });
-
-  const sidebarUser = sidebar.querySelector('.sidebar-user');
-  const profile = drawer.querySelector('.m3-drawer-profile');
-  if (sidebarUser) profile.appendChild(sidebarUser.cloneNode(true));
-  const logout = document.createElement('button');
+    drawer.querySelector('.m3-drawer-links').appendChild(a);
+  }
+  const sourceProfile = sidebar.querySelector('.sidebar-user');
+  if (sourceProfile) drawer.querySelector('.m3-drawer-profile').appendChild(sourceProfile.cloneNode(true));
+  const logout = doc.createElement('button');
   logout.type = 'button';
   logout.className = 'm3-drawer-logout';
-  logout.textContent = 'Cerrar sesión';
-  logout.addEventListener('click', () => sidebar.querySelector('#btnLogoutSidebar')?.click());
-  profile.appendChild(logout);
+  logout.append(createIcon('logout'),doc.createTextNode('Cerrar sesión'));
+  logout.addEventListener('click',()=>sidebar.querySelector('#btnLogoutSidebar')?.click());
+  drawer.querySelector('.m3-drawer-profile').appendChild(logout);
 
-  document.body.append(backdrop, drawer);
-  more.addEventListener('click', () => openDrawer(drawer, backdrop));
-  backdrop.addEventListener('click', () => closeDrawer(drawer, backdrop));
-  drawer.querySelector('[data-m3-close]')?.addEventListener('click', () => closeDrawer(drawer, backdrop));
-  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeDrawer(drawer, backdrop); });
-
-  if (model.fab && model.currentHref !== normalizeHref(model.fab.href)) {
-    document.querySelector('#quickNuevaReservaFab')?.setAttribute('hidden', '');
-    const fab = document.createElement('a');
-    fab.className = 'm3-fab';
-    fab.href = model.fab.href;
-    fab.setAttribute('aria-label', model.fab.label);
-    fab.appendChild(createIcon('add'));
-    const text = document.createElement('span');
-    text.textContent = model.fab.label;
-    fab.appendChild(text);
-    document.body.appendChild(fab);
+  let blocked = [];
+  function close(restoreFocus=true) {
+    if (!drawer.classList.contains('is-open')) return;
+    drawer.classList.remove('is-open');
+    backdrop.classList.remove('is-open');
+    drawer.hidden = true;
+    backdrop.hidden = true;
+    drawer.inert = true;
+    drawer.setAttribute('aria-hidden','true');
+    more.setAttribute('aria-expanded','false');
+    doc.body.classList.remove('m3-drawer-open');
+    blocked.forEach(([element,inert])=>{element.inert=inert;});
+    blocked = [];
+    if (restoreFocus && more.isConnected && win.innerWidth < 1200) more.focus();
   }
-}
-
-function startObservers() {
-  const observer = new MutationObserver(() => {
-    sanitizeVisibleText(document);
-    decorateTables(document);
-    renderAdaptiveChrome();
+  function open() {
+    drawer.hidden = false;
+    backdrop.hidden = false;
+    drawer.inert = false;
+    drawer.classList.add('is-open');
+    backdrop.classList.add('is-open');
+    drawer.setAttribute('aria-hidden','false');
+    more.setAttribute('aria-expanded','true');
+    doc.body.classList.add('m3-drawer-open');
+    blocked = [...doc.body.children].filter(el => el !== drawer && el !== backdrop && !['SCRIPT','STYLE','LINK'].includes(el.tagName)).map(el=>[el,el.inert]);
+    blocked.forEach(([element])=>{element.inert=true;});
+    closeButton.focus();
+  }
+  const keydown = event => {
+    if (!drawer.classList.contains('is-open')) return;
+    if (event.key === 'Escape') { event.preventDefault();close(); }
+    if (event.key === 'Tab') {
+      const focusable = [...drawer.querySelectorAll('a[href],button:not([disabled]),[tabindex="0"]')];
+      const first=focusable[0],last=focusable.at(-1);
+      if (event.shiftKey && doc.activeElement === first) {event.preventDefault();last.focus();}
+      else if (!event.shiftKey && doc.activeElement === last) {event.preventDefault();first.focus();}
+    }
+  };
+  const resize = () => {if (win.innerWidth >= 1200) close(false);};
+  const refresh = () => nav.querySelectorAll('a').forEach(a => {
+    const active = isMobileNavItemActive({label:a.dataset.m3Label,href:a.getAttribute('href')},model.currentHref,win.location.hash);
+    a.classList.toggle('is-active',active);
+    if (active) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
   });
-  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  more.addEventListener('click',open);
+  backdrop.addEventListener('click',()=>close());
+  closeButton.addEventListener('click',()=>close());
+  doc.addEventListener('keydown',keydown);
+  win.addEventListener('hashchange',refresh);
+  win.addEventListener('resize',resize);
+  doc.body.append(nav,backdrop,drawer);
+  refresh();
+  let fab;
+  if (model.fab && model.currentHref !== normalizeHref(model.fab.href)) {
+    doc.querySelector('#quickNuevaReservaFab')?.setAttribute('hidden','');
+    fab = doc.createElement('a');
+    fab.className='m3-fab';
+    fab.href=model.fab.href;
+    fab.setAttribute('aria-label',model.fab.label);
+    const label=doc.createElement('span');
+    label.textContent=model.fab.label;
+    fab.append(createIcon('add'),label);
+    doc.body.appendChild(fab);
+  }
+  session.disposeChrome=()=>{
+    close(false);
+    doc.removeEventListener('keydown',keydown);
+    win.removeEventListener('hashchange',refresh);
+    win.removeEventListener('resize',resize);
+    [nav,backdrop,drawer,fab].forEach(el=>el?.remove());
+  };
 }
 
 export function initMaterial3UI() {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined' || sessions.has(document)) return;
   ensureStylesheet();
-  const run = () => {
-    sanitizeVisibleText(document);
-    decorateTables(document);
-    renderAdaptiveChrome();
-    startObservers();
-    document.documentElement.classList.add('m3-ready');
+  const doc=document,win=doc.defaultView;
+  const session={doc,win,signature:null,disposeChrome:null};
+  sessions.set(doc,session);
+  const run=()=>{
+    const update=()=>{sanitizeVisibleText(doc);decorateTables(doc);renderAdaptiveChrome(session);};
+    update();
+    const observer=new win.MutationObserver(update);
+    observer.observe(doc.body,{childList:true,subtree:true,characterData:true});
+    // bfcache retains the document and its controls; only disconnect observers on pagehide.
+    win.addEventListener('pagehide',()=>observer.disconnect());
+    win.addEventListener('pageshow',()=>{observer.observe(doc.body,{childList:true,subtree:true,characterData:true});update();});
+    doc.documentElement.classList.add('m3-ready');
   };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true });
-  else run();
+  if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded',run,{once:true}); else run();
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') initMaterial3UI();
