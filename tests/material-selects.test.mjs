@@ -1,0 +1,81 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
+import { readFile } from 'node:fs/promises';
+import { initMaterialSelects } from '../js/material-selects.js';
+
+const settle=()=>new Promise(resolve=>setTimeout(resolve,15));
+function setup(html) {
+  const dom=new JSDOM('<!doctype html><html><body>'+html+'</body></html>',{url:'https://example.test/',pretendToBeVisual:true});
+  dom.window.HTMLElement.prototype.scrollIntoView=function(){};
+  initMaterialSelects(dom.window.document);
+  return dom;
+}
+test('Material select displays modern options and preserves native selected value and change events',async()=>{
+  const dom=setup('<form id="form"><label for="alojamiento">Alojamiento</label><select id="alojamiento" name="propiedad_id" required><option value="">Elegir</option><option value="hotel">Hotel</option><option value="caba">Cabaña</option></select></form>');
+  try{
+    const doc=dom.window.document;
+    const select=doc.querySelector('#alojamiento');
+    let changes=0;
+    select.addEventListener('change',()=>changes++);
+    const trigger=doc.querySelector('.m3-select-trigger');
+    assert.ok(trigger);
+    assert.match(trigger.textContent,/Elegir/);
+    trigger.click();
+    assert.equal(trigger.getAttribute('aria-expanded'),'true');
+    const opts=[...doc.querySelectorAll('.m3-select-option')];
+    assert.equal(opts.length,3);
+    opts[2].click();
+    assert.equal(select.value,'caba');
+    assert.equal(new dom.window.FormData(doc.querySelector('#form')).get('propiedad_id'),'caba');
+    assert.equal(changes,1);
+    assert.match(trigger.textContent,/Cabaña/);
+    assert.equal(trigger.getAttribute('aria-expanded'),'false');
+  }finally{dom.window.close();}
+});
+test('AJAX populated selects receive a fresh list and support native disabled state',async()=>{
+  const dom=setup('<label for="unidad">Habitación</label><select id="unidad"></select>');
+  try{
+    const doc=dom.window.document,select=doc.querySelector('#unidad');
+    select.innerHTML='<option value="">Seleccionar unidad</option><option value="1">101</option>';
+    await settle();
+    const trigger=doc.querySelector('.m3-select-trigger');
+    trigger.click();
+    assert.equal(doc.querySelectorAll('.m3-select-option').length,2);
+    doc.querySelectorAll('.m3-select-option')[1].click();
+    assert.equal(select.value,'1');
+    select.disabled=true;
+    await settle();
+    assert.equal(trigger.disabled,true);
+  }finally{dom.window.close();}
+});
+test('keyboard arrows and Escape are supported without changing selection',()=>{
+  const dom=setup('<label for="rol">Rol</label><select id="rol"><option value="admin">Admin</option><option value="soporte">Soporte</option></select>');
+  try{
+    const doc=dom.window.document,select=doc.querySelector('select');
+    const trigger=doc.querySelector('.m3-select-trigger');
+    trigger.click();
+    const first=doc.querySelector('.m3-select-option');
+    first.focus();
+    first.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));
+    assert.equal(doc.activeElement.textContent,'Soporte');
+    doc.activeElement.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
+    assert.equal(trigger.getAttribute('aria-expanded'),'false');
+    assert.equal(select.value,'admin');
+  }finally{dom.window.close();}
+});
+test('multi-select elements are left native to preserve existing assignment workflow',()=>{
+  const dom=setup('<select id="ids" multiple><option value="1">Uno</option></select><select id="simple"><option>Simple</option></select>');
+  try{
+    const doc=dom.window.document;
+    assert.equal(doc.querySelector('#ids').classList.contains('m3-native-select'),false);
+    assert.equal(doc.querySelector('#simple').classList.contains('m3-native-select'),true);
+  }finally{dom.window.close();}
+});
+test('all pages include the common select control stylesheet and script',async()=>{
+  for(const page of ['dashboard.html','login.html','nueva_reserva.html','nuevo_usuario.html','propiedades.html','unidades.html','usuarios.html']){
+    const html=await readFile(new URL('../'+page,import.meta.url),'utf8');
+    assert.match(html,/css\/material-selects\.css/);
+    assert.match(html,/js\/material-selects\.js/);
+  }
+});
