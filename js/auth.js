@@ -44,6 +44,8 @@ function userFacingAuthError(error, fallback = 'No pudimos completar la operaci�
       return 'Hiciste varios intentos seguidos. Esperá un momento y probá nuevamente.';
     case 'auth/network-request-failed':
       return 'No pudimos conectarnos. Revisá tu conexión e intentá nuevamente.';
+    case 'auth/operation-not-allowed':
+      return 'Esta operación no está habilitada. Contactá al administrador.';
     default:
       return error?.code ? fallback : (error?.message || fallback);
   }
@@ -64,8 +66,9 @@ async function settleSessionAfterLogin(user) {
 export async function loginUser(email, password) {
   const normalizedEmail = normalizeEmail(email);
   const credential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
-  await settleSessionAfterLogin(credential.user);
-  let profile = await getCurrentProfileWithRetry({ attempts: 4, delayMs: 260 });
+  try {
+    await settleSessionAfterLogin(credential.user);
+    let profile = await getCurrentProfileWithRetry({ attempts: 4, delayMs: 260 });
 
   if (!profile) {
     const legacyUser = await findUserCandidateByEmail(normalizedEmail);
@@ -97,7 +100,13 @@ export async function loginUser(email, password) {
     throw new Error('No pudimos acceder a tu cuenta. Contactá al administrador.');
   }
 
-  return { credential, profile };
+    return { credential, profile };
+  } catch (error) {
+    // Authentication can succeed while app authorization fails. Do not leave
+    // a valid Firebase session behind for an unapproved or incomplete profile.
+    await signOut(auth).catch(() => {});
+    throw error;
+  }
 }
 
 async function rollbackCreatedAuthUser(credential) {
@@ -324,7 +333,10 @@ export function initLoginPage() {
       await sendReset(email);
       setFeedback(feedback, 'Si el correo tiene una cuenta, recibirás un enlace para cambiar tu contraseña. Revisá también spam.', 'success');
     } catch (error) {
-      setFeedback(feedback, userFacingAuthError(error, 'No pudimos enviar el correo. Intentá nuevamente.'), 'error');
+      const publicMessage = ['auth/user-not-found', 'auth/invalid-credential'].includes(error?.code)
+        ? 'Si el correo tiene una cuenta, recibirás un enlace para cambiar tu contraseña.'
+        : userFacingAuthError(error, 'No pudimos enviar el correo. Intentá nuevamente.');
+      setFeedback(feedback, publicMessage, ['auth/user-not-found', 'auth/invalid-credential'].includes(error?.code) ? 'success' : 'error');
     } finally {
       setButtonLoading(submit, false);
     }
