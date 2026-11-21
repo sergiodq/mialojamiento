@@ -8,7 +8,7 @@ const css = readFileSync(new URL('../css/auth-flows.css', import.meta.url), 'utf
 
 test('login offers a distinct recovery link and invited account activation', () => {
   assert.match(html, /data-auth-mode="reset">¿Olvidaste tu contraseña\?/);
-  assert.match(html, /data-auth-mode="register">Activar cuenta/);
+  assert.match(html, /data-auth-mode="register"[^>]*>Activar cuenta/);
   assert.match(html, /data-auth-mode="login">Volver a ingresar/);
   assert.match(html, /id="authPaneTitle"/);
   assert.match(html, /id="authPaneDescription"/);
