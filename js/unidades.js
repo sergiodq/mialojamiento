@@ -172,7 +172,10 @@ async function saveUnit(event) {
     if (!payload.codigo) throw new Error('Ingresá el código o número de la unidad.');
     if (!payload.nombre) throw new Error('Ingresá el nombre visible de la unidad.');
     if (!payload.tipo_unidad) throw new Error('Seleccioná el tipo de unidad.');
-    if (payload.capacidad_max <= 0) throw new Error('La capacidad máxima debe ser mayor a cero.');
+    if (![payload.capacidad_max, payload.capacidad_adultos, payload.capacidad_ninos].every(Number.isInteger) ||
+        payload.capacidad_max < 1 || payload.capacidad_adultos < 0 || payload.capacidad_ninos < 0) {
+      throw new Error('Las capacidades deben ser números enteros; máximo mayor a cero y adultos/niños no negativos.');
+    }
     if (payload.capacidad_adultos + payload.capacidad_ninos > payload.capacidad_max) {
       throw new Error('La suma de adultos y niños no debería superar la capacidad máxima.');
     }
