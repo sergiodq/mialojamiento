@@ -126,6 +126,9 @@ function updateViewButtons() {
   qs('#viewMonthBtn')?.classList.toggle('is-active', calendarView === 'month');
   qs('#viewWeekBtn')?.classList.toggle('is-active', calendarView === 'week');
   qs('#viewDayBtn')?.classList.toggle('is-active', calendarView === 'day');
+  for (const [id, view] of [['#viewDayBtn','day'],['#viewWeekBtn','week'],['#viewMonthBtn','month']]) {
+    qs(id)?.setAttribute('aria-pressed', String(calendarView === view));
+  }
 }
 
 function buildReservationTooltip(item) {
@@ -471,7 +474,7 @@ function renderMobilePlanningBoard() {
   const visibleDates = range.visibleDates;
 
   if (calendarView === 'day') {
-    const label = new Intl.DateTimeFormat('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(visibleDates[0]);
+    const label = new Intl.DateTimeFormat('es-AR', { weekday: 'short', day: 'numeric', month: 'short' }).format(visibleDates[0]);
     if (monthLabel) monthLabel.textContent = label;
     if (prevButton) { prevButton.textContent = '‹'; prevButton.setAttribute('aria-label','Día anterior'); }
     if (nextButton) { nextButton.textContent = '›'; nextButton.setAttribute('aria-label','Día siguiente'); }
@@ -479,7 +482,7 @@ function renderMobilePlanningBoard() {
     const firstDay = visibleDates[0];
     const lastDay = visibleDates[visibleDates.length - 1];
     const firstLabel = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' }).format(firstDay);
-    const lastLabel = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }).format(lastDay);
+    const lastLabel = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' }).format(lastDay);
     if (monthLabel) monthLabel.textContent = `${firstLabel} → ${lastLabel}`;
     if (prevButton) { prevButton.textContent = '‹'; prevButton.setAttribute('aria-label','Semana anterior'); }
     if (nextButton) { nextButton.textContent = '›'; nextButton.setAttribute('aria-label','Semana siguiente'); }
