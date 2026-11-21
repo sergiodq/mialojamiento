@@ -119,8 +119,8 @@ service cloud.firestore {
 
     match /email_index/{emailKey} {
       allow get: if signedIn() && (
-        isAdmin() ||
         isSuper() ||
+        (isAdmin() && sameCompany(resource.data.empresa_id)) ||
         emailKey == authEmail()
       );
       allow list: if false;
@@ -150,10 +150,11 @@ service cloud.firestore {
     match /usuarios_auth/{uid} {
       allow get: if signedIn() && (
         uid == request.auth.uid ||
-        isAdmin() ||
-        isSuper()
+        isSuper() ||
+        (isAdmin() && sameCompany(resource.data.empresa_id))
       );
-      allow list: if isAdmin() || isSuper();
+      allow list: if isSuper() ||
+        (isAdmin() && sameCompany(resource.data.empresa_id));
 
       allow create, update: if signedIn() && (
         isSuper() ||
