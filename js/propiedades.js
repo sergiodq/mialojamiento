@@ -137,7 +137,7 @@ function fillForm() {
   qs('[name="horario_recepcion_hasta"]', form).value = editingProperty?.horario_recepcion_hasta || '22:00';
   // La vista Material 3 debe reflejar los horarios guardados, también al editar.
   for (const fieldName of ['check_in','check_out','horario_recepcion_desde','horario_recepcion_hasta']) {
-    qs(`[name="${fieldName}"]`, form)?.dispatchEvent(new Event('input'));
+    qs(`[name="${fieldName}"]`, form)?.dispatchEvent(new window.Event('input'));
   }
   qs('[name="incluye_desayuno"]', form).checked = editingProperty?.incluye_desayuno ?? false;
   qs('[name="admite_mascotas"]', form).checked = editingProperty?.admite_mascotas ?? false;
