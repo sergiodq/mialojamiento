@@ -26,28 +26,6 @@ import {
   clearCachedChromeProfile
 } from './app-helpers.js';
 
-const RESET_PENDING_STORAGE_KEY = 'mialojamiento_reset_pending_email';
-
-function rememberResetPendingEmail(email) {
-  try {
-    localStorage.setItem(RESET_PENDING_STORAGE_KEY, normalizeEmail(email));
-  } catch {}
-}
-
-function readResetPendingEmail() {
-  try {
-    return localStorage.getItem(RESET_PENDING_STORAGE_KEY) || '';
-  } catch {
-    return '';
-  }
-}
-
-function clearResetPendingEmail() {
-  try {
-    localStorage.removeItem(RESET_PENDING_STORAGE_KEY);
-  } catch {}
-}
-
 function userFacingAuthError(error, fallback = 'No pudimos completar la operación. Intentá nuevamente.') {
   console.error('[MiAlojamiento] Error de autenticación:', error);
 
@@ -92,40 +70,25 @@ export async function loginUser(email, password) {
   if (!profile) {
     const legacyUser = await findUserCandidateByEmail(normalizedEmail);
 
-    if (legacyUser?.activo && !legacyUser.eliminado && legacyUser.estado_registro === REGISTRATION_STATES.REQUIERE_RESET) {
-      const resetPendingEmail = readResetPendingEmail();
+    // Legacy REQUIERE_RESET profiles cannot prove a password-reset event from
+    // the browser. A successful Firebase sign-in is authoritative; activate
+    // only the previously linked identity, never an unlinked or different UID.
+    if (legacyUser?.activo && !legacyUser.eliminado &&
+        legacyUser.estado_registro === REGISTRATION_STATES.REQUIERE_RESET &&
+        legacyUser.uid === credential.user.uid &&
+        normalizeEmail(legacyUser.email) === normalizedEmail) {
+      await updateDoc(doc(db, 'usuarios', legacyUser.id), {
+        estado_registro: REGISTRATION_STATES.ACTIVO,
+        updated_at: serverTimestamp(),
+        actualizado_por: credential.user.uid
+      });
 
-      if (resetPendingEmail === normalizedEmail) {
-        await updateDoc(doc(db, 'usuarios', legacyUser.id), {
-          uid: legacyUser.uid || credential.user.uid,
-          email: normalizedEmail,
-          email_normalizado: normalizedEmail,
-          estado_registro: REGISTRATION_STATES.ACTIVO,
-          activo: true,
-          eliminado: false,
-          updated_at: serverTimestamp(),
-          actualizado_por: credential.user.uid
-        });
+      await upsertUserSupportDocs(legacyUser.id, {
+        ...legacyUser,
+        estado_registro: REGISTRATION_STATES.ACTIVO
+      }, { previousEmail: legacyUser.email });
 
-        await upsertUserSupportDocs(legacyUser.id, {
-          ...legacyUser,
-          uid: legacyUser.uid || credential.user.uid,
-          email: normalizedEmail,
-          email_normalizado: normalizedEmail,
-          estado_registro: REGISTRATION_STATES.ACTIVO,
-          activo: true,
-          eliminado: false,
-          propiedad_id: legacyUser.propiedad_id || '',
-          propiedad_ids: legacyUser.propiedad_ids || []
-        }, { previousEmail: legacyUser.email || normalizedEmail });
-
-        clearResetPendingEmail();
-        await settleSessionAfterLogin(credential.user);
-        profile = await getCurrentProfileWithRetry({ attempts: 4, delayMs: 260 });
-      } else {
-        await signOut(auth);
-        throw new Error('Esta cuenta fue reactivada. Usá “Olvidé mi clave” para crear una contraseña nueva antes de ingresar.');
-      }
+      profile = await getCurrentProfileWithRetry({ attempts: 4, delayMs: 260 });
     }
   }
 
@@ -134,7 +97,6 @@ export async function loginUser(email, password) {
     throw new Error('No pudimos acceder a tu cuenta. Contactá al administrador.');
   }
 
-  clearResetPendingEmail();
   return { credential, profile };
 }
 
@@ -235,7 +197,7 @@ export async function registerPendingUser({ nombre, email, password }) {
 export async function sendReset(email) {
   const normalizedEmail = normalizeEmail(email);
   await sendPasswordResetEmail(auth, normalizedEmail);
-  rememberResetPendingEmail(normalizedEmail);
+
 }
 
 export async function logoutUser() {
@@ -245,13 +207,33 @@ export async function logoutUser() {
 }
 
 function activateTab(mode) {
-  qsa('.auth-tab').forEach((tab) => {
-    tab.classList.toggle('active', tab.dataset.mode === mode);
+  qsa('[data-auth-mode]').forEach((control) => {
+    if (control.classList.contains('auth-tab')) {
+      const active = control.dataset.authMode === mode;
+      control.classList.toggle('active', active);
+      control.setAttribute('aria-selected', String(active));
+    }
   });
 
   qsa('.auth-pane').forEach((panel) => {
     panel.hidden = panel.dataset.mode !== mode;
   });
+
+  const copy = {
+    login: ['Bienvenido', 'Ingresá con tu correo y contraseña.'],
+    register: ['Activá tu acceso', 'Necesitás que un administrador haya creado tu usuario previamente.'],
+    reset: ['Recuperá tu contraseña', 'Te enviaremos un enlace a tu correo para que elijas una nueva.']
+  };
+  const [title, subtitle] = copy[mode] || copy.login;
+  const heading = qs('#authPaneTitle');
+  const description = qs('#authPaneDescription');
+  if (heading) heading.textContent = title;
+  if (description) description.textContent = subtitle;
+  const currentEmail = qs(mode === 'login' ? '#login_email' : mode === 'register' ? '#register_email' : '#reset_email');
+  const previous = qs('#login_email')?.value || qs('#register_email')?.value || qs('#reset_email')?.value || '';
+  if (currentEmail && !currentEmail.value && previous) currentEmail.value = previous;
+
+  qsa('#loginFeedback, #registerFeedback, #resetFeedback').forEach((el) => setFeedback(el, ''));
 }
 
 function readQueryMode() {
@@ -279,8 +261,8 @@ export function initLoginPage() {
   activateTab(initialMode);
   renderServerMessage();
 
-  qsa('.auth-tab').forEach((tab) => {
-    tab.addEventListener('click', () => activateTab(tab.dataset.mode));
+  qsa('[data-auth-mode]').forEach((control) => {
+    control.addEventListener('click', () => activateTab(control.dataset.authMode));
   });
 
   const loginForm = qs('#loginForm');
@@ -321,7 +303,7 @@ export function initLoginPage() {
       if (password !== confirm) throw new Error('Las contraseñas no coinciden.');
       setButtonLoading(submit, true, 'Registrando...');
       await registerPendingUser({ nombre, email, password });
-      showToast('Tu cuenta está lista. Ya podés ingresar.', 'success', 'Registro completo');
+      showToast('Tu cuenta ya está activa.', 'success', 'Registro completo');
       window.location.href = 'dashboard.html';
     } catch (error) {
       setFeedback(feedback, userFacingAuthError(error, 'No pudimos completar el registro. Intentá nuevamente.'), 'error');
@@ -340,7 +322,7 @@ export function initLoginPage() {
     try {
       setButtonLoading(submit, true, 'Enviando...');
       await sendReset(email);
-      setFeedback(feedback, 'Te enviamos un enlace para cambiar tu contraseña. Revisá también la carpeta de spam.', 'success');
+      setFeedback(feedback, 'Si el correo tiene una cuenta, recibirás un enlace para cambiar tu contraseña. Revisá también spam.', 'success');
     } catch (error) {
       setFeedback(feedback, userFacingAuthError(error, 'No pudimos enviar el correo. Intentá nuevamente.'), 'error');
     } finally {
