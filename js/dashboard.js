@@ -42,7 +42,7 @@ function isSmallMobile() {
 
 function applyResponsiveDefaultView() {
   if (plannerViewTouchedByUser) return;
-  calendarView = isSmallMobile() ? 'week' : 'month';
+  calendarView = isSmallMobile() ? 'day' : 'month';
 }
 
 function startOfWeek(date) {
@@ -157,16 +157,19 @@ function configureDashboardMode() {
 function renderQuickActions() {
   const btnReservation = qs('#quickNuevaReserva');
   const btnReservationFab = qs('#quickNuevaReservaFab');
+  const btnReservationPlanning = qs('#quickNuevaReservaPlanning');
 
   if (!canCreateReservations(currentProfile)) {
     btnReservation?.setAttribute('hidden', 'hidden');
     btnReservationFab?.setAttribute('hidden', 'hidden');
+    btnReservationPlanning?.setAttribute('hidden', 'hidden');
     return;
   }
 
   if (canCreateReservations(currentProfile)) {
     btnReservation?.removeAttribute('hidden');
     btnReservationFab?.removeAttribute('hidden');
+    btnReservationPlanning?.removeAttribute('hidden');
   }
 }
 
@@ -493,14 +496,13 @@ function renderMobilePlanningBoard() {
   container.innerHTML = `
     <div class="mobile-planner-stack">
       ${plannerGroups.map((group) => {
-        const visibleRows = group.rows.filter((row) => row.reservations.some((item) => reservationTouchesRange(item, range)));
-        const rowsToRender = visibleRows.length ? visibleRows : group.rows;
+        const rowsToRender = group.rows;
         return `
           <article class="mobile-property-card">
             <div class="mobile-property-head">
               <div>
                 <h4>${escapeHtml(group.property.nombre)}</h4>
-                <div class="mobile-property-type">${escapeHtml(group.property.tipo || 'propiedad')}</div>
+                <div class="mobile-property-type">${escapeHtml(group.property.tipo || 'alojamiento')}</div>
               </div>
               <div class="mobile-property-badges">
                 <span>${group.rows.length} unidades</span>
@@ -546,7 +548,7 @@ function renderMobilePlanningBoard() {
                         }).join('')}
                       </div>
                     ` : `
-                      <div class="mobile-unit-empty">Sin reservas visibles en este período.</div>
+                      <div class="mobile-unit-empty"><span class="mobile-available-dot" aria-hidden="true"></span> Disponible en este período</div>
                     `}
                   </section>
                 `;
