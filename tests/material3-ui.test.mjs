@@ -22,9 +22,9 @@ test('buildMobileNavModel only exposes actions already allowed by desktop naviga
     { label: 'Nueva reserva', href: 'nueva_reserva.html' }
   ];
   const model = buildMobileNavModel(adminLinks, 'dashboard.html');
-  assert.deepEqual(model.primary.map(item => item.label), ['Inicio', 'Reservas', 'Propiedades']);
+  assert.deepEqual(model.primary.map(item => item.label), ['Usuarios', 'Inicio', 'Reservas', 'Propiedades']);
   assert.equal(model.fab?.href, 'nueva_reserva.html');
-  assert.deepEqual(model.secondary.map(item => item.label), ['Usuarios']);
+  assert.deepEqual(model.secondary, []);
 });
 
 test('buildMobileNavModel does not invent admin links for reception', () => {

@@ -45,12 +45,15 @@ export function buildMobileNavModel(links = [], currentHref = '') {
   const users = byLabel('usuarios');
   const newReservation = byLabel('nueva reserva');
   const primary = [];
+  // Mostrar todos los destinos autorizados, sin esconder Usuarios en «Más».
+  // En celulares y tablets, Usuarios queda en el extremo izquierdo.
+  if (users) primary.push({ label: 'Usuarios', href: users.href, icon: 'group' });
   if (dashboard) primary.push({ label: 'Inicio', href: dashboard.href, icon: 'home' });
   if (dashboard) primary.push({ label: 'Reservas', href: `${normalizeHref(dashboard.href)}#planningBoard`, icon: 'calendar_month' });
   if (properties) primary.push({ label: 'Propiedades', href: properties.href, icon: 'apartment' });
   return {
     primary,
-    secondary: users ? [{ label: 'Usuarios', href: users.href, icon: 'group' }] : [],
+    secondary: [],
     fab: newReservation ? { label: 'Nueva reserva', href: newReservation.href, icon: 'add' } : null,
     currentHref: normalizeHref(currentHref)
   };
@@ -148,7 +151,12 @@ function renderAdaptiveChrome(session) {
     link.setAttribute('aria-label', links.find(item => item.href === link.getAttribute('href'))?.label || 'Navegar');
     if (link.classList.contains('active')) link.setAttribute('aria-current','page');
   });
-  if (signature === session.signature) return;
+  if (signature === session.signature) {
+    // El encabezado puede reconstruirse al cambiar de página interna/estado.
+    const host = doc.querySelector('#topbar') || doc.body;
+    if (session.accountButton && !session.accountButton.isConnected) host.appendChild(session.accountButton);
+    return;
+  }
   session.disposeChrome?.();
   session.signature = signature;
   const model = buildMobileNavModel(links, win.location.pathname.split('/').pop() || 'dashboard.html');
@@ -167,17 +175,20 @@ function renderAdaptiveChrome(session) {
     a.appendChild(label);
     nav.appendChild(a);
   }
-  const more = doc.createElement('button');
-  more.type = 'button';
-  more.className = 'm3-bottom-nav-item';
-  more.setAttribute('aria-expanded','false');
-  more.setAttribute('aria-controls','m3-options-drawer');
-  more.setAttribute('aria-haspopup','dialog');
-  more.appendChild(createIcon('more_horiz'));
-  const moreLabel = doc.createElement('span');
-  moreLabel.textContent = 'Más';
-  more.appendChild(moreLabel);
-  nav.appendChild(more);
+  // La cuenta y el cierre de sesión quedan en el encabezado, no ocupan
+  // un quinto destino en la barra de navegación.
+  const account = doc.createElement('button');
+  account.type = 'button';
+  account.className = 'm3-account-button';
+  account.setAttribute('aria-label', 'Cuenta y cerrar sesión');
+  account.setAttribute('title', 'Mi cuenta');
+  account.setAttribute('aria-expanded','false');
+  account.setAttribute('aria-controls','m3-options-drawer');
+  account.setAttribute('aria-haspopup','dialog');
+  account.append(createIcon('group'),doc.createTextNode('Cuenta'));
+  const accountHost = doc.querySelector('#topbar') || doc.body;
+  accountHost.appendChild(account);
+  session.accountButton = account;
 
   const backdrop = doc.createElement('div');
   backdrop.className = 'm3-drawer-backdrop';
@@ -223,11 +234,11 @@ function renderAdaptiveChrome(session) {
     backdrop.hidden = true;
     drawer.inert = true;
     drawer.setAttribute('aria-hidden','true');
-    more.setAttribute('aria-expanded','false');
+    account.setAttribute('aria-expanded','false');
     doc.body.classList.remove('m3-drawer-open');
     blocked.forEach(([element,inert])=>{element.inert=inert;});
     blocked = [];
-    if (restoreFocus && more.isConnected && win.innerWidth < 1200) more.focus();
+    if (restoreFocus && account.isConnected && win.innerWidth < 1200) account.focus();
   }
   function open() {
     drawer.hidden = false;
@@ -236,7 +247,7 @@ function renderAdaptiveChrome(session) {
     drawer.classList.add('is-open');
     backdrop.classList.add('is-open');
     drawer.setAttribute('aria-hidden','false');
-    more.setAttribute('aria-expanded','true');
+    account.setAttribute('aria-expanded','true');
     doc.body.classList.add('m3-drawer-open');
     blocked = [...doc.body.children].filter(el => el !== drawer && el !== backdrop && !['SCRIPT','STYLE','LINK'].includes(el.tagName)).map(el=>[el,el.inert]);
     blocked.forEach(([element])=>{element.inert=true;});
@@ -258,7 +269,7 @@ function renderAdaptiveChrome(session) {
     a.classList.toggle('is-active',active);
     if (active) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
   });
-  more.addEventListener('click',open);
+  account.addEventListener('click',open);
   backdrop.addEventListener('click',()=>close());
   closeButton.addEventListener('click',()=>close());
   doc.addEventListener('keydown',keydown);
@@ -283,7 +294,8 @@ function renderAdaptiveChrome(session) {
     doc.removeEventListener('keydown',keydown);
     win.removeEventListener('hashchange',refresh);
     win.removeEventListener('resize',resize);
-    [nav,backdrop,drawer,fab].forEach(el=>el?.remove());
+    [nav,backdrop,drawer,fab,account].forEach(el=>el?.remove());
+    session.accountButton = null;
   };
 }
 
