@@ -34,7 +34,7 @@ let currentMonth = new Date();
 let calendarView = 'month';
 const unitsCache = new Map();
 let plannerViewTouchedByUser = false;
-const compactPlannerMedia = window.matchMedia('(max-width: 760px)');
+const compactPlannerMedia = window.matchMedia('(max-width: 839px)');
 
 function isSmallMobile() {
   return compactPlannerMedia.matches;

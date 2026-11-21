@@ -17,6 +17,18 @@ Aplicación web de gestión hotelera hecha con HTML + CSS + JavaScript vanilla, 
 
 ## Arquitectura aplicada
 
+### Interfaz Material Design 3
+
+La interfaz comparte tokens, superficies, iconos SVG locales, campos y controles táctiles de 48–56 px. La hoja Material se carga explícitamente en las siete páginas para evitar cambios de aspecto durante la carga.
+
+- Teléfonos (320–599 px): navegación inferior, acción flotante según permisos, formularios de una columna y listados en tarjetas.
+- Tablets (600–1199 px): rail lateral y menú de cuenta accesible; columnas adaptadas al espacio.
+- Escritorio (1200 px o más): menú lateral persistente y tablas. El planning tiene desplazamiento dentro de su contenedor; en pantallas de menos de 840 px usa listas por unidad.
+
+El menú admite teclado, Escape y restauración del foco. La navegación refleja los enlaces autorizados del perfil; soporte no obtiene acciones de reserva ni administración por la adaptación visual.
+
+Validación visual en Chrome: 320×568, 360×800, 390×844, 412×915, 768×1024, 844×390, 1024×768, 1280×800, 1440×900 y 1920×1080, en las siete páginas. Esta matriz verifica tamaños de ventana; no sustituye pruebas físicas de cada modelo de dispositivo o navegador.
+
 ### Roles y permisos
 
 | Rol | Consulta | Modificaciones |
