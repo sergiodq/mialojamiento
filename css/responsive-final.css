@@ -162,3 +162,21 @@ body.properties-page .management-editor,
 body.units-page .management-editor {width:100%;min-width:0;max-width:100%}
 body.properties-page .management-list-heading,
 body.units-page .management-list-heading {min-width:0;max-width:100%}
+
+/* Cuatro destinos directos; Mi cuenta fuera de la barra inferior. */
+.m3-account-button {display:none;border:1px solid #e9dce2;background:#fff;color:#b62b4e;align-items:center;gap:7px;min-height:44px;padding:9px 14px;border-radius:999px;font-size:.83rem;font-weight:750;cursor:pointer}
+.m3-account-button .m3-icon,.m3-account-button .m3-icon svg {width:20px;height:20px}
+.m3-account-button:focus-visible {outline:3px solid #ff385c;outline-offset:2px}
+@media (max-width:1199px) {
+  body:not(.login-page) .m3-account-button {display:inline-flex!important;flex:0 0 auto}
+  body:not(.login-page) .m3-bottom-nav {gap:3px!important}
+  body:not(.login-page) .m3-bottom-nav-item {min-width:0!important}
+}
+@media (max-width:839px) {
+  body:not(.login-page) #topbar {position:relative}
+  body:not(.login-page) #topbar .m3-account-button {margin-left:auto;align-self:center}
+  body:not(.login-page) .m3-bottom-nav-item {flex:1 1 25%!important;padding-inline:2px!important}
+}
+@media (min-width:840px) and (max-width:1199px) {
+  body:not(.login-page) #topbar .m3-account-button {margin-left:auto}
+}
