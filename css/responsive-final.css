@@ -1,0 +1,113 @@
+/* Mi Alojamiento: corrección unificada de anchos reales y navegación responsive.
+   Se carga después de styles, responsive, material3 y ux-vibrante. */
+:root { --responsive-gutter:clamp(12px,2.1vw,32px); }
+html {max-width:100%;overflow-x:clip;-webkit-text-size-adjust:100%}
+body {max-width:100%;overflow-x:clip}
+body:not(.login-page) .page-shell,
+body:not(.login-page) .main,
+body:not(.login-page) .page-frame,
+body:not(.login-page) .management-layout,
+body:not(.login-page) .reservation-layout {min-width:0;max-width:100%}
+body:not(.login-page) .main {box-sizing:border-box!important;width:auto!important;padding-left:var(--responsive-gutter)!important;padding-right:var(--responsive-gutter)!important}
+body:not(.login-page) .page-frame {max-width:1600px!important;margin-inline:auto!important}
+body:not(.login-page) .card,
+body:not(.login-page) .form-grid,
+body:not(.login-page) .grid,
+body:not(.login-page) .field,
+body:not(.login-page) .form-grid>*,
+body:not(.login-page) .table-wrap {min-width:0;max-width:100%}
+body:not(.login-page) .field select,
+body:not(.login-page) .field input,
+body:not(.login-page) .field textarea {box-sizing:border-box;min-width:0;max-width:100%;width:100%;font-size:16px!important}
+body:not(.login-page) .table-wrap {overflow-x:auto;overscroll-behavior-inline:contain}
+body:not(.login-page) .form-actions>* {max-width:100%;white-space:normal}
+body:not(.login-page) .topbar-actions {min-width:0}
+body:not(.login-page) .topbar-actions>* {max-width:100%}
+body:not(.login-page) .table-actions {display:flex;flex-wrap:wrap;gap:8px}
+body:not(.login-page) .table-actions>* {white-space:normal;min-height:44px}
+
+/* Formulario de reservas: aprovechar el ancho sin renglones interminables. */
+body.reservation-page .reservation-layout {width:100%;max-width:100%;margin:0}
+body.reservation-page .reservation-primary-card {width:100%;max-width:min(100%,1180px)!important;margin-inline:auto}
+body.reservation-page #reservaForm {display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:12px!important}
+body.reservation-page .reservation-step {min-width:0}
+body.reservation-page .reservation-step>.form-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+body.reservation-page .reservation-step>.form-grid>.field {min-width:0;max-width:100%}
+body.reservation-page .reservation-step>.form-grid>.field.full {grid-column:1/-1}
+body.reservation-page .reservation-step-title {font-size:1rem;letter-spacing:-.02em;margin:10px 0}
+body.reservation-page .reservation-form-heading {margin-bottom:8px}
+body.reservation-page .reservation-form-heading h3 {margin:0 0 4px}
+body.reservation-page .reservation-form-actions {grid-column:1/-1!important;max-width:100%}
+body.reservation-page .reservation-form-actions>button,
+body.reservation-page .reservation-form-actions>a {min-height:48px}
+body.reservation-page .reservation-step .field small {line-height:1.35}
+body.reservation-page .reservation-step input[type=date] {min-width:0;max-width:100%}
+
+/* Escritorios: pantalla principal con aire y sin duplicar encabezados. */
+@media (min-width:1200px) {
+  body:not(.login-page) .main {margin-left:var(--m3-nav-width)!important}
+  body.reservation-page .reservation-primary-card {max-width:min(100%,1220px)!important}
+  body.reservation-page .reservation-form-heading {display:none}
+  body.reservation-page .reservation-step>.form-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* Tablets horizontales: rail de 88px sin espacio en blanco extra. */
+@media (min-width:840px) and (max-width:1199px) {
+  :root {--m3-nav-width:88px}
+  body:not(.login-page) .main {margin-left:88px!important;width:calc(100% - 88px)!important;padding:20px!important}
+  body:not(.login-page) .sidebar {display:none!important}
+  body.reservation-page .reservation-primary-card {max-width:100%!important}
+  body.reservation-page .reservation-step>.form-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  body:not(.login-page) .m3-bottom-nav {position:fixed;inset:0 auto 0 0;width:88px}
+}
+
+/* Teléfono y tablet vertical: un único sistema de navegación inferior.
+   Corrige el vacío lateral de 600-839px heredado del rail. */
+@media (max-width:839px) {
+  :root {--m3-nav-width:0px;--m3-bottom-nav-h:76px}
+  body:not(.login-page) .page-shell {display:block!important;min-height:100dvh!important}
+  body:not(.login-page) .sidebar {display:none!important}
+  body:not(.login-page) .main {margin:0!important;width:100%!important;max-width:100%!important;padding:12px 12px calc(104px + env(safe-area-inset-bottom))!important}
+  body:not(.login-page) .page-frame {width:100%!important;max-width:100%!important}
+  body:not(.login-page) .topbar {min-height:0!important;gap:8px!important;align-items:flex-start!important;padding:4px 0 12px!important}
+  body:not(.login-page) .topbar-leading {flex:1 1 100%;min-width:0}
+  body:not(.login-page) .topbar-actions {width:100%!important;justify-content:flex-start!important;gap:8px}
+  body:not(.login-page) .title-block h2 {font-size:clamp(1.25rem,4vw,1.65rem)!important}
+  body:not(.login-page) .card.pad {padding:clamp(14px,3vw,22px)!important;border-radius:18px!important}
+  body:not(.login-page) .m3-bottom-nav {
+    position:fixed!important;inset:auto 0 0 0!important;width:100%!important;
+    height:auto!important;min-height:calc(var(--m3-bottom-nav-h) + env(safe-area-inset-bottom))!important;
+    display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-around!important;
+    padding:6px max(8px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important;
+    border:0!important;border-top:1px solid #e9edf5!important;box-shadow:0 -8px 22px #18203912!important;z-index:80!important;
+    background:#fff!important;gap:4px!important
+  }
+  body:not(.login-page) .m3-bottom-nav-item {flex:1 1 0!important;width:auto!important;min-width:0!important;min-height:60px!important;padding:4px 1px!important;gap:4px!important}
+  body:not(.login-page) .m3-bottom-nav-item span:last-child {max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.69rem!important}
+  body:not(.login-page) .m3-fab {position:fixed!important;inset:auto 14px calc(var(--m3-bottom-nav-h) + env(safe-area-inset-bottom) + 14px) auto!important;z-index:79!important}
+  body:not(.login-page) .grid.two,body:not(.login-page) .grid.three,body:not(.login-page) .split {grid-template-columns:minmax(0,1fr)!important}
+  body:not(.login-page) .form-grid {grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+  body:not(.login-page) .form-grid>* {grid-column:1/-1!important}
+  body.reservation-page .reservation-layout {padding:0!important}
+  body.reservation-page .reservation-primary-card {max-width:100%!important}
+  body.reservation-page .reservation-step>.form-grid {grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+  body.reservation-page .reservation-step>.form-grid>* {grid-column:1/-1!important}
+  body.reservation-page #reservaForm {gap:12px}
+  body.reservation-page .reservation-steps-header {flex-wrap:nowrap!important;gap:5px!important}
+  body.reservation-page .reservation-step-pill {font-size:clamp(.65rem,2.1vw,.78rem)!important;padding:10px 4px!important;white-space:nowrap}
+  body.reservation-page .reservation-form-actions {position:sticky!important;bottom:calc(var(--m3-bottom-nav-h) + env(safe-area-inset-bottom) + 8px)!important;z-index:16!important;background:#fff!important;display:flex!important;flex-wrap:wrap!important;padding:10px 0!important;gap:8px!important}
+  body.reservation-page .reservation-form-actions>* {min-width:0;flex:1 1 0!important;padding-inline:12px!important}
+  body:not(.login-page) .table-wrap:has(> table:not(.planning-board-table)) {max-width:100%}
+}
+@media (max-width:420px) {
+  body:not(.login-page) .main {padding-inline:9px!important}
+  body:not(.login-page) .card.pad {padding:13px!important}
+  body.reservation-page .reservation-form-actions {flex-wrap:wrap!important}
+  body.reservation-page .reservation-form-actions>* {flex-basis:calc(50% - 4px)!important}
+  body.reservation-page .reservation-form-actions>*:only-child {flex-basis:100%!important}
+  body:not(.login-page) .management-list .table-actions {grid-template-columns:minmax(0,1fr)!important}
+  body:not(.login-page) .management-list .table-actions>* {width:100%}
+}
+@media (prefers-reduced-motion:reduce) {
+  body:not(.login-page) *,body:not(.login-page) *::before,body:not(.login-page) *::after {scroll-behavior:auto!important}
+}
