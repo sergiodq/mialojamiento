@@ -56,7 +56,10 @@ function build(select) {
   const options = doc.createElement('div');
   options.className = 'm3-select-options';
   panel.append(header,options);
-  host.append(button,panel);
+  host.append(button);
+  // El panel va directo al body para evitar stacking contexts de cards,
+  // transforms y contenedores con overflow (Safari / Chrome móvil).
+  doc.body.appendChild(panel);
   select.insertAdjacentElement('afterend',host);
   select.classList.add('m3-native-select');
   const state={select,host,button,panel,options,valueSpan,close,open:false};
@@ -96,6 +99,15 @@ function build(select) {
       options.appendChild(item);
     }
   }
+  function positionPanel() {
+    if (!state.open) return;
+    const rect=button.getBoundingClientRect();
+    const viewWidth=doc.defaultView.innerWidth || doc.documentElement.clientWidth;
+    const left=Math.max(8,Math.min(rect.left,viewWidth-rect.width-8));
+    panel.style.setProperty('--m3-menu-left',left+'px');
+    panel.style.setProperty('--m3-menu-top',Math.max(8,rect.bottom+7)+'px');
+    panel.style.setProperty('--m3-menu-width',Math.min(rect.width,viewWidth-16)+'px');
+  }
   function closePanel(focus=true) {
     if(!state.open)return;
     state.open=false;
@@ -103,17 +115,22 @@ function build(select) {
     host.classList.remove('is-open');
     button.setAttribute('aria-expanded','false');
     doc.querySelector('.m3-select-backdrop')?.setAttribute('hidden','');
-    if(focus)button.focus();
+    doc.body.classList.remove('m3-select-is-open');
+    if(focus && button.isConnected)button.focus();
   }
   function openPanel() {
     if(select.disabled)return;
     const anyOpen=doc.querySelector('.m3-select-field.is-open');
-    if(anyOpen && anyOpen!==host)anyOpen.querySelector('.m3-select-trigger')?.click();
+    if(anyOpen && anyOpen!==host) INSTANCES.get(anyOpen.previousElementSibling)?.close?.(false);
+    // El trigger sigue en el formulario; el panel flota por encima del overlay.
+    if(panel.parentElement!==doc.body)doc.body.appendChild(panel);
     sync();
     renderOptions();
     panel.hidden=false;
     state.open=true;
+    positionPanel();
     host.classList.add('is-open');
+    doc.body.classList.add('m3-select-is-open');
     button.setAttribute('aria-expanded','true');
     const backdrop=doc.querySelector('.m3-select-backdrop');
     if(backdrop)backdrop.hidden=false;
@@ -164,6 +181,7 @@ function build(select) {
   optionsObserver.observe(select,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['disabled','required','selected','label']});
   state.sync=sync;
   state.close=closePanel;
+  state.position=positionPanel;
   state.disconnect=()=>optionsObserver.disconnect();
   sync();
 }
@@ -175,10 +193,13 @@ export function initMaterialSelects(doc=typeof document==='undefined'?null:docum
   backdrop.className='m3-select-backdrop';
   backdrop.hidden=true;
   doc.body.appendChild(backdrop);
-  backdrop.addEventListener('click',()=>{
-    doc.querySelectorAll('.m3-select-field.is-open').forEach(host=>
-      host.querySelector('.m3-select-trigger')?.click());
-  });
+  const closeOpenSelect=(focus=true)=>{
+    doc.querySelectorAll('.m3-select-field.is-open').forEach(host=>{
+      const select=host.previousElementSibling;
+      INSTANCES.get(select)?.close?.(focus);
+    });
+  };
+  backdrop.addEventListener('click',()=>closeOpenSelect(false));
   const scan=root=>{
     if(root?.matches?.('select'))build(root);
     root?.querySelectorAll?.('select').forEach(build);
@@ -193,10 +214,21 @@ export function initMaterialSelects(doc=typeof document==='undefined'?null:docum
   const onEscape=event=>{
     if(event.key!=='Escape')return;
     const host=doc.querySelector('.m3-select-field.is-open');
-    if(host){event.preventDefault();event.stopPropagation();host.querySelector('.m3-select-trigger')?.click();}
+    if(host){event.preventDefault();event.stopPropagation();closeOpenSelect();}
   };
   doc.addEventListener('keydown',onEscape);
-  doc.defaultView.addEventListener('pagehide',()=>observer.disconnect(),{once:true});
+  const reposition=()=>doc.querySelectorAll('.m3-select-field.is-open').forEach(host=>{
+    INSTANCES.get(host.previousElementSibling)?.position?.();
+  });
+  doc.defaultView.addEventListener('resize',reposition);
+  doc.defaultView.addEventListener('scroll',reposition,true);
+  doc.defaultView.addEventListener('pagehide',()=>{
+    observer.disconnect();
+    closeOpenSelect(false);
+    doc.removeEventListener('keydown',onEscape);
+    doc.defaultView.removeEventListener('resize',reposition);
+    doc.defaultView.removeEventListener('scroll',reposition,true);
+  },{once:true});
 }
 
 if(typeof document!=='undefined') {

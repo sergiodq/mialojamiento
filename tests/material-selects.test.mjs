@@ -79,3 +79,32 @@ test('all pages include the common select control stylesheet and script',async()
     assert.match(html,/js\/material-selects\.js/);
   }
 });
+
+test('option sheet is portaled to body above the backdrop and remains interactive',()=>{
+  const dom=setup('<section class="card" style="transform:translateZ(0);overflow:hidden"><label for="x">Alojamiento</label><select id="x"><option value="a">Cabaña</option><option value="b">Hotel</option></select></section>');
+  try{
+    const doc=dom.window.document;
+    const panel=doc.querySelector('.m3-select-panel');
+    const backdrop=doc.querySelector('.m3-select-backdrop');
+    assert.equal(panel.parentElement,doc.body);
+    assert.equal(panel.hidden,true);
+    doc.querySelector('.m3-select-trigger').click();
+    assert.equal(panel.hidden,false);
+    assert.equal(backdrop.hidden,false);
+    assert.equal(doc.body.classList.contains('m3-select-is-open'),true);
+    doc.querySelectorAll('.m3-select-option')[1].click();
+    assert.equal(doc.querySelector('#x').value,'b');
+    assert.equal(panel.hidden,true);
+    assert.equal(backdrop.hidden,true);
+  }finally{dom.window.close();}
+});
+test('clicking outside closes the mobile sheet without modifying the select',()=>{
+  const dom=setup('<label for="x">Propiedad</label><select id="x"><option value="1">Uno</option><option value="2">Dos</option></select>');
+  try{
+    const doc=dom.window.document;
+    doc.querySelector('.m3-select-trigger').click();
+    doc.querySelector('.m3-select-backdrop').click();
+    assert.equal(doc.querySelector('.m3-select-panel').hidden,true);
+    assert.equal(doc.querySelector('select').value,'1');
+  }finally{dom.window.close();}
+});

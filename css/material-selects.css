@@ -24,11 +24,11 @@ select.m3-native-select,body:not(.login-page) .field select.m3-native-select {
 .m3-select-value {flex:1;min-width:0;white-space:normal;overflow-wrap:anywhere;font-weight:550}
 .m3-select-chevron {display:block;flex:0 0 auto;font-size:1.4rem;line-height:1;transform:translateY(-3px);color:#636b7e;transition:transform .15s}
 .m3-select-field.is-open .m3-select-chevron {transform:translateY(2px) rotate(180deg);color:#ff385c}
-.m3-select-backdrop {position:fixed;inset:0;z-index:109;background:transparent}
+.m3-select-backdrop {position:fixed;inset:0;z-index:9990;background:transparent}
 .m3-select-backdrop[hidden],.m3-select-panel[hidden] {display:none!important}
-.m3-select-field.is-open {z-index:110}
+.m3-select-field.is-open {z-index:auto}
 .m3-select-panel {
-  position:absolute;left:0;right:0;top:calc(100% + 7px);z-index:111;
+  position:fixed;left:var(--m3-menu-left,8px);right:auto;top:var(--m3-menu-top,70px);width:var(--m3-menu-width,280px);z-index:9991;
   display:flex;flex-direction:column;gap:0;
   max-height:min(400px,60dvh);overflow:hidden;
   border:1px solid #ebeef5;border-radius:20px;background:#fff;
