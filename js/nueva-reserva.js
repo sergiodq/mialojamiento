@@ -245,7 +245,11 @@ async function init() {
   const { reservationId, presetPropertyId } = getUrlParams();
   if (isSoporte(currentProfile) && !reservationId) {
     qs('#reservaForm').hidden = true;
-    setFeedback(qs('#legacyHint'), 'Soporte puede consultar reservas existentes y editar sus observaciones.', 'info');
+    const notice = qs('#reservationPermissionNotice');
+    if (notice) {
+      notice.hidden = false;
+      notice.textContent = 'Soporte puede consultar reservas existentes y editar sus observaciones.';
+    }
     return;
   }
 
