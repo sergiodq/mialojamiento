@@ -168,6 +168,8 @@ service cloud.firestore {
           canSelfWriteSupportFor(request.resource.data.usuario_id) &&
           request.resource.data.rol == targetUserData(request.resource.data.usuario_id).rol &&
           request.resource.data.empresa_id == targetUserData(request.resource.data.usuario_id).empresa_id &&
+          request.resource.data.propiedad_id == targetUserData(request.resource.data.usuario_id).get('propiedad_id', '') &&
+          request.resource.data.propiedad_ids == targetUserData(request.resource.data.usuario_id).get('propiedad_ids', []) &&
           request.resource.data.activo == true &&
           request.resource.data.eliminado == false
         )
