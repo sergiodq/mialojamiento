@@ -18,12 +18,36 @@
       <div class="page-frame" id="unidadesRoot">
         <header id="topbar" class="topbar"></header>
 
-        <section class="split">
-          <div class="card pad">
-            <h3 style="margin-top:0;">Resumen de la propiedad</h3>
+        <section class="management-layout units-management-layout">
+          <div class="card pad management-list" id="unitList">
+            <div class="management-list-heading"><div><h3 style="margin:0;">Habitaciones y unidades</h3><p>Consultá y administrá las unidades del alojamiento.</p></div><button type="button" id="btnNuevaUnidad" class="btn">+ Nueva habitación</button></div>
+            <p id="unitListCount" class="management-list-count" role="status"></p>
+            
+
+            <div class="table-wrap" style="margin-top:18px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Cap. máx</th>
+                    <th>Adultos</th>
+                    <th>Niños</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="unidadesBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card pad management-editor" id="unitEditor" hidden>
+            <h3 style="margin-top:0;">Alojamiento</h3>
             <div id="propertyResume" class="stat-list"></div>
 
             <div class="divider"></div>
+            <p id="unitEditorContext" class="management-editor-context">Completá los datos para dar de alta una habitación.</p>
 
             <h3 id="unitFormTitle" style="margin:0 0 12px;">Nueva unidad</h3>
             <form id="unidadForm" class="form-grid">
@@ -78,34 +102,12 @@
               <div id="formFeedback" class="full"></div>
 
               <div class="form-actions full">
-                <button id="btnCancelarEdicionUnidad" type="button" class="btn-ghost">Limpiar</button>
-                <button type="submit" class="btn">Guardar unidad</button>
+                <button id="btnCancelarEdicionUnidad" type="button" class="btn-ghost">Volver al listado</button>
+                <button type="submit" class="btn">Crear habitación</button>
               </div>
             </form>
           </div>
 
-          <div class="card pad">
-            <h3 style="margin-top:0;">Listado de unidades</h3>
-            <div class="muted">Habitaciones y unidades disponibles para reservas.</div>
-
-            <div class="table-wrap" style="margin-top:18px;">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Tipo</th>
-                    <th>Cap. máx</th>
-                    <th>Adultos</th>
-                    <th>Niños</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="unidadesBody"></tbody>
-              </table>
-            </div>
-          </div>
         </section>
       </div>
     </main>
