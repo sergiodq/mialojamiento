@@ -8,7 +8,7 @@ const canEnhance = select => select instanceof select.ownerDocument.defaultView.
   !select.multiple && Number(select.size || 0) <= 1 && !select.hasAttribute('data-native-select');
 
 function activeLabel(select) {
-  const option = select.selectedOptions?.[0];
+  const option = select.options[select.selectedIndex] || null;
   return option ? option.textContent.trim() : 'Seleccionar...';
 }
 function optionData(select) {
