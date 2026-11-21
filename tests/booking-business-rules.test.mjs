@@ -4,10 +4,10 @@ import {readFile} from 'node:fs/promises';
 const code=await readFile(new URL('../js/app-helpers.js',import.meta.url),'utf8');
 const firebaseStub='data:text/javascript;base64,'+Buffer.from([
 'export const auth={currentUser:null},authReady=Promise.resolve(),db={};',
-'export const collection=()=>{},doc=()=>{},getDoc=()=>{},getDocs=()=>{},',
-'export const setDoc=()=>{},addDoc=()=>{},updateDoc=()=>{},deleteDoc=()=>{},',
-'export const query=()=>{},where=()=>{},orderBy=()=>{},limit=()=>{},',
-'export const serverTimestamp=()=>{},writeBatch=()=>{},runTransaction=()=>{},',
+'export const collection=()=>{},doc=()=>{},getDoc=()=>{},getDocs=()=>{};',
+'export const setDoc=()=>{},addDoc=()=>{},updateDoc=()=>{},deleteDoc=()=>{};',
+'export const query=()=>{},where=()=>{},orderBy=()=>{},limit=()=>{};',
+'export const serverTimestamp=()=>{},writeBatch=()=>{},runTransaction=()=>{};',
 'export const onAuthStateChanged=()=>{},signOut=()=>{};'
 ].join('')).toString('base64');
 const helpers=await import('data:text/javascript;base64,'+Buffer.from(code.replace("'./firebase-config.js'",JSON.stringify(firebaseStub))).toString('base64'));
