@@ -166,3 +166,33 @@ body.login-page .auth-tab.active {color:#c9284b!important}
   html{scroll-behavior:auto}
   body:not(.login-page) .btn{transition:none!important}
 }
+
+/* Responsive planner filters: shown by default on desktop, dismissible on phone. */
+body.dashboard-page .planner-filter-heading {display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:4px 0 10px}
+body.dashboard-page #plannerFiltersToggle {display:inline-flex;gap:8px;align-items:center;font-weight:750;color:#cf2850!important;border-color:#ffd4df!important;background:#fff4f7!important}
+body.dashboard-page #plannerFiltersReset {font-size:.8rem;font-weight:650}
+body.dashboard-page .planner-filters-badge {background:#ffe1e8;border-radius:30px;color:#b61c45;padding:3px 8px;font-size:.7rem}
+body.dashboard-page .dashboard-view-btn.is-active {background:#ffe5ea!important;color:#c9254c!important;border-color:#ffc0cb!important}
+body.dashboard-page .planner-inline-field select,body.dashboard-page .planner-inline-field input {min-height:48px}
+body.reservation-page .reservation-layout {display:block;min-width:0}
+body.reservation-page #reservaForm>.reservation-step {grid-column:1/-1!important}
+body.reservation-page .reservation-step>.form-grid {grid-column:1/-1!important}
+body.reservation-page .reservation-step-title {font-size:1.04rem;font-weight:800;color:#29304c;margin:8px 0 14px;grid-column:1/-1}
+body.reservation-page .reservation-step>.form-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+body.reservation-page .reservation-step>.form-grid>.field.full {grid-column:1/-1}
+body.reservation-page .reservation-form-heading h3 {font-weight:850;letter-spacing:-.035em;margin:0 0 4px}
+body.reservation-page .reservation-wizard-status {font-size:.78rem;text-align:center;color:#61677d;margin:4px 0 12px}
+body.reservation-page #reservaForm .form-actions {grid-column:1/-1!important}
+@media (min-width:840px) {
+  body.dashboard-page #plannerFiltersToggle {display:none!important}
+  body.dashboard-page #plannerFilters {display:flex!important}
+  body.reservation-page .reservation-step-title {border-bottom:1px solid #edf0f6;padding-bottom:8px}
+}
+@media (max-width:839px) {
+  body.dashboard-page .planner-filter-heading {justify-content:space-between}
+  body.dashboard-page #plannerFilters.is-collapsed {display:none!important}
+  body.reservation-page .reservation-step>.form-grid {grid-template-columns:minmax(0,1fr)!important;gap:12px}
+  body.reservation-page .reservation-step>.form-grid>* {grid-column:1/-1!important}
+  body.reservation-page .reservation-form-heading {padding-bottom:6px}
+  body.reservation-page .reservation-form-actions {margin-top:6px}
+}
