@@ -19,7 +19,10 @@ service cloud.firestore {
     }
 
     function hasMirror() {
-      return signedIn() && authMirror() != null && authMirror().data.usuario_id != null;
+      return signedIn() && authMirror() != null &&
+        authMirror().data.usuario_id != null &&
+        authMirror().data.activo == true &&
+        authMirror().data.eliminado == false;
     }
 
     function myRole() {
@@ -80,6 +83,8 @@ service cloud.firestore {
         isOwnUserData(resource.data) &&
         request.resource.data.email == resource.data.email &&
         request.resource.data.rol == resource.data.rol &&
+        request.resource.data.propiedad_id == resource.data.get('propiedad_id', '') &&
+        request.resource.data.propiedad_ids == resource.data.get('propiedad_ids', []) &&
         request.resource.data.empresa_id == resource.data.empresa_id &&
         request.resource.data.activo == true &&
         request.resource.data.eliminado == false &&
@@ -123,8 +128,9 @@ service cloud.firestore {
       allow create, update: if signedIn() && (
         isSuper() ||
         (isAdmin() && request.resource.data.empresa_id == myCompany() &&
+          request.resource.data.rol != 'superadmin' &&
           (!exists(/databases/$(database)/documents/email_index/$(emailKey)) ||
-            resource.data.empresa_id == myCompany())) ||
+            (resource.data.empresa_id == myCompany() && resource.data.rol != 'superadmin'))) ||
         (
           emailKey == authEmail() &&
           request.resource.data.email == authEmail() &&
@@ -152,8 +158,9 @@ service cloud.firestore {
       allow create, update: if signedIn() && (
         isSuper() ||
         (isAdmin() && request.resource.data.empresa_id == myCompany() &&
+          request.resource.data.rol != 'superadmin' &&
           (!exists(/databases/$(database)/documents/usuarios_auth/$(uid)) ||
-            resource.data.empresa_id == myCompany())) ||
+            (resource.data.empresa_id == myCompany() && resource.data.rol != 'superadmin'))) ||
         (
           uid == request.auth.uid &&
           request.resource.data.uid == request.auth.uid &&
@@ -173,11 +180,14 @@ service cloud.firestore {
       allow get, list: if signedIn() && canReadUserData(resource.data);
 
       allow create: if signedIn() && (isSuper() ||
-        (isAdmin() && request.resource.data.empresa_id == myCompany()));
+        (isAdmin() && request.resource.data.empresa_id == myCompany() &&
+          request.resource.data.rol != 'superadmin'));
 
       allow update: if signedIn() && (
         isSuper() ||
         (isAdmin() && sameCompany(resource.data.empresa_id) &&
+          resource.data.rol != 'superadmin' &&
+          request.resource.data.rol != 'superadmin' &&
           request.resource.data.empresa_id == myCompany()) ||
         canSelfBootstrapUserUpdate(userId)
       );
