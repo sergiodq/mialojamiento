@@ -1,6 +1,9 @@
 import {
   requireAuth,
   canCreateReservations,
+  escapeHtml,
+  isSoporte,
+  buildSupportPatch,
   RESERVATION_STATUSES,
   renderTopbar,
   primeSidebarFromCache,
@@ -19,6 +22,7 @@ import {
   setButtonLoading
 } from './app-helpers.js';
 import { logoutUser } from './auth.js';
+import { db, doc, updateDoc } from './firebase-config.js';
 
 let currentProfile = null;
 let properties = [];
@@ -116,7 +120,7 @@ function updateCapacityHint() {
 }
 
 async function loadProperties() {
-  properties = await listScopedProperties(currentProfile, { includeInactive: false });
+  properties = await listScopedProperties(currentProfile, { includeInactive: Boolean(getUrlParams().reservationId) });
   const select = qs('[name="propiedad_id"]');
 
   fillSelectOptions(select, properties, {
@@ -126,12 +130,12 @@ async function loadProperties() {
 }
 
 async function loadUnits(propertyId, preserveSelection = '') {
-  units = propertyId ? await listUnitsByProperty(propertyId, { includeInactive: false }) : [];
+  units = propertyId ? await listUnitsByProperty(propertyId, { includeInactive: Boolean(editingReservation) }) : [];
   const select = qs('[name="unidad_id"]');
 
   select.innerHTML = units.length
     ? `<option value="">Seleccionar unidad...</option>${units
-        .map((unit) => `<option value="${unit.id}">${unit.codigo || unit.nombre} · ${unit.nombre}</option>`)
+        .map((unit) => `<option value="${escapeHtml(unit.id)}">${escapeHtml(unit.codigo || unit.nombre)} · ${escapeHtml(unit.nombre)}</option>`)
         .join('')}`
     : '<option value="">Sin unidades activas</option>';
 
@@ -184,6 +188,15 @@ async function saveReservation(event) {
   setFeedback(feedback, '');
 
   try {
+    if (isSoporte(currentProfile)) {
+      if (!editingReservation) throw new Error('Soporte no puede crear reservas.');
+      const patch = buildSupportPatch(currentProfile, 'reservas', {
+        observaciones: qs('[name="observaciones"]', form)?.value.trim() || ''
+      });
+      await updateDoc(doc(db, 'reservas', editingReservation.id), patch);
+      showToast('Observaciones actualizadas.', 'success', 'Hecho');
+      return;
+    }
     setButtonLoading(submit, true, editingReservation ? 'Guardando...' : 'Creando...');
 
     const propertyId = qs('[name="propiedad_id"]', form)?.value || '';
@@ -227,9 +240,14 @@ async function saveReservation(event) {
 async function init() {
   primeSidebarFromCache('nueva-reserva');
   currentProfile = await requireAuth({ pageKey: 'nueva-reserva' });
-  if (!currentProfile || !canCreateReservations(currentProfile)) return;
+  if (!currentProfile || (!canCreateReservations(currentProfile) && !isSoporte(currentProfile))) return;
 
   const { reservationId, presetPropertyId } = getUrlParams();
+  if (isSoporte(currentProfile) && !reservationId) {
+    qs('#reservaForm').hidden = true;
+    setFeedback(qs('#legacyHint'), 'Soporte puede consultar reservas existentes y editar sus observaciones.', 'info');
+    return;
+  }
 
   updateReservationPageChrome();
 
@@ -252,6 +270,12 @@ async function init() {
     await fillEditData();
   } else {
     await loadUnits(qs('[name="propiedad_id"]')?.value || '');
+  }
+  if (isSoporte(currentProfile)) {
+    for (const input of qs('#reservaForm').querySelectorAll('input,select,textarea')) {
+      input.disabled = input.name !== 'observaciones';
+    }
+    renderTopbar({ title: 'Consultar reserva', subtitle: 'Soporte solo puede editar las observaciones.', actionsHtml: '<a class="btn-ghost" href="dashboard.html">Volver al dashboard</a>' });
   }
 
   qs('#reservaForm')?.addEventListener('submit', saveReservation);

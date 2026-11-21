@@ -10,6 +10,7 @@ import {
 import {
   requireAuth,
   canManageUsers,
+  escapeHtml,
   canManageTargetUser,
   isSuperadmin,
   isAdmin,
@@ -75,10 +76,10 @@ function renderPropertyCheckboxes(selectedIds = []) {
   container.innerHTML = availableProperties
     .map((property) => `
       <label class="checkbox-chip property-checkbox-item">
-        <input type="checkbox" value="${property.id}" ${selectedSet.has(property.id) ? 'checked' : ''}>
+        <input type="checkbox" value="${escapeHtml(property.id)}" ${selectedSet.has(property.id) ? 'checked' : ''}>
         <span>
-          <strong>${property.nombre}</strong>
-          <small>${property.codigo || property.ciudad || property.id}</small>
+          <strong>${escapeHtml(property.nombre)}</strong>
+          <small>${escapeHtml(property.codigo || property.ciudad || property.id)}</small>
         </span>
       </label>
     `)
@@ -121,7 +122,7 @@ function populateRoleOptions() {
   if (!select) return;
 
   const options = isSuperadmin(currentProfile)
-    ? [ROLES.SUPERADMIN, ROLES.ADMIN, ROLES.RECEPCION]
+    ? [ROLES.SUPERADMIN, ROLES.SOPORTE, ROLES.ADMIN, ROLES.RECEPCION]
     : [ROLES.ADMIN, ROLES.RECEPCION];
 
   select.innerHTML = options.map((role) => `<option value="${role}">${role}</option>`).join('');
@@ -133,7 +134,7 @@ async function loadPropertiesOptions() {
 
   if (!select) return;
   select.innerHTML = availableProperties
-    .map((property) => `<option value="${property.id}">${property.nombre} · ${property.codigo || property.ciudad || property.id}</option>`)
+    .map((property) => `<option value="${escapeHtml(property.id)}">${escapeHtml(property.nombre)} · ${escapeHtml(property.codigo || property.ciudad || property.id)}</option>`)
     .join('');
 
   renderPropertyCheckboxes(existingUser?.propiedad_ids || []);
@@ -145,10 +146,7 @@ function fillForm() {
   qs('[name="nombre"]').value = existingUser.nombre || '';
   qs('[name="email"]').value = existingUser.email || '';
   qs('[name="rol"]').value = existingUser.rol || ROLES.RECEPCION;
-  const ownSuperadmin = isSuperadmin(currentProfile) && (
-    (currentProfile.id && currentProfile.id === existingUser.id) ||
-    (currentProfile.uid && currentProfile.uid === existingUser.uid)
-  );
+  const ownSuperadmin = existingUser.rol === ROLES.SUPERADMIN;
   qs('[name="rol"]').disabled = Boolean(ownSuperadmin);
   qs('#roleLockHint').hidden = !ownSuperadmin;
   qs('[name="empresa_id"]').value = existingUser.empresa_id || '';
@@ -182,7 +180,7 @@ async function saveUser(event) {
     if (!payload.email) {
       throw new Error('Ingresá el correo.');
     }
-    if (!payload.empresa_id && payload.rol !== ROLES.SUPERADMIN) {
+    if (!payload.empresa_id && ![ROLES.SUPERADMIN, ROLES.SOPORTE].includes(payload.rol)) {
       throw new Error('Definí un ámbito/empresa para el usuario.');
     }
     if (payload.rol === ROLES.RECEPCION && !payload.propiedad_ids.length) {

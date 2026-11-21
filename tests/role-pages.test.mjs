@@ -1,0 +1,118 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { JSDOM } from 'jsdom';
+Error.stackTraceLimit = 0;
+
+const uri = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
+const support = {id:'support',uid:'support',nombre:'<img src=x onerror=alert(1)>Soporte',email:'support@example.com',email_normalizado:'support@example.com',rol:'soporte',empresa_id:'',propiedad_ids:[],activo:true,eliminado:false,estado_registro:'activo'};
+const property = {id:'pa',nombre:'<img src=x onerror=alert(1)>Hotel',codigo:'H',empresa_id:'a',activo:true};
+const unit = {id:'u1',nombre:'<img src=x onerror=alert(1)>101',codigo:'101',capacidad_max:2,activa:true};
+const month = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+const reservation = {id:'ra',cliente:'Cliente',propiedad_id:'pa',empresa_id:'a',fecha_inicio:`${month}-15`,fecha_fin:`${month}-16`,unidad_id:'u1',estado:'confirmada',huespedes:1,total:100,observaciones:'Nota'};
+
+let pageCounter = 0;
+async function openPage(htmlName, scriptName, search='', actor=support, {inactive=false}={}) {
+  const dom = new JSDOM(await readFile(new URL(`../${htmlName}`,import.meta.url),'utf8'),{url:`https://example.test/${htmlName}${search}`});
+  Object.assign(globalThis,{window:dom.window,document:dom.window.document,sessionStorage:dom.window.sessionStorage});
+  dom.window.scrollTo=()=>{};
+  dom.window.matchMedia=()=>({matches:false,addEventListener(){}});
+  const pageProperty = {...property,activo:!inactive};
+  const pageUnit = {...unit,activa:!inactive};
+  globalThis.__rolePage={actor,writes:[],get(path){
+    if(path===`usuarios_auth/${actor.uid}`) return {...actor,usuario_id:actor.id};
+    if(path===`email_index/${actor.email}`) return {...actor,usuario_id:actor.id};
+    if(path===`usuarios/${actor.id}`) return actor;
+    return {'propiedades/pa':pageProperty,'propiedades/pa/unidades/u1':pageUnit,'reservas/ra':reservation}[path];
+  },list(path){
+    return {'usuarios':[support],propiedades:[pageProperty],reservas:[reservation],'propiedades/pa/unidades':[pageUnit]}[path] || [];
+  }};
+  const sdk=uri(`
+    // Unique module boundary per page avoids sharing captured state between sessions: ${pageCounter++}
+    export const auth={currentUser:{uid:globalThis.__rolePage.actor.uid,email:globalThis.__rolePage.actor.email}},authReady=Promise.resolve(),db={};
+    export const collection=(_, ...parts)=>parts.join('/'),doc=collection,query=(p)=>p,where=()=>{},orderBy=()=>{},limit=()=>{};
+    export const getDoc=async p=>({id:p.split('/').at(-1),exists:()=>!!globalThis.__rolePage.get(p),data:()=>globalThis.__rolePage.get(p)});
+    export const getDocs=async p=>({docs:globalThis.__rolePage.list(p).map(d=>({id:d.id,data:()=>d}))});
+    export const updateDoc=async (p,data)=>globalThis.__rolePage.writes.push({path:p,data});
+    export const setDoc=()=>{},addDoc=()=>{},deleteDoc=()=>{},serverTimestamp=()=>null,writeBatch=()=>({set(){},delete(){},commit:async()=>{}}),runTransaction=()=>{},onAuthStateChanged=()=>{},signOut=async()=>{};
+  `);
+  const helpers=uri((await readFile(new URL('../js/app-helpers.js',import.meta.url),'utf8')).replace("'./firebase-config.js'",JSON.stringify(sdk)));
+  const source=(await readFile(new URL(`../js/${scriptName}`,import.meta.url),'utf8'))
+    .replace("'./firebase-config.js'",JSON.stringify(sdk))
+    .replace("'./app-helpers.js'",JSON.stringify(helpers))
+    .replace("'./auth.js'",JSON.stringify(uri('export const logoutUser=()=>{};')));
+  await import(uri(source));
+  await new Promise(resolve=>setTimeout(resolve,40));
+  return dom;
+}
+test('support can consult users without any account management actions',async()=>{
+  const dom=await openPage('usuarios.html','usuarios.js');
+  try {
+    assert.match(document.querySelector('#usuariosBody').textContent,/Soporte/);
+    assert.equal(document.querySelector('#usuariosBody img'),null);
+    assert.equal(document.querySelector('a[href="nuevo_usuario.html"]'),null);
+    assert.equal(document.querySelector('#usuariosBody a,#usuariosBody button'),null);
+  } finally {dom.window.close();}
+});
+test('support can edit only contact and notes on an existing property',async()=>{
+  const dom=await openPage('propiedades.html','propiedades.js');
+  try {
+    assert.match(document.querySelector('#propiedadesBody').textContent,/Hotel/);
+    assert.equal(document.querySelector('#propiedadesBody img'),null);
+    assert.equal(document.querySelector('#propiedadForm button[type=submit]').disabled,true);
+    document.querySelector('.btnEditProperty').click();
+    await new Promise(resolve=>setTimeout(resolve,10));
+    const form=document.querySelector('#propiedadForm');
+    assert.equal(form.querySelector('[name=nombre]').disabled,true);
+    assert.equal(form.querySelector('[name=telefono]').disabled,false);
+    form.querySelector('[name=telefono]').value='456';
+    form.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));
+    await new Promise(resolve=>setTimeout(resolve,10));
+    assert.deepEqual(globalThis.__rolePage.writes,[{path:'propiedades/pa',data:{telefono:'456',email_contacto:'',observaciones_internas:'',updated_at:null,actualizado_por:'support'}}]);
+  } finally {dom.window.close();}
+});
+test('support can consult units but cannot create, edit or deactivate them',async()=>{
+  const dom=await openPage('unidades.html','unidades.js','?propiedad=pa');
+  try {
+    assert.match(document.querySelector('#unidadesBody').textContent,/101/);
+    assert.equal(document.querySelector('#unidadesBody img'),null);
+    assert.equal(document.querySelector('.btnEditUnit,.btnDeleteUnit'),null);
+    assert.equal(document.querySelector('#unidadForm').hidden,true);
+  } finally {dom.window.close();}
+});
+test('support edits reservation notes without submitting operational fields or touching locks',async()=>{
+  const dom=await openPage('nueva_reserva.html','nueva-reserva.js','?id=ra');
+  try {
+    const form=document.querySelector('#reservaForm');
+    assert.equal(form.querySelector('[name=cliente]').disabled,true);
+    assert.equal(form.querySelector('[name=observaciones]').disabled,false);
+    form.querySelector('[name=observaciones]').value='Revisado';
+    form.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));
+    await new Promise(resolve=>setTimeout(resolve,10));
+    assert.deepEqual(globalThis.__rolePage.writes,[{path:'reservas/ra',data:{observaciones:'Revisado',updated_at:null,actualizado_por:'support'}}]);
+  } finally {dom.window.close();}
+});
+test('support dashboard offers consultation without creation or cancellation actions',async()=>{
+  const dom=await openPage('dashboard.html','dashboard.js');
+  try {
+    assert.equal(document.querySelector('#regularDashboardSection').hidden,false);
+    assert.equal(document.querySelector('#quickNuevaReserva').hidden,true);
+    assert.equal(document.querySelector('.btnDeleteReservation'),null);
+    assert.match(document.querySelector('#planningBoard').textContent,/Cliente/);
+  } finally {dom.window.close();}
+});
+test('superadmin dashboard includes the planner and reservation creation',async()=>{
+  const dom=await openPage('dashboard.html','dashboard.js','',{...support,rol:'superadmin'});
+  try {
+    assert.equal(document.querySelector('#regularDashboardSection').hidden,false);
+    assert.equal(document.querySelector('#quickNuevaReserva').hidden,false);
+    assert.match(document.querySelector('#planningBoard').textContent,/Cliente/);
+    assert.ok(document.querySelector('.btnDeleteReservation'));
+  } finally {dom.window.close();}
+});
+test('global support consultation includes reservations from inactive inventory',async()=>{
+  const dom=await openPage('dashboard.html','dashboard.js','',support,{inactive:true});
+  try {
+    assert.match(document.querySelector('#planningBoard').textContent,/Cliente/);
+  } finally {dom.window.close();}
+});

@@ -8,7 +8,12 @@ import {
 } from './firebase-config.js';
 import {
   requireAuth,
+  escapeHtml,
   canManageProperties,
+  canReadProperties,
+  isSoporte,
+  SUPPORT_FIELDS,
+  buildSupportPatch,
   isSuperadmin,
   PROPERTY_TYPES,
   GENERAL_AMENITIES,
@@ -81,20 +86,20 @@ function renderTable(filtered = properties) {
       <tr>
         <td data-label="Propiedad">
           <div class="table-cell-content">
-            <strong>${property.nombre}</strong>
-            <small class="muted">${property.id}</small>
+            <strong>${escapeHtml(property.nombre)}</strong>
+            <small class="muted">${escapeHtml(property.id)}</small>
           </div>
         </td>
-        <td data-label="Código">${property.codigo || '—'}</td>
-        <td data-label="Tipo">${property.tipo || '—'}</td>
-        <td data-label="Ciudad">${property.ciudad || '—'}</td>
-        <td data-label="Ámbito">${property.empresa_id || '—'}</td>
-        <td data-label="Horarios">${property.check_in || '—'} / ${property.check_out || '—'}</td>
+        <td data-label="Código">${escapeHtml(property.codigo || '—')}</td>
+        <td data-label="Tipo">${escapeHtml(property.tipo || '—')}</td>
+        <td data-label="Ciudad">${escapeHtml(property.ciudad || '—')}</td>
+        <td data-label="Ámbito">${escapeHtml(property.empresa_id || '—')}</td>
+        <td data-label="Horarios">${escapeHtml(property.check_in || '—')} / ${escapeHtml(property.check_out || '—')}</td>
         <td data-label="Estado">${property.activo ? '<span class="badge green">Activa</span>' : '<span class="badge orange">Inactiva</span>'}</td>
         <td data-label="Acciones">
           <div class="table-actions">
-            <button class="btn-secondary btnEditProperty" data-id="${property.id}">Editar</button>
-            <a class="btn-ghost" href="unidades.html?propiedad=${property.id}">Unidades</a>
+            <button class="btn-secondary btnEditProperty" data-id="${escapeHtml(property.id)}">Editar</button>
+            <a class="btn-ghost" href="unidades.html?propiedad=${encodeURIComponent(property.id)}">Unidades</a>
           </div>
         </td>
       </tr>
@@ -143,6 +148,14 @@ function fillForm() {
   if (title) {
     title.textContent = editingProperty ? 'Editar propiedad' : 'Nueva propiedad';
   }
+  if (isSoporte(currentProfile)) {
+    for (const input of form.querySelectorAll('input,select,textarea')) {
+      input.disabled = !SUPPORT_FIELDS.propiedades.includes(input.name) || !editingProperty;
+    }
+    const submit = qs('button[type="submit"]', form);
+    if (submit) submit.disabled = !editingProperty;
+    if (title) title.textContent = editingProperty ? 'Contacto y notas de la propiedad' : 'Seleccioná una propiedad para consultar o editar contacto y notas';
+  }
 }
 
 function resetForm() {
@@ -180,6 +193,15 @@ async function saveProperty(event) {
   setFeedback(feedback, '');
 
   try {
+    if (isSoporte(currentProfile)) {
+      if (!editingProperty) throw new Error('Soporte no puede crear propiedades.');
+      const changes = Object.fromEntries(SUPPORT_FIELDS.propiedades.map(key => [key, qs(`[name="${key}"]`, form)?.value.trim() || '']));
+      await updateDoc(doc(db, 'propiedades', editingProperty.id), buildSupportPatch(currentProfile, 'propiedades', changes));
+      showToast('Contacto y notas actualizados.', 'success', 'Hecho');
+      await loadProperties();
+      resetForm();
+      return;
+    }
     setButtonLoading(submit, true, editingProperty ? 'Guardando...' : 'Creando...');
     const payload = buildPropertyPayloadFromForm(form, currentProfile, editingProperty);
 
@@ -214,6 +236,7 @@ async function saveProperty(event) {
     setFeedback(feedback, error.message || 'No se pudo guardar la propiedad.', 'error');
   } finally {
     setButtonLoading(submit, false);
+    if (isSoporte(currentProfile) && !editingProperty && submit) submit.disabled = true;
   }
 }
 
@@ -242,8 +265,8 @@ async function loadProperties() {
 
 async function init() {
   primeSidebarFromCache('propiedades');
-  currentProfile = await requireAuth({ roles: ['superadmin', 'admin'], pageKey: 'propiedades' });
-  if (!currentProfile || !canManageProperties(currentProfile)) return;
+  currentProfile = await requireAuth({ roles: ['superadmin', 'admin', 'soporte'], pageKey: 'propiedades' });
+  if (!currentProfile || !canReadProperties(currentProfile)) return;
 
   renderTopbar({
     title: 'Propiedades',

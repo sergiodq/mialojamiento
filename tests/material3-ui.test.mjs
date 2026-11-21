@@ -55,3 +55,13 @@ test('only one dashboard destination is active at a time', () => {
   assert.equal(isMobileNavItemActive(inicio, 'dashboard.html', '#planningBoard'), false);
   assert.equal(isMobileNavItemActive(reservas, 'dashboard.html', '#planningBoard'), true);
 });
+
+test('support can navigate to reservations without gaining a creation action', () => {
+  const model = buildMobileNavModel([
+    {label:'Dashboard',href:'dashboard.html'},
+    {label:'Usuarios',href:'usuarios.html'},
+    {label:'Propiedades',href:'propiedades.html'}
+  ], 'dashboard.html');
+  assert.ok(model.primary.some(item=>item.href==='dashboard.html#planningBoard'));
+  assert.equal(model.fab,null);
+});
