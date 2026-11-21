@@ -203,3 +203,13 @@ test('invited superadmin can activate its preassigned role without creating anot
   const db=dbFor('newroot');
   await assertSucceeds(updateDoc(doc(db,'usuarios','invited-root'),{uid:'newroot',estado_registro:'activo'}));
 });
+test('legacy empty property assignment does not block superadmin profile repair',async()=>{
+  await env.withSecurityRulesDisabled(context=>updateDoc(doc(context.firestore(),'usuarios','root'),{propiedad_id:'',propiedad_ids:['']}));
+  const db=dbFor('root');
+  const helpers=await realHelpers(db,'root');
+  const resolved=await helpers.resolveProfileFromAuthenticatedUser({uid:'root',email:'root@example.com'});
+  if(resolved?.rol!=='superadmin') throw new Error('El superadmin debe conservar acceso con asignación legacy vacía.');
+  await assertSucceeds(getDocs(collection(db,'propiedades')));
+  const canonical=(await getDoc(doc(db,'usuarios','root'))).data();
+  if(canonical.propiedad_ids.length!==1 || canonical.propiedad_ids[0]!=='') throw new Error('No se deben modificar asignaciones canónicas para reparar el espejo.');
+});
