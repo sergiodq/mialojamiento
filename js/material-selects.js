@@ -109,6 +109,7 @@ function build(select) {
     if(select.disabled)return;
     const anyOpen=doc.querySelector('.m3-select-field.is-open');
     if(anyOpen && anyOpen!==host)anyOpen.querySelector('.m3-select-trigger')?.click();
+    sync();
     renderOptions();
     panel.hidden=false;
     state.open=true;
@@ -196,4 +197,12 @@ export function initMaterialSelects(doc=typeof document==='undefined'?null:docum
   };
   doc.addEventListener('keydown',onEscape);
   doc.defaultView.addEventListener('pagehide',()=>observer.disconnect(),{once:true});
+}
+
+if(typeof document!=='undefined') {
+  if(document.readyState==='loading') {
+    document.addEventListener('DOMContentLoaded',()=>initMaterialSelects(document),{once:true});
+  } else {
+    initMaterialSelects(document);
+  }
 }
