@@ -103,13 +103,13 @@ service cloud.firestore {
     function canReadPropertyData(data, propertyId) {
       return isSuper() ||
         (isAdmin() && sameCompany(data.empresa_id)) ||
-        (isReception() && myPropertyIds().hasAny([propertyId]));
+        (isReception() && sameCompany(data.empresa_id) && myPropertyIds().hasAny([propertyId]));
     }
 
     function canReadReservationData(data) {
       return isSuper() ||
         (isAdmin() && sameCompany(data.empresa_id)) ||
-        (isReception() && myPropertyIds().hasAny([data.propiedad_id]));
+        (isReception() && sameCompany(data.empresa_id) && myPropertyIds().hasAny([data.propiedad_id]));
     }
 
     match /email_index/{emailKey} {
@@ -121,8 +121,10 @@ service cloud.firestore {
       allow list: if false;
 
       allow create, update: if signedIn() && (
-        isAdmin() ||
         isSuper() ||
+        (isAdmin() && request.resource.data.empresa_id == myCompany() &&
+          (!exists(/databases/$(database)/documents/email_index/$(emailKey)) ||
+            resource.data.empresa_id == myCompany())) ||
         (
           emailKey == authEmail() &&
           request.resource.data.email == authEmail() &&
@@ -136,7 +138,7 @@ service cloud.firestore {
         )
       );
 
-      allow delete: if isAdmin() || isSuper();
+      allow delete: if isSuper() || (isAdmin() && sameCompany(resource.data.empresa_id));
     }
 
     match /usuarios_auth/{uid} {
@@ -148,8 +150,10 @@ service cloud.firestore {
       allow list: if isAdmin() || isSuper();
 
       allow create, update: if signedIn() && (
-        isAdmin() ||
         isSuper() ||
+        (isAdmin() && request.resource.data.empresa_id == myCompany() &&
+          (!exists(/databases/$(database)/documents/usuarios_auth/$(uid)) ||
+            resource.data.empresa_id == myCompany())) ||
         (
           uid == request.auth.uid &&
           request.resource.data.uid == request.auth.uid &&
@@ -168,11 +172,13 @@ service cloud.firestore {
     match /usuarios/{userId} {
       allow get, list: if signedIn() && canReadUserData(resource.data);
 
-      allow create: if signedIn() && (isAdmin() || isSuper());
+      allow create: if signedIn() && (isSuper() ||
+        (isAdmin() && request.resource.data.empresa_id == myCompany()));
 
       allow update: if signedIn() && (
         isSuper() ||
-        (isAdmin() && sameCompany(resource.data.empresa_id)) ||
+        (isAdmin() && sameCompany(resource.data.empresa_id) &&
+          request.resource.data.empresa_id == myCompany()) ||
         canSelfBootstrapUserUpdate(userId)
       );
 
@@ -182,11 +188,13 @@ service cloud.firestore {
     match /propiedades/{propertyId} {
       allow get, list: if signedIn() && canReadPropertyData(resource.data, propertyId);
 
-      allow create: if signedIn() && (isSuper() || isAdmin());
+      allow create: if signedIn() && (isSuper() ||
+        (isAdmin() && request.resource.data.empresa_id == myCompany()));
 
       allow update: if signedIn() && (
         isSuper() ||
-        (isAdmin() && sameCompany(resource.data.empresa_id))
+        (isAdmin() && sameCompany(resource.data.empresa_id) &&
+          request.resource.data.empresa_id == myCompany())
       );
 
       allow delete: if false;
@@ -196,7 +204,9 @@ service cloud.firestore {
           (
             isSuper() ||
             (isAdmin() && sameCompany(get(/databases/$(database)/documents/propiedades/$(propertyId)).data.empresa_id)) ||
-            (isReception() && myPropertyIds().hasAny([propertyId]))
+            (isReception() &&
+              sameCompany(get(/databases/$(database)/documents/propiedades/$(propertyId)).data.empresa_id) &&
+              myPropertyIds().hasAny([propertyId]))
           );
 
         allow create, update, delete: if signedIn() &&
@@ -210,12 +220,22 @@ service cloud.firestore {
     match /reservas/{reservationId} {
       allow get, list: if signedIn() && canReadReservationData(resource.data);
 
-      allow create, update: if signedIn() &&
-        (
-          isSuper() ||
-          (isAdmin() && request.resource.data.empresa_id == myCompany()) ||
-          (isReception() && myPropertyIds().hasAny([request.resource.data.propiedad_id]))
-        );
+      allow create: if signedIn() && (
+        isSuper() ||
+        (request.resource.data.empresa_id == myCompany() &&
+          (isAdmin() ||
+            (isReception() && myPropertyIds().hasAny([request.resource.data.propiedad_id]))))
+      );
+
+      allow update: if signedIn() && (
+        isSuper() ||
+        (resource.data.empresa_id == myCompany() &&
+          request.resource.data.empresa_id == myCompany() &&
+          (isAdmin() ||
+            (isReception() &&
+              myPropertyIds().hasAny([resource.data.propiedad_id]) &&
+              myPropertyIds().hasAny([request.resource.data.propiedad_id]))))
+      );
 
       allow delete: if false;
     }
@@ -230,14 +250,21 @@ service cloud.firestore {
           )
         );
 
-      allow create, update: if signedIn() &&
-        (
-          isSuper() ||
-          canReadPropertyData(
-            get(/databases/$(database)/documents/propiedades/$(request.resource.data.propiedad_id)).data,
-            request.resource.data.propiedad_id
-          )
-        );
+      allow create: if signedIn() && (
+        isSuper() ||
+        canReadPropertyData(
+          get(/databases/$(database)/documents/propiedades/$(request.resource.data.propiedad_id)).data,
+          request.resource.data.propiedad_id
+        )
+      );
+
+      allow update: if signedIn() && (
+        isSuper() ||
+        (canReadPropertyData(
+          get(/databases/$(database)/documents/propiedades/$(resource.data.propiedad_id)).data,
+          resource.data.propiedad_id
+        ) && request.resource.data.propiedad_id == resource.data.propiedad_id)
+      );
 
       allow delete: if signedIn() &&
         (
