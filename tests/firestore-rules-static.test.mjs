@@ -5,8 +5,8 @@ import fs from 'node:fs';
 const rules = fs.readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
 
 test('inactive or deleted authentication mirrors cannot authorize application roles', () => {
-  assert.match(rules, /authMirror\(\)\.data\.activo == true/);
-  assert.match(rules, /authMirror\(\)\.data\.eliminado == false/);
+  assert.match(rules, /authMirror\(\)\.data\.get\('activo', true\) == true/);
+  assert.match(rules, /authMirror\(\)\.data\.get\('eliminado', false\) == false/);
 });
 
 test('admin-managed user records must not grant superadmin', () => {
