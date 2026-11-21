@@ -1469,6 +1469,9 @@ export function validateReservationData(reservation, { existingReservation = nul
   if (!RESERVATION_STATUSES.includes(reservation.estado)) {
     throw new Error('El estado de la reserva no es válido.');
   }
+  if (!existingReservation && reservation.estado === 'cancelada') {
+    throw new Error('No se puede crear una reserva ya cancelada.');
+  }
   if (!Number.isInteger(reservation.huespedes) || reservation.huespedes < 1) {
     throw new Error('Indicá una cantidad entera de huéspedes, mayor a cero.');
   }
