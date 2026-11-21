@@ -98,8 +98,9 @@ function renderTable(filtered = properties) {
         <td data-label="Estado">${property.activo ? '<span class="badge green">Activa</span>' : '<span class="badge orange">Inactiva</span>'}</td>
         <td data-label="Acciones">
           <div class="table-actions">
-            <button class="btn-secondary btnEditProperty" data-id="${escapeHtml(property.id)}">Editar</button>
-            <a class="btn-ghost" href="unidades.html?propiedad=${encodeURIComponent(property.id)}">Unidades</a>
+            <button type="button" class="btn-secondary btnEditProperty" data-id="${escapeHtml(property.id)}">${isSoporte(currentProfile) ? 'Ver / contacto' : 'Editar'}</button>
+            <a class="btn-ghost" href="unidades.html?propiedad=${encodeURIComponent(property.id)}">Habitaciones</a>
+            ${canManageProperties(currentProfile) ? `<button type="button" class="btnPropertyState ${property.activo ? 'management-deactivate' : 'management-reactivate'}" data-id="${escapeHtml(property.id)}">${property.activo ? 'Desactivar' : 'Reactivar'}</button>` : ''}
           </div>
         </td>
       </tr>
@@ -112,6 +113,8 @@ function applyFilters() {
   const includeInactive = qs('#verInactivas')?.checked || false;
   const filtered = properties.filter((item) => propertyMatchesFilter(item, text) && (includeInactive ? true : item.activo));
   renderTable(filtered);
+  const count = qs('#propertyListCount');
+  if (count) count.textContent = `${filtered.length} alojamiento${filtered.length === 1 ? '' : 's'} en el listado`;
 }
 
 function fillForm() {
@@ -146,16 +149,32 @@ function fillForm() {
 
   const title = qs('#propertyFormTitle');
   if (title) {
-    title.textContent = editingProperty ? 'Editar propiedad' : 'Nueva propiedad';
+    title.textContent = editingProperty ? 'Editar alojamiento' : 'Nuevo alojamiento';
   }
+  const context = qs('#propertyEditorContext');
+  if (context) context.textContent = editingProperty
+    ? `Modificando: ${editingProperty.nombre}. Los cambios se guardarán en este alojamiento.`
+    : 'Completá los datos para crear un alojamiento.';
+  const submit = qs('#propiedadForm button[type="submit"]');
+  if (submit) submit.textContent = editingProperty ? 'Guardar cambios' : 'Crear alojamiento';
+
   if (isSoporte(currentProfile)) {
     for (const input of form.querySelectorAll('input,select,textarea')) {
       input.disabled = !SUPPORT_FIELDS.propiedades.includes(input.name) || !editingProperty;
     }
     const submit = qs('button[type="submit"]', form);
     if (submit) submit.disabled = !editingProperty;
-    if (title) title.textContent = editingProperty ? 'Contacto y notas de la propiedad' : 'Seleccioná una propiedad para consultar o editar contacto y notas';
+    if (title) title.textContent = editingProperty ? 'Contacto y notas del alojamiento' : 'Seleccioná un alojamiento';
+    if (submit) submit.textContent = 'Guardar contacto y notas';
   }
+}
+
+function setEditorVisible(visible) {
+  const editor = qs('#propertyEditor');
+  const list = qs('#propertyList');
+  if (editor) editor.hidden = !visible;
+  if (list) list.hidden = visible;
+  if (visible) editor?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
 }
 
 function resetForm() {
@@ -171,6 +190,39 @@ function resetForm() {
   }
   fillForm();
   setFeedback(qs('#formFeedback'), '');
+  setEditorVisible(false);
+}
+
+function startNewProperty() {
+  if (!canManageProperties(currentProfile)) return;
+  resetForm();
+  setEditorVisible(true);
+  qs('[name="nombre"]')?.focus();
+}
+
+async function setPropertyActiveState(propertyId) {
+  if (!canManageProperties(currentProfile)) return;
+  const property = properties.find(item => item.id === propertyId);
+  if (!property) return;
+  const activate = !property.activo;
+  const message = activate
+    ? `¿Reactivar "${property.nombre}"? Volverá a aparecer entre los alojamientos activos.`
+    : `¿Desactivar "${property.nombre}"? No se borrarán sus datos ni sus reservas. Dejará de figurar como alojamiento activo.`;
+  if (!window.confirm(message)) return;
+  try {
+    await updateDoc(doc(db, 'propiedades', property.id), {
+      activo: activate,
+      updated_at: serverTimestamp()
+    });
+    showToast(activate ? 'Alojamiento reactivado.' : 'Alojamiento desactivado. Conservamos su historial.', 'success', 'Hecho');
+    if (!activate) {
+      const toggle = qs('#verInactivas');
+      if (toggle) toggle.checked = true;
+    }
+    await loadProperties();
+  } catch (error) {
+    showToast(error.message || 'No se pudo cambiar el estado del alojamiento.', 'error', 'Error');
+  }
 }
 
 function validateUniqueCode(payload) {
@@ -247,14 +299,20 @@ async function editProperty(propertyId) {
     return;
   }
   fillForm();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setEditorVisible(true);
+  qs('[name="nombre"]')?.focus();
+
 }
 
 function bindTableActions() {
   qs('#propiedadesBody')?.addEventListener('click', async (event) => {
     const editBtn = event.target.closest('.btnEditProperty');
-    if (!editBtn) return;
-    await editProperty(editBtn.dataset.id);
+    if (editBtn) {
+      await editProperty(editBtn.dataset.id);
+      return;
+    }
+    const stateBtn = event.target.closest('.btnPropertyState');
+    if (stateBtn) await setPropertyActiveState(stateBtn.dataset.id);
   });
 }
 
@@ -269,8 +327,8 @@ async function init() {
   if (!currentProfile || !canReadProperties(currentProfile)) return;
 
   renderTopbar({
-    title: 'Propiedades',
-    subtitle: 'Administrá hoteles, departamentos, cabañas y complejos con sus datos generales y comodidades.',
+    title: 'Alojamientos',
+    subtitle: 'Elegí un alojamiento para editar sus datos, habitaciones o estado.',
     actionsHtml: `<a class="btn" href="dashboard.html">Ir al dashboard</a>`
   });
 
@@ -278,7 +336,9 @@ async function init() {
   fillTypeOptions();
   renderAmenities();
   resetForm();
+  if (!canManageProperties(currentProfile)) qs('#btnNuevaPropiedad')?.setAttribute('hidden','hidden');
   bindTableActions();
+  qs('#btnNuevaPropiedad')?.addEventListener('click', startNewProperty);
 
   qs('#propiedadForm')?.addEventListener('submit', saveProperty);
   qs('#btnCancelarEdicionPropiedad')?.addEventListener('click', resetForm);

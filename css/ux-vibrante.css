@@ -198,3 +198,53 @@ body.reservation-page #reservaForm .form-actions {grid-column:1/-1!important}
 }
 
 body.reservation-page .reservation-permission-notice:not([hidden]) {display:block;border-radius:16px;background:#e8fbf6;border:1px solid #bbebde;padding:16px;color:#006e62;font-weight:650;margin-bottom:14px}
+
+/* Administración de alojamientos y habitaciones: lista primero y editor contextual. */
+body.properties-page .management-layout,
+body.units-page .management-layout {display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:18px!important}
+body.properties-page .management-layout>[hidden],
+body.units-page .management-layout>[hidden] {display:none!important}
+body.properties-page .management-list-heading,
+body.units-page .management-list-heading {display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 10px}
+body.properties-page .management-list-heading h3,
+body.units-page .management-list-heading h3 {font-size:clamp(1.15rem,2.2vw,1.45rem);font-weight:850;color:#22243c;margin:0 0 4px}
+body.properties-page .management-list-heading p,
+body.units-page .management-list-heading p {color:#687083;font-size:.84rem;margin:0}
+body.properties-page .management-list-count,
+body.units-page .management-list-count {color:#6c7284;font-size:.8rem;font-weight:650;margin:5px 0 10px}
+body.units-page .management-property-context {display:inline-flex;gap:6px;align-items:center;font-weight:760;color:#008c79;background:#e8fbf6;border-radius:12px;padding:8px 12px;margin:2px 0 10px;font-size:.83rem}
+body.properties-page .management-editor-context,
+body.units-page .management-editor-context {background:#fff1f4;color:#a92649;border-radius:12px;padding:10px 12px;font-size:.83rem;font-weight:650;margin:8px 0 14px}
+body.properties-page .management-editor .toolbar-between,
+body.units-page .management-editor h3 {border-bottom:1px solid #eff0f5;padding-bottom:12px}
+body.properties-page .management-editor .form-block-title {margin-top:12px}
+body.properties-page .management-list .table-actions,
+body.units-page .management-list .table-actions {flex-wrap:wrap;gap:7px}
+body.properties-page .management-list .table-actions>*,
+body.units-page .management-list .table-actions>* {min-height:42px;border-radius:12px;padding:8px 11px;white-space:nowrap}
+body.properties-page .management-deactivate,
+body.units-page .management-deactivate {appearance:none;background:#fff5ea;color:#a85500;border:1px solid #ffd4a4;font-size:.82rem;font-weight:740;cursor:pointer}
+body.properties-page .management-reactivate,
+body.units-page .management-reactivate {appearance:none;background:#e7faf4;color:#007f68;border:1px solid #95e3cd;font-size:.82rem;font-weight:740;cursor:pointer}
+body.properties-page .management-deactivate:hover,
+body.units-page .management-deactivate:hover {background:#ffecd4}
+body.properties-page .management-reactivate:hover,
+body.units-page .management-reactivate:hover {background:#d2f4ea}
+body.properties-page .management-deactivate:focus-visible,
+body.units-page .management-deactivate:focus-visible,
+body.properties-page .management-reactivate:focus-visible,
+body.units-page .management-reactivate:focus-visible {outline:3px solid #ff385c;outline-offset:2px}
+body.properties-page .management-editor .form-actions,
+body.units-page .management-editor .form-actions {justify-content:flex-end}
+@media (max-width:839px) {
+  body.properties-page .management-list-heading,
+  body.units-page .management-list-heading {align-items:stretch}
+  body.properties-page .management-list-heading .btn,
+  body.units-page .management-list-heading .btn {width:100%;justify-content:center;min-height:50px}
+  body.properties-page .management-list .table-actions,
+  body.units-page .management-list .table-actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+  body.properties-page .management-list .table-actions>*,
+  body.units-page .management-list .table-actions>* {min-width:0;white-space:normal;text-align:center}
+  body.properties-page .management-editor .form-actions>*,
+  body.units-page .management-editor .form-actions>* {flex:1 1 100%}
+}

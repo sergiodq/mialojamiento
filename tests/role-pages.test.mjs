@@ -116,3 +116,67 @@ test('global support consultation includes reservations from inactive inventory'
     assert.match(document.querySelector('#planningBoard').textContent,/Cliente/);
   } finally {dom.window.close();}
 });
+
+
+test('property management starts with list and opens creation or selected editing explicitly',async()=>{
+  const dom=await openPage('propiedades.html','propiedades.js','',{...support,rol:'superadmin'});
+  try{
+    const doc=dom.window.document;
+    assert.equal(doc.querySelector('#propertyEditor').hidden,true);
+    assert.equal(doc.querySelector('#propertyList').hidden,false);
+    doc.querySelector('#btnNuevaPropiedad').click();
+    assert.equal(doc.querySelector('#propertyEditor').hidden,false);
+    assert.equal(doc.querySelector('#propertyList').hidden,true);
+    assert.match(doc.querySelector('#propertyFormTitle').textContent,/Nuevo alojamiento/);
+    doc.querySelector('#btnCancelarEdicionPropiedad').click();
+    assert.equal(doc.querySelector('#propertyEditor').hidden,true);
+    doc.querySelector('.btnEditProperty').click();
+    await new Promise(resolve=>setTimeout(resolve,15));
+    assert.match(doc.querySelector('#propertyFormTitle').textContent,/Editar alojamiento/);
+    assert.match(doc.querySelector('#propertyEditorContext').textContent,/Hotel/);
+  }finally{dom.window.close();}
+});
+
+test('deactivating a property only changes active state, and can be reverted',async()=>{
+  const dom=await openPage('propiedades.html','propiedades.js','',{...support,rol:'superadmin'});
+  try{
+    dom.window.confirm=()=>true;
+    document.querySelector('.btnPropertyState').click();
+    await new Promise(resolve=>setTimeout(resolve,25));
+    assert.equal(globalThis.__rolePage.writes.length,1);
+    assert.equal(globalThis.__rolePage.writes[0].path,'propiedades/pa');
+    assert.equal(globalThis.__rolePage.writes[0].data.activo,false);
+  }finally{dom.window.close();}
+});
+
+test('unit management opens the form only when requested and labels deactivation clearly',async()=>{
+  const dom=await openPage('unidades.html','unidades.js','?propiedad=pa',{...support,rol:'superadmin'});
+  try{
+    const doc=dom.window.document;
+    assert.equal(doc.querySelector('#unitEditor').hidden,true);
+    assert.equal(doc.querySelector('#unitList').hidden,false);
+    assert.match(doc.querySelector('#unitPropertyContext').textContent,/Hotel/);
+    assert.match(doc.querySelector('.btnDeleteUnit').textContent,/Desactivar/);
+    doc.querySelector('#btnNuevaUnidad').click();
+    assert.equal(doc.querySelector('#unitEditor').hidden,false);
+    assert.match(doc.querySelector('#unitFormTitle').textContent,/Nueva habitación/);
+    doc.querySelector('#btnCancelarEdicionUnidad').click();
+    assert.equal(doc.querySelector('#unitEditor').hidden,true);
+    doc.querySelector('.btnEditUnit').click();
+    await new Promise(resolve=>setTimeout(resolve,10));
+    assert.match(doc.querySelector('#unitFormTitle').textContent,/Editar habitación/);
+  }finally{dom.window.close();}
+});
+
+test('support cannot create, deactivate or reactivate properties or units',async()=>{
+  const p=await openPage('propiedades.html','propiedades.js');
+  try{
+    assert.equal(document.querySelector('#btnNuevaPropiedad').hidden,true);
+    assert.equal(document.querySelector('.btnPropertyState'),null);
+  }finally{p.window.close();}
+  const u=await openPage('unidades.html','unidades.js','?propiedad=pa');
+  try{
+    assert.equal(document.querySelector('#btnNuevaUnidad').hidden,true);
+    assert.equal(document.querySelector('.btnDeleteUnit,.btnReactivateUnit'),null);
+  }finally{u.window.close();}
+});

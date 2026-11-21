@@ -81,7 +81,21 @@ function fillForm() {
 
   renderOptions(editingUnit?.camas || [], editingUnit?.comodidades || []);
 
-  qs('#unitFormTitle').textContent = editingUnit ? 'Editar unidad' : 'Nueva unidad';
+  qs('#unitFormTitle').textContent = editingUnit ? 'Editar habitación' : 'Nueva habitación';
+  const context = qs('#unitEditorContext');
+  if (context) context.textContent = editingUnit
+    ? `Modificando ${editingUnit.nombre}. Los cambios se guardarán en esta habitación.`
+    : 'Completá los datos de la nueva habitación.';
+  const submit = qs('#unidadForm button[type="submit"]');
+  if (submit) submit.textContent = editingUnit ? 'Guardar cambios' : 'Crear habitación';
+}
+
+function setEditorVisible(visible) {
+  const editor = qs('#unitEditor');
+  const list = qs('#unitList');
+  if (editor) editor.hidden = !visible;
+  if (list) list.hidden = visible;
+  if (visible) editor?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
 }
 
 function resetForm() {
@@ -90,6 +104,14 @@ function resetForm() {
   renderOptions();
   fillForm();
   setFeedback(qs('#formFeedback'), '');
+  setEditorVisible(false);
+}
+
+function startNewUnit() {
+  if (!canManageProperties(currentProfile)) return;
+  resetForm();
+  setEditorVisible(true);
+  qs('[name="nombre"]')?.focus();
 }
 
 function renderUnits() {
@@ -118,7 +140,9 @@ function renderUnits() {
         <td data-label="Acciones">
           <div class="table-actions">
             ${canManageProperties(currentProfile) ? `<button class="btn-secondary btnEditUnit" data-id="${escapeHtml(unit.id)}">Editar</button>
-            <button class="btn-danger btnDeleteUnit" data-id="${escapeHtml(unit.id)}" ${unit.activa ? '' : 'disabled'}>Desactivar</button>` : 'Solo consulta'}
+            ${unit.activa
+              ? `<button type="button" class="btnDeleteUnit management-deactivate" data-id="${escapeHtml(unit.id)}">Desactivar</button>`
+              : `<button type="button" class="btnReactivateUnit management-reactivate" data-id="${escapeHtml(unit.id)}">Reactivar</button>`}` : 'Solo consulta'}
           </div>
         </td>
       </tr>
@@ -129,6 +153,8 @@ function renderUnits() {
 async function loadUnits() {
   units = await listUnitsByProperty(currentProperty.id, { includeInactive: true });
   renderUnits();
+  const count = qs('#unitListCount');
+  if (count) count.textContent = `${units.length} habitación${units.length === 1 ? '' : 'es'} · ${units.filter(unit => unit.activa).length} activa${units.filter(unit => unit.activa).length === 1 ? '' : 's'}`;
 }
 
 async function saveUnit(event) {
@@ -183,7 +209,9 @@ async function editUnit(unitId) {
     return;
   }
   fillForm();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setEditorVisible(true);
+  qs('[name="nombre"]')?.focus();
+
 }
 
 async function deleteUnit(unitId) {
@@ -197,7 +225,23 @@ async function deleteUnit(unitId) {
     showToast('Unidad desactivada. Se conserva su historial.', 'success', 'Hecho');
     await loadUnits();
   } catch (error) {
-    showToast(error.message || 'No se pudo eliminar la unidad.', 'error', 'Error');
+    showToast(error.message || 'No se pudo desactivar la habitación.', 'error', 'Error');
+  }
+}
+
+async function reactivateUnit(unitId) {
+  if (!canManageProperties(currentProfile)) return;
+  const unit = units.find(item => item.id === unitId);
+  if (!unit || unit.activa) return;
+  if (!window.confirm(`¿Reactivar "${unit.nombre}"? Volverá a estar disponible para nuevas reservas si el alojamiento también está activo.`)) return;
+  try {
+    await updateDoc(doc(db,'propiedades',currentProperty.id,'unidades',unit.id), {
+      activa: true, updated_at: serverTimestamp()
+    });
+    showToast('Habitación reactivada.', 'success', 'Hecho');
+    await loadUnits();
+  } catch (error) {
+    showToast(error.message || 'No se pudo reactivar la habitación.', 'error', 'Error');
   }
 }
 
@@ -211,7 +255,10 @@ function bindTableActions() {
     const deleteBtn = event.target.closest('.btnDeleteUnit');
     if (deleteBtn) {
       await deleteUnit(deleteBtn.dataset.id);
+      return;
     }
+    const reactivateBtn = event.target.closest('.btnReactivateUnit');
+    if (reactivateBtn) await reactivateUnit(reactivateBtn.dataset.id);
   });
 }
 
@@ -233,21 +280,24 @@ async function init() {
   }
 
   renderTopbar({
-    title: `Unidades · ${escapeHtml(currentProperty.nombre)}`,
-    subtitle: 'Administrá habitaciones, departamentos o cabañas reservables dentro de la propiedad seleccionada.',
+    title: `Habitaciones · ${escapeHtml(currentProperty.nombre)}`,
+    subtitle: 'Consultá, editá o cambiá el estado de las habitaciones.',
     actionsHtml: `
       <a class="btn-ghost" href="propiedades.html">Volver a propiedades</a>
       ${canCreateReservations(currentProfile) ? `<a class="btn-secondary" href="nueva_reserva.html?propiedad=${currentProperty.id}">Reservar en esta propiedad</a>` : ''}
     `
   });
 
+  const propertyContext = qs('#unitPropertyContext');
+  if (propertyContext) propertyContext.textContent = `${currentProperty.nombre} · ${currentProperty.ciudad || currentProperty.codigo || 'Alojamiento'}`;
   bindCommonActions();
   fillTypeOptions();
   resetForm();
   if (!canManageProperties(currentProfile)) {
     qs('#unidadForm').hidden = true;
-    qs('#unitFormTitle').textContent = 'Unidades · solo consulta';
+    qs('#btnNuevaUnidad')?.setAttribute('hidden','hidden');
   }
+  qs('#btnNuevaUnidad')?.addEventListener('click',startNewUnit);
   bindTableActions();
 
   qs('#unidadForm')?.addEventListener('submit', saveUnit);
