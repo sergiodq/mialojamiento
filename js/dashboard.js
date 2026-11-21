@@ -757,11 +757,53 @@ async function handleDeleteReservation(reservationId, clientName = '') {
   }
 }
 
+function syncFilterControls() {
+  const active = activeFiltersExist();
+  const badge = qs('#plannerFiltersBadge');
+  const reset = qs('#plannerFiltersReset');
+  if (badge) badge.hidden = !active;
+  if (reset) reset.hidden = !active;
+}
+function setupPlannerFilterControls() {
+  const toggle = qs('#plannerFiltersToggle');
+  const filters = qs('#plannerFilters');
+  const compact = window.matchMedia('(max-width: 839px)');
+  if (!toggle || !filters) return;
+  const sync = () => {
+    if (!compact.matches) {
+      filters.classList.remove('is-collapsed');
+      toggle.setAttribute('aria-expanded', 'true');
+      return;
+    }
+    if (!toggle.dataset.mobileInitialized) {
+      toggle.dataset.mobileInitialized = 'true';
+      filters.classList.add('is-collapsed');
+    }
+    toggle.setAttribute('aria-expanded', String(!filters.classList.contains('is-collapsed')));
+  };
+  toggle.addEventListener('click', () => {
+    filters.classList.toggle('is-collapsed');
+    toggle.setAttribute('aria-expanded', String(!filters.classList.contains('is-collapsed')));
+  });
+  window.addEventListener('resize', sync);
+  sync();
+  qs('#plannerFiltersReset')?.addEventListener('click', () => {
+    if (qs('#filtroTexto')) qs('#filtroTexto').value = '';
+    if (qs('#filtroEstado')) qs('#filtroEstado').value = '';
+    if (qs('#filtroPropiedad')) qs('#filtroPropiedad').value = '';
+    applyFilters();
+    syncFilterControls();
+  });
+}
 function bindFilters() {
-
-  qs('#filtroTexto')?.addEventListener('input', applyFilters);
-  qs('#filtroEstado')?.addEventListener('change', applyFilters);
-  qs('#filtroPropiedad')?.addEventListener('change', applyFilters);
+  setupPlannerFilterControls();
+  qs('#filtroTexto')?.addEventListener('input', () => { applyFilters(); syncFilterControls(); });
+  qs('#filtroEstado')?.addEventListener('change', () => { applyFilters(); syncFilterControls(); });
+  qs('#filtroPropiedad')?.addEventListener('change', () => { applyFilters(); syncFilterControls(); });
+  qs('#calendarToday')?.addEventListener('click', () => {
+    currentMonth = new Date();
+    applyFilters();
+  });
 
   qs('#calendarPrev')?.addEventListener('click', () => {
     currentMonth = calendarView === 'week'
