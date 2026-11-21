@@ -68,7 +68,7 @@ function buildMonthDays(date) {
 }
 
 function getVisibleDates() {
-  return calendarView === 'week' ? buildWeekDays(currentMonth) : buildMonthDays(currentMonth);
+  return calendarView === 'day' ? [new Date(currentMonth.getFullYear(), currentMonth.getMonth(), currentMonth.getDate())] : calendarView === 'week' ? buildWeekDays(currentMonth) : buildMonthDays(currentMonth);
 }
 
 function getVisibleRange() {
@@ -125,6 +125,7 @@ function reservationBelongsToActiveInventory(item) {
 function updateViewButtons() {
   qs('#viewMonthBtn')?.classList.toggle('is-active', calendarView === 'month');
   qs('#viewWeekBtn')?.classList.toggle('is-active', calendarView === 'week');
+  qs('#viewDayBtn')?.classList.toggle('is-active', calendarView === 'day');
 }
 
 function buildReservationTooltip(item) {
@@ -466,20 +467,25 @@ function renderMobilePlanningBoard() {
   const nextButton = qs('#calendarNext');
   const visibleDates = range.visibleDates;
 
-  if (calendarView === 'week') {
+  if (calendarView === 'day') {
+    const label = new Intl.DateTimeFormat('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(visibleDates[0]);
+    if (monthLabel) monthLabel.textContent = label;
+    if (prevButton) { prevButton.textContent = '‹'; prevButton.setAttribute('aria-label','Día anterior'); }
+    if (nextButton) { nextButton.textContent = '›'; nextButton.setAttribute('aria-label','Día siguiente'); }
+  } else if (calendarView === 'week') {
     const firstDay = visibleDates[0];
     const lastDay = visibleDates[visibleDates.length - 1];
     const firstLabel = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' }).format(firstDay);
     const lastLabel = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }).format(lastDay);
     if (monthLabel) monthLabel.textContent = `${firstLabel} → ${lastLabel}`;
-    if (prevButton) prevButton.textContent = '← Semana anterior';
-    if (nextButton) nextButton.textContent = 'Semana siguiente →';
+    if (prevButton) { prevButton.textContent = '‹'; prevButton.setAttribute('aria-label','Semana anterior'); }
+    if (nextButton) { nextButton.textContent = '›'; nextButton.setAttribute('aria-label','Semana siguiente'); }
   } else {
     if (monthLabel) {
       monthLabel.textContent = new Intl.DateTimeFormat('es-AR', { month: 'long', year: 'numeric' }).format(currentMonth);
     }
-    if (prevButton) prevButton.textContent = '← Mes anterior';
-    if (nextButton) nextButton.textContent = 'Mes siguiente →';
+    if (prevButton) { prevButton.textContent = '‹'; prevButton.setAttribute('aria-label','Mes anterior'); }
+    if (nextButton) { nextButton.textContent = '›'; nextButton.setAttribute('aria-label','Mes siguiente'); }
   }
 
   updateViewButtons();
@@ -574,20 +580,25 @@ function renderPlanningBoard() {
   const prevButton = qs('#calendarPrev');
   const nextButton = qs('#calendarNext');
 
-  if (calendarView === 'week') {
+  if (calendarView === 'day') {
+    const label = new Intl.DateTimeFormat('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(visibleDates[0]);
+    if (monthLabel) monthLabel.textContent = label;
+    if (prevButton) { prevButton.textContent = '‹'; prevButton.setAttribute('aria-label','Día anterior'); }
+    if (nextButton) { nextButton.textContent = '›'; nextButton.setAttribute('aria-label','Día siguiente'); }
+  } else if (calendarView === 'week') {
     const firstDay = visibleDates[0];
     const lastDay = visibleDates[visibleDates.length - 1];
     const firstLabel = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' }).format(firstDay);
     const lastLabel = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }).format(lastDay);
     if (monthLabel) monthLabel.textContent = `${firstLabel} → ${lastLabel}`;
-    if (prevButton) prevButton.textContent = '← Semana anterior';
-    if (nextButton) nextButton.textContent = 'Semana siguiente →';
+    if (prevButton) { prevButton.textContent = '‹'; prevButton.setAttribute('aria-label','Semana anterior'); }
+    if (nextButton) { nextButton.textContent = '›'; nextButton.setAttribute('aria-label','Semana siguiente'); }
   } else {
     if (monthLabel) {
       monthLabel.textContent = new Intl.DateTimeFormat('es-AR', { month: 'long', year: 'numeric' }).format(currentMonth);
     }
-    if (prevButton) prevButton.textContent = '← Mes anterior';
-    if (nextButton) nextButton.textContent = 'Mes siguiente →';
+    if (prevButton) { prevButton.textContent = '‹'; prevButton.setAttribute('aria-label','Mes anterior'); }
+    if (nextButton) { nextButton.textContent = '›'; nextButton.setAttribute('aria-label','Mes siguiente'); }
   }
 
   updateViewButtons();
@@ -757,21 +768,67 @@ async function handleDeleteReservation(reservationId, clientName = '') {
   }
 }
 
+function syncFilterControls() {
+  const active = activeFiltersExist();
+  const badge = qs('#plannerFiltersBadge');
+  const reset = qs('#plannerFiltersReset');
+  if (badge) badge.hidden = !active;
+  if (reset) reset.hidden = !active;
+}
+function setupPlannerFilterControls() {
+  const toggle = qs('#plannerFiltersToggle');
+  const filters = qs('#plannerFilters');
+  const compact = window.matchMedia('(max-width: 839px)');
+  if (!toggle || !filters) return;
+  const sync = () => {
+    if (!compact.matches) {
+      filters.classList.remove('is-collapsed');
+      toggle.setAttribute('aria-expanded', 'true');
+      return;
+    }
+    if (!toggle.dataset.mobileInitialized) {
+      toggle.dataset.mobileInitialized = 'true';
+      filters.classList.add('is-collapsed');
+    }
+    toggle.setAttribute('aria-expanded', String(!filters.classList.contains('is-collapsed')));
+  };
+  toggle.addEventListener('click', () => {
+    filters.classList.toggle('is-collapsed');
+    toggle.setAttribute('aria-expanded', String(!filters.classList.contains('is-collapsed')));
+  });
+  window.addEventListener('resize', sync);
+  sync();
+  qs('#plannerFiltersReset')?.addEventListener('click', () => {
+    if (qs('#filtroTexto')) qs('#filtroTexto').value = '';
+    if (qs('#filtroEstado')) qs('#filtroEstado').value = '';
+    if (qs('#filtroPropiedad')) qs('#filtroPropiedad').value = '';
+    applyFilters();
+    syncFilterControls();
+  });
+}
 function bindFilters() {
-
-  qs('#filtroTexto')?.addEventListener('input', applyFilters);
-  qs('#filtroEstado')?.addEventListener('change', applyFilters);
-  qs('#filtroPropiedad')?.addEventListener('change', applyFilters);
+  setupPlannerFilterControls();
+  qs('#filtroTexto')?.addEventListener('input', () => { applyFilters(); syncFilterControls(); });
+  qs('#filtroEstado')?.addEventListener('change', () => { applyFilters(); syncFilterControls(); });
+  qs('#filtroPropiedad')?.addEventListener('change', () => { applyFilters(); syncFilterControls(); });
+  qs('#calendarToday')?.addEventListener('click', () => {
+    currentMonth = new Date();
+    applyFilters();
+  });
 
   qs('#calendarPrev')?.addEventListener('click', () => {
-    currentMonth = calendarView === 'week'
+    currentMonth = calendarView === 'day'
+      ? new Date(currentMonth.getFullYear(), currentMonth.getMonth(), currentMonth.getDate() - 1)
+      : calendarView === 'week'
       ? new Date(currentMonth.getFullYear(), currentMonth.getMonth(), currentMonth.getDate() - 7)
       : new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
     applyFilters();
   });
 
   qs('#calendarNext')?.addEventListener('click', () => {
-    currentMonth = calendarView === 'week'
+    currentMonth = calendarView === 'day'
+      ? new Date(currentMonth.getFullYear(), currentMonth.getMonth(), currentMonth.getDate() + 1)
+      : calendarView === 'week'
       ? new Date(currentMonth.getFullYear(), currentMonth.getMonth(), currentMonth.getDate() + 7)
       : new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
     applyFilters();
@@ -787,6 +844,11 @@ function bindFilters() {
   qs('#viewWeekBtn')?.addEventListener('click', () => {
     plannerViewTouchedByUser = true;
     calendarView = 'week';
+    applyFilters();
+  });
+  qs('#viewDayBtn')?.addEventListener('click', () => {
+    plannerViewTouchedByUser = true;
+    calendarView = 'day';
     applyFilters();
   });
 

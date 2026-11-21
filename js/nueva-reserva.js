@@ -33,15 +33,15 @@ function updateReservationPageChrome() {
   const isEditing = Boolean(editingReservation);
   const pageTitle = isEditing ? 'Editar reserva' : 'Nueva reserva';
   const pageSubtitle = isEditing
-    ? 'Modificá la reserva existente, ajustá fechas, unidad, estado y huéspedes sin salir de esta pantalla.'
-    : 'Elegí una propiedad, seleccioná una unidad real o usá el fallback manual si todavía no hay unidades cargadas.';
+    ? 'Actualizá los datos de la reserva.'
+    : 'Elegí alojamiento, fechas y habitación para comenzar.';
 
   document.title = `MiAlojamiento · ${pageTitle}`;
 
   renderTopbar({
     title: pageTitle,
     subtitle: pageSubtitle,
-    actionsHtml: `<a class="btn-ghost" href="dashboard.html">Volver al dashboard</a>`
+    actionsHtml: `<a class="btn-ghost" href="dashboard.html">Volver</a>`
   });
 
   const title = qs('#reservationPageTitle');
@@ -83,10 +83,10 @@ function updateManualMode() {
   manualCheckbox.checked = manual;
   if (noUnits) {
     manualCheckbox.disabled = true;
-    hint.textContent = 'Esta propiedad no tiene unidades activas cargadas. Se habilita el modo manual legacy.';
+    hint.textContent = 'No hay habitaciones cargadas. Ingresá una manualmente.';
   } else {
     manualCheckbox.disabled = false;
-    hint.textContent = 'Podés elegir una unidad real o activar el fallback manual para reservas legacy.';
+    hint.textContent = 'Elegí una habitación disponible o ingresala manualmente.';
   }
 
   if (manual) {
@@ -108,8 +108,8 @@ function updateCapacityHint() {
 
   if (manual) {
     hint.textContent = manualCapacity
-      ? `Capacidad manual definida: ${manualCapacity} huésped(es).`
-      : 'Definí una capacidad manual si querés validar huéspedes en modo legacy.';
+      ? `Capacidad: ${manualCapacity} huésped(es).`
+      : 'Podés indicar la capacidad para controlar la cantidad de huéspedes.';
     return;
   }
 
@@ -245,7 +245,11 @@ async function init() {
   const { reservationId, presetPropertyId } = getUrlParams();
   if (isSoporte(currentProfile) && !reservationId) {
     qs('#reservaForm').hidden = true;
-    setFeedback(qs('#legacyHint'), 'Soporte puede consultar reservas existentes y editar sus observaciones.', 'info');
+    const notice = qs('#reservationPermissionNotice');
+    if (notice) {
+      notice.hidden = false;
+      notice.textContent = 'Soporte puede consultar reservas existentes y editar sus observaciones.';
+    }
     return;
   }
 
@@ -285,15 +289,7 @@ async function init() {
     showToast('La reserva quedó guardada.', 'success', 'Todo bien');
   }
 
-  const legacyHint = qs('#legacyHint');
-  if (legacyHint) {
-    legacyHint.innerHTML = `
-      <div class="callout info">
-        Compatibilidad legacy: si una reserva vieja solo tiene <strong>unidad</strong> como texto y no <strong>unidad_id</strong>,
-        la app sigue validando conflictos usando una clave derivada del texto manual.
-      </div>
-    `;
-  }
+
 }
 
 init();

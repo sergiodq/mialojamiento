@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#4259a8">
+  <meta name="theme-color" content="#ff385c">
   <title>MiAlojamiento · Dashboard</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/responsive.css">
   <link rel="stylesheet" href="css/material3.css" data-material3>
+  <link rel="stylesheet" href="css/ux-vibrante.css">
 </head>
 <body class="dashboard-page">
   <div class="page-shell">
@@ -60,21 +61,27 @@
             <div class="dashboard-calendar-header compact planner-header">
               <div class="dashboard-calendar-titleblock planner-titleblock">
                 <h3>Planning de habitaciones</h3>
-                <div class="muted">Vista operativa por unidad, con días en horizontal y reservas como bloques continuos.</div>
+                <div class="muted">Elegí un período y consultá la disponibilidad.</div>
               </div>
 
               <div class="toolbar dashboard-month-toolbar planner-toolbar">
                 <div class="dashboard-view-switch" role="tablist" aria-label="Vista del planning">
                   <button id="viewMonthBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn is-active">Mes</button>
                   <button id="viewWeekBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn">Semana</button>
+                  <button id="viewDayBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn">Día</button>
                 </div>
-                <button id="calendarPrev" class="btn-ghost btn-compact">← Mes anterior</button>
-                <strong id="calendarMonthLabel" class="codeish dashboard-month-label">Mes</strong>
-                <button id="calendarNext" class="btn-ghost btn-compact">Mes siguiente →</button>
+                <button id="calendarPrev" class="btn-ghost btn-compact" aria-label="Período anterior" title="Período anterior">‹</button>
+                <strong id="calendarMonthLabel" class="codeish dashboard-month-label" aria-live="polite">Mes</strong>
+                <button id="calendarNext" class="btn-ghost btn-compact" aria-label="Período siguiente" title="Período siguiente">›</button>
+                <button id="calendarToday" type="button" class="btn-ghost btn-compact">Hoy</button>
               </div>
             </div>
 
-            <div class="dashboard-inline-tools planner-inline-tools">
+            <div class="planner-filter-heading">
+              <button id="plannerFiltersToggle" class="btn-ghost btn-compact" type="button" aria-expanded="true" aria-controls="plannerFilters"><span aria-hidden="true">☷</span> Filtros <span id="plannerFiltersBadge" class="planner-filters-badge" hidden>Activos</span></button>
+              <button id="plannerFiltersReset" type="button" class="btn-ghost btn-compact" hidden>Limpiar filtros</button>
+            </div>
+            <div id="plannerFilters" class="dashboard-inline-tools planner-inline-tools">
               <div class="field dashboard-inline-field planner-inline-field">
                 <label for="filtroPropiedad">Propiedad</label>
                 <select id="filtroPropiedad">
