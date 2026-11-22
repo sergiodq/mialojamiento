@@ -1,0 +1,140 @@
+/* Calendario operacional: columnas reales para cada día, sin solapamientos de CSS heredado. */
+@media (min-width:840px) {
+  body.dashboard-page .planning-board-shell {
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    overflow:hidden!important;border:1px solid #e1e7f1!important;border-radius:15px!important;
+  }
+  body.dashboard-page .planning-board-scroll {
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    overflow:auto!important;max-height:min(70vh,760px)!important;
+    scrollbar-gutter:stable;
+  }
+  body.dashboard-page .planning-board-wrap {min-width:0!important;width:100%!important;max-width:none!important}
+  body.dashboard-page .planning-board-table,
+  body.dashboard-page .planning-board-table.is-week-view,
+  body.dashboard-page .planning-board-table.is-day-view {
+    display:table!important;width:100%!important;min-width:920px!important;max-width:none!important;
+    table-layout:fixed!important;border-collapse:separate!important;border-spacing:0!important;
+  }
+  body.dashboard-page .planning-board-table.is-month-view {
+    display:table!important;table-layout:fixed!important;width:max-content!important;
+    min-width:max(100%,2700px)!important;max-width:none!important;
+  }
+  body.dashboard-page .planning-board-table col.planning-room-column {width:245px!important}
+  body.dashboard-page .planning-board-table col.planning-date-column {width:auto}
+  body.dashboard-page .planning-board-table.is-month-view col.planning-date-column {width:85px!important}
+  body.dashboard-page .planning-board-table thead {
+    display:table-header-group!important;
+    position:sticky!important;top:0!important;z-index:30!important;
+    background:#f3f6fc!important;
+  }
+  body.dashboard-page .planning-board-table tbody {display:table-row-group!important}
+  body.dashboard-page .planning-board-table tr {display:table-row!important}
+  body.dashboard-page .planning-board-table :is(th,td) {
+    box-sizing:border-box!important;min-width:0!important;max-width:none!important;
+    border-right:1px solid #e2e9f3!important;border-bottom:1px solid #e7edf5!important;
+  }
+  body.dashboard-page .planning-board-table thead th {
+    display:table-cell!important;position:sticky!important;top:0!important;
+    height:53px!important;min-height:53px!important;
+    padding:7px 5px!important;vertical-align:middle!important;text-align:center!important;
+    background:#f2f6fc!important;color:#263650!important;
+    z-index:31!important;visibility:visible!important;opacity:1!important;
+  }
+  body.dashboard-page .planning-board-table thead .planning-corner-header {
+    text-align:left!important;padding:12px 14px!important;
+    left:0!important;z-index:34!important;
+    font-size:.8rem!important;color:#3b4c69!important;
+  }
+  body.dashboard-page .planning-board-table .planning-day-header {
+    display:table-cell!important;width:auto!important;min-width:0!important;
+    height:53px!important;padding:7px 4px!important;
+    font-size:.75rem!important;letter-spacing:0!important;
+    background:#f2f6fc!important;
+  }
+  body.dashboard-page .planning-board-table .planning-day-number {
+    display:block!important;font-size:1.05rem!important;line-height:1.1!important;
+    font-weight:850!important;color:#25334f!important;
+  }
+  body.dashboard-page .planning-board-table .planning-day-header small {
+    display:block!important;margin-top:4px!important;line-height:1.1!important;
+    font-size:.67rem!important;font-weight:800!important;color:#63718d!important;
+  }
+  body.dashboard-page .planning-board-table .planning-day-header.is-today {
+    background:#e5f5f1!important;box-shadow:inset 0 -3px 0 #00a992!important;
+  }
+  body.dashboard-page .planning-board-table .planning-day-header.is-weekend {background:#edf0f7!important}
+  body.dashboard-page .planning-board-table .planning-month-header {
+    display:table-cell!important;position:sticky!important;top:0!important;
+    height:40px!important;min-height:40px!important;background:#eef2f8!important;
+    color:#43516b!important;text-transform:capitalize!important;
+  }
+  body.dashboard-page .planning-board-table.is-month-view thead tr:nth-child(2) th {top:40px!important}
+  body.dashboard-page .planning-board-table .planning-property-summary,
+  body.dashboard-page .planning-board-table td.planning-property-summary-spacer {
+    display:table-cell!important;position:static!important;
+    width:auto!important;min-width:0!important;max-width:none!important;
+    height:43px!important;padding:0!important;
+    background:#f5f7fb!important;
+  }
+  body.dashboard-page .planning-board-table .planning-property-row :is(th,td) {height:43px!important}
+  body.dashboard-page .planning-board-table .planning-property-cell,
+  body.dashboard-page .planning-board-table .planning-room-cell {
+    display:table-cell!important;position:sticky!important;left:0!important;
+    width:245px!important;min-width:245px!important;max-width:245px!important;
+    z-index:10!important;vertical-align:middle!important;
+  }
+  body.dashboard-page .planning-board-table .planning-property-cell {
+    background:#f5f7fb!important;padding:8px 13px!important;
+  }
+  body.dashboard-page .planning-board-table .planning-room-cell {
+    background:#fff!important;padding:9px 13px!important;
+  }
+  body.dashboard-page .planning-board-table .planning-unit-row {height:57px!important}
+  body.dashboard-page .planning-board-table .planning-unit-row :is(.planning-day-cell,.planning-reservation-cell) {
+    display:table-cell!important;vertical-align:middle!important;
+    width:auto!important;min-width:0!important;max-width:none!important;
+    height:57px!important;
+  }
+  body.dashboard-page .planning-board-table .planning-day-cell {
+    position:relative!important;padding:5px!important;
+    background:#fff!important;text-align:center!important;
+  }
+  body.dashboard-page .planning-board-table .planning-day-cell.is-weekend {background:#f6f8fc!important}
+  body.dashboard-page .planning-board-table .planning-day-cell.is-today {background:#eef9f6!important}
+  body.dashboard-page .planning-board-table .planning-day-cell .planning-cell-free {
+    display:inline-block!important;padding:4px 5px!important;
+    font-size:.68rem!important;color:#0c8f7b!important;opacity:.76!important;
+    font-weight:700!important;line-height:1.1!important;
+  }
+  body.dashboard-page .planning-board-table.is-month-view .planning-cell-free {display:none!important}
+  body.dashboard-page .planning-board-table .planning-reservation-cell {
+    background:#fff!important;padding:3px!important;
+  }
+  body.dashboard-page .planning-board-table .planning-reservation-bar {
+    box-sizing:border-box!important;min-height:48px!important;
+    width:100%!important;max-width:100%!important;overflow:hidden!important;
+    border-radius:9px!important;padding:6px 8px!important;
+  }
+  body.dashboard-page .planning-board-table .planning-room-main {
+    font-size:.8rem!important;line-height:1.15!important;
+  }
+  body.dashboard-page .planning-board-table .planning-room-sub {
+    font-size:.69rem!important;line-height:1.2!important;margin-top:4px!important;
+  }
+}
+body.dashboard-page .planner-calendar-hint {
+  margin:0 0 9px;padding:10px 13px;border-radius:12px;
+  background:#eaf9f5;color:#087761;border:1px solid #c9ebe2;
+  font-size:.79rem;line-height:1.4;font-weight:650;
+}
+body.dashboard-page .planner-calendar-hint[hidden] {display:none!important}
+@media (min-width:840px) and (max-width:1099px) {
+  body.dashboard-page .planning-board-table col.planning-room-column {width:200px!important}
+  body.dashboard-page .planning-board-table .planning-room-cell,
+  body.dashboard-page .planning-board-table .planning-property-cell {width:200px!important;min-width:200px!important;max-width:200px!important}
+}
+@media (max-width:839px) {
+  body.dashboard-page .planner-calendar-hint {font-size:.77rem}
+  body.dashboard-page .planning-board-scroll {overflow:visible!important}
+}
