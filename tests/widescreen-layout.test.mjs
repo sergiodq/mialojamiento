@@ -55,7 +55,7 @@ test('weekly and daily planner have one date-header row without removing the mon
  const source=await read('js/dashboard.js');
  assert.match(source,/const tableHeader = calendarView === 'month'/);
  assert.match(source,/rowspan="2"/);
- assert.match(source,/\\\${dayHeaders}/);
+ assert.ok(source.includes('${dayHeaders}'));
  assert.match(source,/planning-board-table is-/);
  const css=await read('css/planning-wide.css');
  assert.match(css,/table-layout:fixed!important/);
