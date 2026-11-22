@@ -8,8 +8,10 @@ const uri = source => `data:text/javascript;base64,${Buffer.from(source).toStrin
 const support = {id:'support',uid:'support',nombre:'<img src=x onerror=alert(1)>Soporte',email:'support@example.com',email_normalizado:'support@example.com',rol:'soporte',empresa_id:'',propiedad_ids:[],activo:true,eliminado:false,estado_registro:'activo'};
 const property = {id:'pa',nombre:'<img src=x onerror=alert(1)>Hotel',codigo:'H',empresa_id:'a',activo:true};
 const unit = {id:'u1',nombre:'<img src=x onerror=alert(1)>101',codigo:'101',capacidad_max:2,activa:true};
-const month = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
-const reservation = {id:'ra',cliente:'Cliente',propiedad_id:'pa',empresa_id:'a',fecha_inicio:`${month}-15`,fecha_fin:`${month}-16`,unidad_id:'u1',estado:'confirmada',huespedes:1,total:100,observaciones:'Nota'};
+const isoLocal = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const today = new Date();
+const nextDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()+1);
+const reservation = {id:'ra',cliente:'Cliente',propiedad_id:'pa',empresa_id:'a',fecha_inicio:isoLocal(today),fecha_fin:isoLocal(nextDay),unidad_id:'u1',estado:'confirmada',huespedes:1,total:100,observaciones:'Nota'};
 
 let pageCounter = 0;
 async function openPage(htmlName, scriptName, search='', actor=support, {inactive=false}={}) {
