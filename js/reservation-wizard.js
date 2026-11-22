@@ -45,6 +45,15 @@ function validateCurrentStep() {
   if (activeStep === 0) {
     const arrival = form.elements.fecha_inicio.value;
     const departure = form.elements.fecha_fin.value;
+    const today = (() => {
+      const now = new Date();
+      return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+    })();
+    if (arrival && arrival < today) {
+      form.elements.fecha_inicio.setCustomValidity('El check-in no puede ser anterior a hoy.');
+      form.elements.fecha_inicio.reportValidity();
+      return false;
+    }
     if (arrival && departure && arrival >= departure) {
       form.elements.fecha_fin.setCustomValidity('La salida debe ser posterior al ingreso.');
       form.elements.fecha_fin.reportValidity();
