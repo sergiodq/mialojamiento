@@ -650,16 +650,16 @@ function renderPlanningBoard() {
     })
     .join('');
 
+  // La vista Mes muestra el nombre del mes; Semana y Día utilizan una única
+  // fila de fechas para ganar espacio vertical y evitar encabezados vacíos.
+  const tableHeader = calendarView === 'month'
+    ? `<tr><th rowspan="2" class="planning-sticky planning-corner-header">Habitaciones / unidades</th>${monthHeaders}</tr><tr>${dayHeaders}</tr>`
+    : `<tr><th class="planning-sticky planning-corner-header">Habitaciones / unidades</th>${dayHeaders}</tr>`;
+
   container.innerHTML = `
     <table class="planning-board-table is-${calendarView}-view">
       <thead>
-        <tr>
-          <th rowspan="2" class="planning-sticky planning-corner-header">Habitaciones / unidades</th>
-          ${monthHeaders}
-        </tr>
-        <tr>
-          ${dayHeaders}
-        </tr>
+        ${tableHeader}
       </thead>
       <tbody>
         ${body}

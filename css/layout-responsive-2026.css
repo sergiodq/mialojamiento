@@ -1,0 +1,266 @@
+/* Mi Alojamiento — layouts para monitor amplio, notebook, tablet y teléfono.
+   Cargado AL FINAL de los estilos existentes: una única capa correctiva compartida. */
+:root { --desktop-content-gap: clamp(16px, 1.65vw, 32px); }
+@media (min-width:1200px) {
+  body:not(.login-page) .main {
+    min-width:0!important;
+    padding: clamp(18px,1.6vw,26px) var(--desktop-content-gap) 40px!important;
+  }
+  body:not(.login-page) .page-frame {
+    width:100%!important;
+    max-width:1850px!important;
+    min-width:0!important;
+    margin-inline:auto!important;
+  }
+  body:not(.login-page) .topbar {
+    min-height:0!important;
+    padding:4px 0 16px!important;
+    margin-bottom:0!important;
+    gap:16px!important;
+    align-items:center!important;
+  }
+  body:not(.login-page) .topbar .title-block h2 {
+    font-size:clamp(1.65rem,1.7vw,2.15rem)!important;
+    line-height:1.12!important;
+  }
+  body:not(.login-page) .topbar .title-block p {
+    font-size:clamp(.79rem,.85vw,.91rem)!important;
+    line-height:1.45!important;
+    margin:5px 0 0!important;
+  }
+  body:not(.login-page) .section {margin-top:14px!important;}
+  body:not(.login-page) .card.pad {
+    padding:clamp(17px,1.5vw,26px)!important;
+  }
+  body:not(.login-page) .management-layout,
+  body:not(.login-page) .management-list,
+  body:not(.login-page) .management-editor {
+    min-width:0!important;
+    max-width:100%!important;
+    width:100%!important;
+  }
+  body:not(.login-page) .management-list-heading {
+    display:flex!important;
+    justify-content:space-between!important;
+    align-items:center!important;
+    gap:16px!important;
+    margin-bottom:6px!important;
+  }
+  body:not(.login-page) .management-list-heading h3 {
+    font-size:clamp(1.1rem,1.3vw,1.45rem)!important;
+    margin:0 0 4px!important;
+  }
+  body:not(.login-page) .management-list-heading p {
+    margin:0!important;
+    line-height:1.4!important;
+    font-size:.82rem!important;
+  }
+  body:not(.login-page) .management-list-heading .btn {
+    flex:0 0 auto!important;
+    min-height:42px!important;
+    padding:9px 16px!important;
+    width:auto!important;
+    white-space:nowrap!important;
+  }
+  body:not(.login-page) .management-list-count {
+    margin:0 0 10px!important;
+    font-size:.77rem!important;
+  }
+  body:not(.login-page) .management-list > .toolbar,
+  body.users-page .card.pad > .toolbar {
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:12px!important;
+    align-items:end!important;
+    margin:8px 0 0!important;
+    max-width:100%!important;
+  }
+  body:not(.login-page) .management-list > .toolbar .field,
+  body.users-page .card.pad > .toolbar .field {
+    min-width:240px!important;
+    width:auto!important;
+    max-width:min(100%,520px)!important;
+    flex:1 1 300px!important;
+  }
+  body:not(.login-page) .management-list > .toolbar .checkbox-chip,
+  body.users-page .card.pad > .toolbar .checkbox-chip {
+    width:auto!important;
+    min-height:44px!important;
+    flex:0 0 auto!important;
+    margin:0!important;
+    padding:8px 14px!important;
+    white-space:nowrap!important;
+  }
+  body:not(.login-page) .management-list > .toolbar input,
+  body.users-page .card.pad > .toolbar input {
+    min-height:44px!important;
+    height:44px!important;
+  }
+  body:not(.login-page) .management-list .table-wrap,
+  body.users-page .card.pad > .table-wrap {
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    margin-top:12px!important;
+    overflow-x:auto!important;
+    overflow-y:auto!important;
+    border-radius:15px!important;
+    border:1px solid #e8edf4!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) {
+    display:table!important;
+    width:100%!important;
+    min-width:1040px!important;
+    max-width:none!important;
+    table-layout:auto!important;
+    border-collapse:collapse!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) thead {display:table-header-group!important}
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) tbody {display:table-row-group!important}
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) tr {display:table-row!important}
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) :is(th,td) {
+    display:table-cell!important;
+    vertical-align:middle!important;
+    padding:11px 10px!important;
+    line-height:1.38!important;
+    font-size:.78rem!important;
+    overflow-wrap:normal!important;
+    word-break:normal!important;
+    white-space:normal!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) thead th {
+    position:sticky!important;
+    top:0!important;
+    z-index:3!important;
+    background:#f6f8fc!important;
+    font-size:.72rem!important;
+    font-weight:850!important;
+    text-transform:none!important;
+    letter-spacing:0!important;
+    white-space:nowrap!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) td:first-child {
+    font-weight:620!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) .table-cell-content {
+    gap:3px!important;
+  }
+  /* Los identificadores internos no deben ocupar espacio visual en una lista operativa. */
+  body.properties-page #propiedadesBody .table-cell-content > small.muted {
+    display:none!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) tbody tr:hover {
+    background:#fff8fa!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) td:last-child {
+    min-width:205px!important;
+    width:1%!important;
+    white-space:nowrap!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) .table-actions {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    flex-flow:row wrap!important;
+    gap:6px!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) .table-actions > * {
+    display:inline-flex!important;
+    flex:0 0 auto!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:auto!important;
+    max-width:none!important;
+    min-width:0!important;
+    min-height:36px!important;
+    height:auto!important;
+    padding:7px 10px!important;
+    border-radius:11px!important;
+    font-size:.72rem!important;
+    font-weight:760!important;
+    line-height:1.2!important;
+    white-space:nowrap!important;
+    overflow-wrap:normal!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) .badge {
+    white-space:nowrap!important;
+  }
+  body:not(.login-page) .management-editor .form-grid {
+    display:grid!important;
+    gap:14px 18px!important;
+    max-width:1350px!important;
+    align-items:start!important;
+  }
+  body.user-form-page #usuarioForm,
+  body.reservation-page .reservation-layout {
+    width:100%!important;
+    max-width:1400px!important;
+    margin-inline:auto!important;
+  }
+  body.user-form-page #usuarioForm {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.user-form-page #usuarioForm > .full {grid-column:1/-1!important}
+  body.reservation-page .reservation-primary-card {
+    max-width:1400px!important;
+    width:100%!important;
+  }
+  body:not(.login-page) .form-actions {gap:12px!important;}
+  body:not(.login-page) .form-actions > * {width:auto!important;flex:0 0 auto!important}
+}
+/* Monitores de 1440px o más: las acciones de tablas deben quedar EN UNA fila. */
+@media (min-width:1440px) {
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) td:last-child {
+    min-width:260px!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) .table-actions {
+    flex-wrap:nowrap!important;
+  }
+  body.properties-page #propiedadesBody td:first-child {
+    min-width:190px!important;
+  }
+  body.properties-page #propiedadesBody td:nth-child(4) {
+    min-width:145px!important;
+  }
+  body.users-page #usuariosBody td:nth-child(2) {
+    min-width:200px!important;
+    overflow-wrap:anywhere!important;
+  }
+}
+/* Notebooks/tablets: el contenido se adapta sin comprimir los botones en columnas. */
+@media (min-width:840px) and (max-width:1199px) {
+  body:not(.login-page) .page-frame {width:100%!important;max-width:100%!important;}
+  body:not(.login-page) .card.pad {padding:16px!important}
+  body:not(.login-page) .management-list-heading {flex-wrap:wrap!important;gap:10px!important}
+  body:not(.login-page) .management-list-heading .btn {width:auto!important}
+  body:not(.login-page) .management-list .table-wrap {overflow-x:auto!important}
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) tbody {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  body:not(.login-page) .management-list .table-actions {display:flex!important;flex-flow:row wrap!important;}
+  body:not(.login-page) .management-list .table-actions > * {
+    width:auto!important;min-height:40px!important;flex:0 0 auto!important;
+  }
+  body.reservation-page .reservation-primary-card {max-width:100%!important}
+}
+/* Teléfonos: mantener tarjetas ya existentes; botones de acción táctiles y con wrap. */
+@media (max-width:839px) {
+  body:not(.login-page) .management-list .table-actions {
+    display:flex!important;
+    flex-flow:row wrap!important;
+    justify-content:flex-start!important;
+    gap:7px!important;
+  }
+  body:not(.login-page) .management-list .table-actions > * {
+    flex:1 1 auto!important;
+    width:auto!important;
+    min-width:96px!important;
+    max-width:100%!important;
+    min-height:42px!important;
+  }
+  body:not(.login-page) .m3-responsive-table:not(.planning-board-table) td {
+    overflow-wrap:anywhere;
+  }
+  body:not(.login-page) .management-list .table-wrap,
+  body.users-page .table-wrap {overflow-x:hidden!important}
+}

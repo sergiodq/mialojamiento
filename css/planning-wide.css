@@ -1,0 +1,135 @@
+/* Dashboard: ajustes específicos para monitores anchos.
+   Sigue intacta la vista de tarjetas para teléfonos. */
+@media (min-width:1200px) {
+  body.dashboard-page .dashboard-page-frame {
+    max-width:1850px!important;
+    width:100%!important;
+  }
+  body.dashboard-page .dashboard-kpi-grid {
+    gap:clamp(9px,.85vw,16px)!important;
+  }
+  body.dashboard-page .dashboard-workspace-card {
+    padding:clamp(18px,1.4vw,28px)!important;
+    overflow:visible!important;
+  }
+  body.dashboard-page .dashboard-calendar-titleblock .muted {
+    font-size:.82rem!important;
+  }
+  body.dashboard-page .dashboard-calendar-header {
+    grid-template-columns:minmax(0,300px) minmax(0,1fr)!important;
+    gap:16px!important;
+    align-items:center!important;
+  }
+  body.dashboard-page .dashboard-month-toolbar {
+    grid-template-columns:minmax(0,250px) minmax(0,1fr)!important;
+  }
+  body.dashboard-page #plannerFilters {
+    grid-template-columns:minmax(150px,210px) minmax(230px,450px) minmax(130px,210px)!important;
+    gap:12px!important;
+    margin:4px 0 12px!important;
+  }
+  body.dashboard-page #plannerResume {gap:7px!important;margin-bottom:9px!important}
+  body.dashboard-page #plannerResume .dashboard-inline-stat {min-height:31px!important}
+  body.dashboard-page .planning-board-scroll {
+    max-height:clamp(390px,65vh,850px)!important;
+    overflow:auto!important;
+  }
+  body.dashboard-page .planning-board-table.is-week-view,
+  body.dashboard-page .planning-board-table.is-day-view {
+    display:table!important;
+    width:100%!important;
+    min-width:960px!important;
+    table-layout:fixed!important;
+  }
+  body.dashboard-page .planning-board-table.is-week-view :is(.planning-day-header,.planning-day-cell,.planning-reservation-cell),
+  body.dashboard-page .planning-board-table.is-day-view :is(.planning-day-header,.planning-day-cell,.planning-reservation-cell) {
+    width:auto!important;
+    min-width:94px!important;
+    max-width:none!important;
+  }
+  body.dashboard-page .planning-board-table.is-week-view :is(.planning-corner-header,.planning-property-cell,.planning-room-cell),
+  body.dashboard-page .planning-board-table.is-day-view :is(.planning-corner-header,.planning-property-cell,.planning-room-cell) {
+    width:clamp(205px,18vw,265px)!important;
+    min-width:205px!important;
+    max-width:265px!important;
+  }
+  body.dashboard-page .planning-board-table.is-week-view .planning-property-row :is(th,td),
+  body.dashboard-page .planning-board-table.is-day-view .planning-property-row :is(th,td) {
+    padding:9px 12px!important;
+    height:52px!important;
+    vertical-align:middle!important;
+  }
+  body.dashboard-page .planning-property-row th {
+    background:#f6f8fc!important;
+  }
+  body.dashboard-page .planning-property-name {
+    font-size:.8rem!important;
+    letter-spacing:0!important;
+    margin-bottom:4px!important;
+  }
+  body.dashboard-page .planning-property-meta {
+    display:flex!important;
+    flex-wrap:wrap!important;
+    flex-direction:row!important;
+    gap:3px 9px!important;
+    font-size:.7rem!important;
+    line-height:1.25!important;
+    align-items:center!important;
+  }
+  body.dashboard-page .planning-property-meta span {
+    display:inline-block!important;
+    white-space:normal!important;
+    width:auto!important;
+    max-width:100%!important;
+  }
+  body.dashboard-page .planning-property-summary-spacer {
+    background:#f6f8fc!important;
+    border-bottom:1px solid #e7edf5!important;
+  }
+  body.dashboard-page .planning-property-summary-spacer::before {
+    display:none!important;
+  }
+  body.dashboard-page .planning-room-cell {
+    padding:9px 12px!important;
+    height:54px!important;
+    vertical-align:middle!important;
+  }
+  body.dashboard-page .planning-room-main {
+    line-height:1.24!important;
+    font-size:.77rem!important;
+  }
+  body.dashboard-page .planning-room-sub {
+    font-size:.7rem!important;
+    margin-top:2px!important;
+  }
+  body.dashboard-page .planning-day-cell {
+    height:54px!important;
+    padding:0!important;
+  }
+  body.dashboard-page .planning-board-table.is-week-view .planning-day-header {
+    height:48px!important;
+    font-size:.76rem!important;
+  }
+  body.dashboard-page .planning-board-table :is(.planning-day-header.is-today,.planning-day-cell.is-today) {
+    background:#eef5ff!important;
+  }
+  body.dashboard-page .planning-board-table .planning-reservation-bar {
+    min-height:48px!important;
+    padding:7px 8px!important;
+  }
+  body.dashboard-page .planning-board-table .planning-reservation-content {gap:3px!important}
+}
+/* Notebook: tabla semanal fluida sin hacer scroll de toda la página. */
+@media (min-width:840px) and (max-width:1199px) {
+  body.dashboard-page .planning-board-table.is-week-view {
+    width:100%!important;
+    min-width:820px!important;
+    table-layout:fixed!important;
+  }
+  body.dashboard-page .planning-board-table.is-week-view :is(.planning-day-header,.planning-day-cell,.planning-reservation-cell) {
+    width:auto!important;
+    min-width:76px!important;
+  }
+  body.dashboard-page .planning-board-scroll {overflow:auto!important;}
+}
+/* En móvil se conserva el planning vertical por habitaciones. */
