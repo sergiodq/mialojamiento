@@ -572,10 +572,12 @@ function renderMobilePlanningBoard() {
                           const statusClass = reservationStatusClass(item.estado);
                           return `
                             <article class="mobile-reservation-card status-${statusClass}">
-                              <div class="mobile-reservation-top">
+                              <button type="button" class="mobile-reservation-top mobile-reservation-open" data-reservation-detail="${escapeHtml(item.id)}"
+                                aria-label="Ver detalle de la reserva de ${escapeHtml(item.cliente || 'Reserva')}">
                                 <strong>${escapeHtml(item.cliente || 'Reserva')}</strong>
                                 <span class="mobile-reservation-status">${escapeHtml(item.estado || 'pendiente')}</span>
-                              </div>
+                                <span class="mobile-reservation-detail-icon" aria-hidden="true">›</span>
+                              </button>
                               <div class="mobile-reservation-meta">
                                 <span><strong>Unidad:</strong> ${escapeHtml(item.unidad || item.unidad_nombre || 'Unidad')}</span>
                                 <span><strong>Huésp.:</strong> ${item.huespedes || 0}</span>
@@ -972,9 +974,23 @@ function bindPlannerReservationDetails() {
     }
   });
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && modal && !modal.hidden) {
+    if (!modal || modal.hidden) return;
+    if (event.key === 'Escape') {
       event.preventDefault();
       closePlannerReservationDetail();
+      return;
+    }
+    if (event.key === 'Tab') {
+      const dialog = modal.querySelector('[role="dialog"]');
+      const controls = [...(dialog?.querySelectorAll('button:not([disabled]),a[href],input:not([disabled])') || [])]
+        .filter(control => !control.hidden && control.getClientRects?.().length !== 0);
+      if (!controls.length) return;
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();first.focus();
+      }
     }
   });
 }
