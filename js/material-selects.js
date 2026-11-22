@@ -77,7 +77,10 @@ function build(select) {
     if(button.disabled!==disabled) button.disabled=disabled;
     button.setAttribute('aria-required',String(select.required));
     button.classList.toggle('is-placeholder', !select.value);
-    if (select.checkValidity()) button.classList.remove('is-invalid');
+    if (select.checkValidity()) {
+      button.classList.remove('is-invalid');
+      button.removeAttribute('aria-invalid');
+    }
     if(state.open) renderOptions();
   }
   function renderOptions() {
