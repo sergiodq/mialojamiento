@@ -23,7 +23,7 @@ test('desktop calendar builds a colgroup and 7 separate days in weekly view',asy
   assert.match(code,/planning-day-header/);
   assert.match(code,/planning-cell-free/);
   assert.match(code,/data-date/);
-  assert.match(code,/No hay reservas en este período/);
+  assert.match(code,/Sin reservas registradas en estas fechas/);
 });
 test('CSS restores table-cell semantics for property summary and date cells',async()=>{
   const css=await read('css/planning-calendar-visible.css');
