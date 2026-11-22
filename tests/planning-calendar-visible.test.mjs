@@ -55,3 +55,23 @@ test('new final CSS removes repetitive Libre labels and preserves separate mobil
   assert.match(css,/@media \(max-width:839px\)/);
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
 });
+
+test('desktop property calendars allow page scroll for all accommodations',async()=>{
+  const css=await read('css/planning-property-cards.css');
+  const legacy=await read('css/styles.css');
+  assert.match(legacy,/body\.dashboard-page \.main\s*\{\s*height: 100vh;\s*overflow: hidden;/);
+  const final=css.slice(css.indexOf('La página debe desplazarse completa'));
+  for(const selector of [
+    'body.dashboard-page',
+    'body.dashboard-page .page-shell',
+    'body.dashboard-page .main',
+    'body.dashboard-page .dashboard-page-frame',
+    'body.dashboard-page .planning-board-scroll'
+  ]) {
+    assert.ok(final.includes(selector),selector);
+  }
+  assert.match(final,/\.dashboard-page \.main\s*\{[^}]*height:auto!important;[^}]*overflow:visible!important/s);
+  assert.match(final,/\.dashboard-page \.dashboard-page-frame\s*\{[^}]*height:auto!important;[^}]*overflow:visible!important/s);
+  assert.match(final,/\.dashboard-page \.planning-board-scroll\s*\{[^}]*overflow:visible!important;overscroll-behavior:auto!important/s);
+  assert.match(final,/\.planning-property-grid-scroll\s*\{[^}]*overflow-x:auto!important;overflow-y:hidden!important/s);
+});

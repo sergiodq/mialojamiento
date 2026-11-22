@@ -167,3 +167,44 @@
   /* En teléfonos se mantiene la vista vertical por habitación. */
   body.dashboard-page .planning-property-collection {display:none}
 }
+
+/* La página debe desplazarse completa: el modo viejo 100vh bloqueaba el scroll
+   cuando el planning pasó de una sola tabla a varias tarjetas por propiedad. */
+@media (min-width:840px) {
+  html:has(body.dashboard-page) {
+    height:auto!important;min-height:100%!important;overflow-y:auto!important;
+  }
+  body.dashboard-page {
+    height:auto!important;min-height:100dvh!important;
+    overflow-y:auto!important;overflow-x:clip!important;
+  }
+  body.dashboard-page .page-shell {
+    height:auto!important;min-height:100dvh!important;
+    overflow:visible!important;
+  }
+  body.dashboard-page .main {
+    height:auto!important;min-height:0!important;
+    overflow:visible!important;
+  }
+  body.dashboard-page .dashboard-page-frame {
+    height:auto!important;min-height:0!important;max-height:none!important;
+    overflow:visible!important;flex:0 0 auto!important;
+  }
+  body.dashboard-page .dashboard-workspace,
+  body.dashboard-page .dashboard-workspace-card {
+    height:auto!important;min-height:0!important;max-height:none!important;
+    overflow:visible!important;flex:0 0 auto!important;
+  }
+  body.dashboard-page .planning-board-scroll {
+    height:auto!important;min-height:0!important;max-height:none!important;
+    overflow:visible!important;overscroll-behavior:auto!important;
+  }
+  body.dashboard-page .planning-board-shell {
+    overflow:visible!important;overscroll-behavior:auto!important;
+  }
+  body.dashboard-page .planning-property-grid-scroll {
+    overflow-x:auto!important;overflow-y:hidden!important;
+    overscroll-behavior-x:auto!important;overscroll-behavior-y:auto!important;
+    touch-action:pan-x pan-y!important;
+  }
+}
