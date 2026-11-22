@@ -9,7 +9,7 @@ test('calendar stylesheet loads last on dashboard and the empty-period notice is
   const dom=new JSDOM(html);
   try{
     const styles=[...dom.window.document.querySelectorAll('link[rel="stylesheet"]')].map(x=>x.getAttribute('href'));
-    assert.equal(styles.at(-1),'css/planning-single-screen.css');
+    assert.equal(styles.at(-1),'css/planning-bookings-compact.css');
     assert.ok(dom.window.document.querySelector('#plannerCalendarHint[hidden]'));
     assert.ok(dom.window.document.querySelector('.planning-board-scroll'));
   }finally{dom.window.close()}
@@ -95,6 +95,21 @@ test('one-screen layout uses accommodation tabs and a bounded desktop planning',
   assert.match(css,/\.planner-screen-tabs/);
   assert.match(css,/\.planner-screen-arrow/);
   assert.match(css,/max-height:clamp\(165px,42vh,540px\)!important/);
+  assert.match(css,/@media \(max-width:839px\)/);
+  assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
+});
+
+test('booking strips truncate the guest name and expose detail on click', async()=>{
+  const js=await read('js/dashboard.js');
+  const css=await read('css/planning-bookings-compact.css');
+  assert.match(js,/class="planning-booking-open"/);
+  assert.match(js,/class="planning-booking-label"/);
+  assert.match(js,/class="planning-reservation-bar planning-reservation-compact/);
+  assert.match(js,/function openPlannerReservationDetail\(reservationId\)/);
+  assert.match(js,/function closePlannerReservationDetail\(\)/);
+  assert.match(css,/white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important/);
+  assert.match(css,/text-overflow:ellipsis!important/);
+  assert.match(css,/\.planner-reservation-detail-root\[hidden\]/);
   assert.match(css,/@media \(max-width:839px\)/);
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
 });
