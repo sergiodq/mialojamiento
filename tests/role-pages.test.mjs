@@ -182,3 +182,38 @@ test('support cannot create, deactivate or reactivate properties or units',async
     assert.equal(document.querySelector('.btnDeleteUnit,.btnReactivateUnit'),null);
   }finally{u.window.close();}
 });
+
+test('one-day calendar reservations open readable details and close with Escape',async()=>{
+  const dom=await openPage('dashboard.html','dashboard.js','',{...support,rol:'superadmin'});
+  try{
+    const doc=dom.window.document;
+    const open=doc.querySelector('.planning-booking-open');
+    assert.ok(open,'missing reservation detail button');
+    assert.equal(open.textContent.includes('Cliente'),true);
+    assert.equal(doc.querySelector('.planning-reservation-meta-grid'),null,'full details should not overflow the calendar cell');
+    open.click();
+    const modal=doc.querySelector('#plannerReservationDetail');
+    assert.equal(modal.hidden,false);
+    assert.match(modal.textContent,/Cliente/);
+    assert.match(modal.textContent,/Check-in/);
+    assert.match(modal.textContent,/Check-out/);
+    assert.ok(modal.querySelector('[data-cancel-detail-reservation]'));
+    doc.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+    assert.equal(modal.hidden,true);
+    assert.equal(doc.activeElement,open);
+  }finally{dom.window.close()}
+});
+test('support reservation detail is read-only and does not expose cancellation',async()=>{
+  const dom=await openPage('dashboard.html','dashboard.js');
+  try{
+    const doc=dom.window.document;
+    doc.querySelector('.planning-booking-open').click();
+    const modal=doc.querySelector('#plannerReservationDetail');
+    assert.equal(modal.hidden,false);
+    assert.equal(modal.querySelector('[data-cancel-detail-reservation]'),null);
+    assert.equal(modal.querySelector('a[href="nueva_reserva.html?id=ra"]').textContent,'Ver / notas');
+    assert.equal(modal.querySelector('img'),null);
+    modal.querySelector('[data-close-reservation-detail]').click();
+    assert.equal(modal.hidden,true);
+  }finally{dom.window.close()}
+});

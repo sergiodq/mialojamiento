@@ -390,24 +390,24 @@ function buildEmptyCells(dates = []) {
 
 function renderReservationCell(item, span) {
   const statusClass = reservationStatusClass(item.estado);
+  const tooltip = escapeHtml(buildReservationTooltip(item));
+  const editLabel = isSoporte(currentProfile) ? 'Ver / notas' : 'Editar';
+  const client = escapeHtml(item.cliente || 'Reserva');
+  // El ancho de una celda de un solo día nunca alcanza para una ficha completa.
+  // La barra solo indica ocupación; el detalle completo se abre al seleccionarla.
   return `
-    <td colspan="${span}" class="planning-reservation-cell status-${statusClass}">
-      <div class="planning-reservation-bar status-${statusClass}" data-tooltip="${escapeHtml(buildReservationTooltip(item))}" title="${escapeHtml(buildReservationTooltip(item))}">
-        <div class="planning-reservation-content">
-          <div class="planning-reservation-topline">
-            <strong class="planning-reservation-title">${escapeHtml(item.cliente || 'Reserva')}</strong>
-            <span class="planning-reservation-badge">${escapeHtml(item.estado || 'pendiente')}</span>
-          </div>
-          <div class="planning-reservation-meta-grid">
-            <span><strong>Unidad:</strong> ${escapeHtml(item.unidad || item.unidad_nombre || 'Unidad')}</span>
-            <span><strong>Huésp.:</strong> ${item.huespedes || 0}</span>
-            <span class="full"><strong>Estadía:</strong> ${formatDate(item.fecha_inicio)} → ${formatDate(item.fecha_fin)}</span>
-          </div>
-        </div>
-        <div class="planning-reservation-actions compact-actions">
-          <a class="planning-action-btn" href="nueva_reserva.html?id=${encodeURIComponent(item.id)}">${isSoporte(currentProfile) ? 'Ver / notas' : 'Editar'}</a>
-          ${canCreateReservations(currentProfile) && item.estado !== 'cancelada' ? `<button type="button" class="planning-action-btn danger btnDeleteReservation" data-id="${escapeHtml(item.id)}" data-cliente="${escapeHtml(item.cliente || '')}" aria-label="Cancelar reserva">×</button>` : ''}
-        </div>
+    <td colspan="${span}" class="planning-reservation-cell status-${statusClass}" data-booking-span="${span}">
+      <div class="planning-reservation-bar planning-reservation-compact status-${statusClass}">
+        <button type="button" class="planning-booking-open" data-reservation-detail="${escapeHtml(item.id)}"
+          title="${tooltip}" aria-label="Ver reserva de ${client}, ${escapeHtml(item.estado || 'pendiente')}, del ${escapeHtml(formatDate(item.fecha_inicio))} al ${escapeHtml(formatDate(item.fecha_fin))}">
+          <span class="planning-booking-dot" aria-hidden="true"></span>
+          <span class="planning-booking-label">${client}</span>
+          ${span > 1 ? `<span class="planning-booking-state">${escapeHtml(item.estado || 'pendiente')}</span>` : ''}
+        </button>
+        ${canCreateReservations(currentProfile) && item.estado !== 'cancelada' ? `
+          <button type="button" class="planning-booking-quick-cancel btnDeleteReservation" data-id="${escapeHtml(item.id)}"
+            data-cliente="${client}" title="Cancelar reserva" aria-label="Cancelar reserva de ${client}">×</button>
+        ` : ''}
       </div>
     </td>
   `;
@@ -892,6 +892,93 @@ function setupPlannerFilterControls() {
     syncFilterControls();
   });
 }
+function closePlannerReservationDetail() {
+  const modal = qs('#plannerReservationDetail');
+  if (!modal || modal.hidden) return;
+  modal.hidden = true;
+  modal.innerHTML = '';
+  document.body.classList.remove('planner-reservation-detail-open');
+  const triggerId = modal.dataset.returnTo;
+  if (triggerId) {
+    [...document.querySelectorAll('[data-reservation-detail]')]
+      .find(button => button.dataset.reservationDetail === triggerId)?.focus();
+  }
+  delete modal.dataset.returnTo;
+}
+
+function openPlannerReservationDetail(reservationId) {
+  const item = reservations.find(reservation => reservation.id === reservationId);
+  const modal = qs('#plannerReservationDetail');
+  if (!item || !modal) return;
+  const status = escapeHtml(item.estado || 'pendiente');
+  const client = escapeHtml(item.cliente || 'Reserva');
+  const canCancel = canCreateReservations(currentProfile) && item.estado !== 'cancelada';
+  modal.dataset.returnTo = reservationId;
+  modal.innerHTML = `
+    <div class="planner-reservation-detail-backdrop" data-close-reservation-detail></div>
+    <section class="planner-reservation-detail-card" role="dialog" aria-modal="true"
+      aria-labelledby="plannerReservationDetailTitle">
+      <div class="planner-reservation-detail-heading">
+        <div>
+          <span class="planner-reservation-detail-eyebrow">Detalle de reserva</span>
+          <h3 id="plannerReservationDetailTitle">${client}</h3>
+        </div>
+        <button type="button" class="planner-reservation-detail-close" data-close-reservation-detail aria-label="Cerrar detalle">×</button>
+      </div>
+      <span class="planner-reservation-detail-status status-${reservationStatusClass(item.estado)}">${status}</span>
+      <dl class="planner-reservation-detail-grid">
+        <div><dt>Alojamiento</dt><dd>${escapeHtml(item.propiedad_nombre || properties.find(property => property.id === item.propiedad_id)?.nombre || '—')}</dd></div>
+        <div><dt>Habitación</dt><dd>${escapeHtml(item.unidad_nombre || item.unidad || '—')}</dd></div>
+        <div><dt>Check-in</dt><dd>${escapeHtml(formatDate(item.fecha_inicio))}</dd></div>
+        <div><dt>Check-out</dt><dd>${escapeHtml(formatDate(item.fecha_fin))}</dd></div>
+        <div><dt>Huéspedes</dt><dd>${Number(item.huespedes || 0)}</dd></div>
+        <div><dt>Estado</dt><dd>${status}</dd></div>
+      </dl>
+      <div class="planner-reservation-detail-actions">
+        <button type="button" class="btn-ghost" data-close-reservation-detail>Cerrar</button>
+        <a class="btn" href="nueva_reserva.html?id=${encodeURIComponent(item.id)}">${isSoporte(currentProfile) ? 'Ver / notas' : 'Ver / editar'}</a>
+        ${canCancel ? `<button type="button" class="btn-ghost planning-detail-cancel" data-cancel-detail-reservation="${escapeHtml(item.id)}" data-cliente="${client}">Cancelar reserva</button>` : ''}
+      </div>
+    </section>
+  `;
+  modal.hidden = false;
+  document.body.classList.add('planner-reservation-detail-open');
+  modal.querySelector('.planner-reservation-detail-close')?.focus();
+}
+
+function bindPlannerReservationDetails() {
+  const modal = qs('#plannerReservationDetail');
+  const board = qs('#planningBoard');
+  board?.addEventListener('click', event => {
+    const openButton = event.target.closest('[data-reservation-detail]');
+    if (openButton) openPlannerReservationDetail(openButton.dataset.reservationDetail);
+  });
+  board?.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    const openButton = event.target.closest('[data-reservation-detail]');
+    if (!openButton) return;
+    event.preventDefault();
+    openPlannerReservationDetail(openButton.dataset.reservationDetail);
+  });
+  modal?.addEventListener('click', async event => {
+    if (event.target.closest('[data-close-reservation-detail]')) {
+      closePlannerReservationDetail();
+      return;
+    }
+    const cancel = event.target.closest('[data-cancel-detail-reservation]');
+    if (cancel) {
+      closePlannerReservationDetail();
+      await handleDeleteReservation(cancel.dataset.cancelDetailReservation, cancel.dataset.cliente);
+    }
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && modal && !modal.hidden) {
+      event.preventDefault();
+      closePlannerReservationDetail();
+    }
+  });
+}
+
 function bindFilters() {
   setupPlannerFilterControls();
   qs('#filtroTexto')?.addEventListener('input', () => { applyFilters(); syncFilterControls(); });
@@ -964,6 +1051,7 @@ async function init() {
   bindCommonActions();
   renderQuickActions();
   bindFilters();
+  bindPlannerReservationDetails();
   bindPlannerPropertyNavigation();
   applyResponsiveDefaultView();
 
