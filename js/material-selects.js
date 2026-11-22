@@ -7,13 +7,19 @@ const idFor = select => 'm3-options-' + (select.id || ('select-' + Math.random()
 const canEnhance = select => select instanceof select.ownerDocument.defaultView.HTMLSelectElement &&
   !select.multiple && Number(select.size || 0) <= 1 && !select.hasAttribute('data-native-select');
 
+// Estilo visual: capitalizar solo la primera letra de etiquetas escritas en minúscula.
+// No alteramos valores internos ni nombres propios/acrónimos ya capitalizados.
+export function formatSelectDisplayLabel(value) {
+  const label = String(value ?? '').trim();
+  return label.replace(/\p{L}/u, letter => letter.toLocaleUpperCase('es-AR'));
+}
 function activeLabel(select) {
   const option = select.options[select.selectedIndex] || null;
-  return option ? option.textContent.trim() : 'Seleccionar...';
+  return option ? formatSelectDisplayLabel(option.textContent) : 'Seleccionar...';
 }
 function optionData(select) {
   return [...select.options].map((option, index) => ({
-    index, value: option.value, label: option.textContent.trim(),
+    index, value: option.value, label: formatSelectDisplayLabel(option.textContent),
     disabled: option.disabled || option.closest('optgroup')?.disabled,
     selected: option.selected
   }));
