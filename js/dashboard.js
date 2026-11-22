@@ -382,7 +382,7 @@ function buildEmptyCells(dates = []) {
         day === 0 || day === 6 ? 'is-weekend' : '',
         dayISO === new Date().toISOString().slice(0, 10) ? 'is-today' : ''
       ].filter(Boolean);
-      return `<td class="${classes.join(' ')}"></td>`;
+      return `<td class="${classes.join(' ')}" data-date="${dayISO}" title="${escapeHtml(new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).format(date))} · Sin reserva"><span class="planning-cell-free" aria-label="Sin reserva">Libre</span></td>`;
     })
     .join('');
 }
@@ -607,6 +607,12 @@ function renderPlanningBoard() {
   }
 
   updateViewButtons();
+  const calendarHint = qs('#plannerCalendarHint');
+  if (calendarHint) {
+    const count = filteredReservations.filter(item => reservationTouchesRange(item, range)).length;
+    calendarHint.hidden = count !== 0;
+    if (!count) calendarHint.textContent = 'No hay reservas en este período. Los días marcados como «Libre» no tienen una reserva registrada. Probá otra semana o mes.';
+  }
 
   const monthSegments = buildMonthSegments(visibleDates);
   const monthHeaders = monthSegments
@@ -624,7 +630,7 @@ function renderPlanningBoard() {
       return `
         <th class="planning-day-header ${isWeekend ? 'is-weekend' : ''} ${isToday ? 'is-today' : ''}">
           <span class="planning-day-number">${date.getDate()}</span>
-          <small>${new Intl.DateTimeFormat('es-AR', { weekday: 'short' }).format(date).replace('.', '')}</small>
+          <small>${new Intl.DateTimeFormat('es-AR', { weekday: 'short' }).format(date).replace('.', '').toUpperCase()}</small>
         </th>
       `;
     })
@@ -657,7 +663,11 @@ function renderPlanningBoard() {
     : `<tr><th class="planning-sticky planning-corner-header">Habitaciones / unidades</th>${dayHeaders}</tr>`;
 
   container.innerHTML = `
-    <table class="planning-board-table is-${calendarView}-view">
+    <table class="planning-board-table is-${calendarView}-view" aria-label="Calendario de reservas y disponibilidad por habitación">
+      <colgroup>
+        <col class="planning-room-column">
+        ${visibleDates.map(() => '<col class="planning-date-column">').join('')}
+      </colgroup>
       <thead>
         ${tableHeader}
       </thead>
