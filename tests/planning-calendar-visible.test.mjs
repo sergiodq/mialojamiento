@@ -9,7 +9,7 @@ test('calendar stylesheet loads last on dashboard and the empty-period notice is
   const dom=new JSDOM(html);
   try{
     const styles=[...dom.window.document.querySelectorAll('link[rel="stylesheet"]')].map(x=>x.getAttribute('href'));
-    assert.equal(styles.at(-1),'css/planning-property-cards.css');
+    assert.equal(styles.at(-1),'css/planning-single-screen.css');
     assert.ok(dom.window.document.querySelector('#plannerCalendarHint[hidden]'));
     assert.ok(dom.window.document.querySelector('.planning-board-scroll'));
   }finally{dom.window.close()}
@@ -74,4 +74,27 @@ test('desktop property calendars allow page scroll for all accommodations',async
   assert.match(final,/\.dashboard-page \.dashboard-page-frame\s*\{[^}]*height:auto!important;[^}]*overflow:visible!important/s);
   assert.match(final,/\.dashboard-page \.planning-board-scroll\s*\{[^}]*overflow:visible!important;overscroll-behavior:auto!important/s);
   assert.match(final,/\.planning-property-grid-scroll\s*\{[^}]*overflow-x:auto!important;overflow-y:hidden!important/s);
+});
+
+test('planning shows only the selected accommodation, with tabs and arrows',async()=>{
+  const source=await read('js/dashboard.js');
+  assert.match(source,/let activePlannerPropertyId = null/);
+  assert.match(source,/function selectedPlannerGroup\(\)/);
+  assert.match(source,/function renderPlannerPropertyNavigation\(\)/);
+  assert.match(source,/data-planner-property/);
+  assert.match(source,/data-planner-step/);
+  assert.match(source,/bindPlannerPropertyNavigation\(\)/);
+  assert.match(source,/\[selectedPlannerGroup\(\)\]\.filter\(Boolean\)\.map\(\(group\) =>/);
+  const html=await read('dashboard.html');
+  assert.match(html,/id="plannerPropertyNavigation"/);
+  assert.ok(html.indexOf('id="plannerPropertyNavigation"') < html.indexOf('id="planningBoard"'));
+});
+test('one-screen layout uses accommodation tabs and a bounded desktop planning',async()=>{
+  const css=await read('css/planning-single-screen.css');
+  assert.match(css,/\.planner-screen-navigation/);
+  assert.match(css,/\.planner-screen-tabs/);
+  assert.match(css,/\.planner-screen-arrow/);
+  assert.match(css,/max-height:clamp\(165px,42vh,540px\)!important/);
+  assert.match(css,/@media \(max-width:839px\)/);
+  assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
 });
