@@ -1,0 +1,169 @@
+/* Planning por alojamiento: bloques separados y disponibilidad sin ruido visual.
+   Esta hoja se carga al final; conserva el planning vertical de celulares. */
+@media (min-width:840px) {
+  body.dashboard-page .planning-board-shell {
+    border:0!important;background:transparent!important;
+    border-radius:0!important;overflow:visible!important;
+  }
+  body.dashboard-page .planning-board-scroll {
+    max-height:none!important;height:auto!important;
+    overflow:visible!important;scrollbar-gutter:auto!important;
+  }
+  body.dashboard-page .planning-board-wrap {
+    width:100%!important;min-width:0!important;max-width:100%!important;
+  }
+  body.dashboard-page .planning-property-collection {
+    display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%;
+  }
+  body.dashboard-page .planning-property-section {
+    display:block;min-width:0;width:100%;overflow:hidden;
+    border:1px solid #e0e7f1;border-radius:17px;
+    background:#fff;box-shadow:0 3px 13px rgba(32,45,72,.045);
+  }
+  body.dashboard-page .planning-property-card-heading {
+    display:flex;justify-content:space-between;align-items:center;
+    gap:12px;flex-wrap:wrap;padding:12px 16px;
+    border-bottom:1px solid #e6ebf3;background:#f7f9fd;
+  }
+  body.dashboard-page .planning-property-card-title {
+    display:flex;align-items:center;gap:11px;min-width:0;flex:1 1 220px;
+  }
+  body.dashboard-page .planning-property-card-mark {
+    display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;
+    border-radius:11px;background:#ffe4e9;color:#cd3555;
+    font-size:1.35rem;font-weight:800;line-height:1;
+  }
+  body.dashboard-page .planning-property-card-names {
+    min-width:0;display:flex;flex-direction:column;gap:2px;
+  }
+  body.dashboard-page .planning-property-card-names h4 {
+    margin:0!important;font-size:.95rem!important;font-weight:850;
+    line-height:1.2;color:#25314d;overflow-wrap:anywhere;
+  }
+  body.dashboard-page .planning-property-card-names p {
+    margin:0!important;font-size:.72rem;color:#67748d;line-height:1.3;
+  }
+  body.dashboard-page .planning-property-card-meta {
+    display:flex;align-items:center;justify-content:flex-end;
+    flex-wrap:wrap;gap:7px;min-width:0;
+  }
+  body.dashboard-page .planning-property-count,
+  body.dashboard-page .planning-property-state {
+    display:inline-flex;align-items:center;min-height:29px;
+    padding:6px 10px;border-radius:999px;font-size:.7rem;font-weight:760;
+    line-height:1.1;white-space:nowrap;
+  }
+  body.dashboard-page .planning-property-count {
+    background:#fff;border:1px solid #e1e7f0;color:#5a6680;
+  }
+  body.dashboard-page .planning-property-state.is-active {
+    color:#007e6e;background:#dff8f1;
+  }
+  body.dashboard-page .planning-property-state.is-inactive {
+    color:#986100;background:#fff2d7;
+  }
+  body.dashboard-page .planning-property-grid-scroll {
+    display:block;width:100%;max-width:100%;
+    overflow-x:auto;overflow-y:visible;
+    scrollbar-width:thin;scrollbar-color:#c4cede transparent;
+  }
+  body.dashboard-page .planning-property-grid-scroll:focus-visible {
+    outline:3px solid #ff7794;outline-offset:-3px;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table,
+  body.dashboard-page .planning-property-section .planning-board-table.is-week-view,
+  body.dashboard-page .planning-property-section .planning-board-table.is-day-view {
+    display:table!important;width:100%!important;min-width:790px!important;
+    max-width:none!important;table-layout:fixed!important;
+    border-collapse:separate!important;border-spacing:0!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table.is-month-view {
+    display:table!important;width:max-content!important;
+    min-width:max(100%,2660px)!important;max-width:none!important;
+    table-layout:fixed!important;
+  }
+  body.dashboard-page .planning-property-section col.planning-room-column {
+    width:205px!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table.is-month-view col.planning-date-column {
+    width:80px!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table thead {
+    display:table-header-group!important;position:static!important;
+    background:#fff!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table thead th {
+    position:static!important;top:auto!important;
+    background:#f8faff!important;color:#3a4965!important;
+    min-height:43px!important;height:43px!important;
+    padding:6px 4px!important;
+    font-size:.73rem!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table thead .planning-corner-header {
+    text-align:left!important;padding-left:14px!important;
+    width:205px!important;min-width:205px!important;
+    font-size:.71rem!important;letter-spacing:0!important;
+    background:#f8faff!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table tbody tr {
+    height:53px!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-room-cell {
+    position:sticky!important;left:0!important;
+    width:205px!important;min-width:205px!important;max-width:205px!important;
+    padding:8px 13px!important;background:#fff!important;
+    border-right:2px solid #e0e7f1!important;z-index:3!important;
+    vertical-align:middle!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-room-main {
+    font-size:.82rem!important;font-weight:800!important;line-height:1.2!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-room-sub {
+    font-size:.69rem!important;line-height:1.2!important;
+    margin-top:4px!important;color:#768097!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-day-cell,
+  body.dashboard-page .planning-property-section .planning-board-table .planning-reservation-cell {
+    height:53px!important;min-height:53px!important;
+    border-right:1px solid #e8edf5!important;
+    background:#fff!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-day-cell.is-weekend {
+    background:#f7f9fc!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-day-cell.is-today {
+    background:#eaf8f4!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-day-cell .planning-cell-free {
+    display:none!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-reservation-bar {
+    min-height:44px!important;padding:6px 8px!important;border-radius:9px!important;
+    width:100%!important;max-width:100%!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-day-header.is-today {
+    background:#e0f6ef!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-day-header.is-weekend {
+    background:#f2f4fa!important;
+  }
+  body.dashboard-page .planning-property-no-units {
+    padding:16px;margin:0;color:#68748e;font-size:.81rem;
+  }
+  body.dashboard-page #plannerCalendarHint {
+    border-radius:10px!important;
+    margin:0 0 12px!important;
+    font-size:.76rem!important;
+    background:#eef9f6!important;
+    border:1px solid #daf2eb!important;
+  }
+}
+@media (min-width:840px) and (max-width:1050px) {
+  body.dashboard-page .planning-property-section .planning-board-table.is-week-view {
+    min-width:790px!important;
+  }
+}
+@media (max-width:839px) {
+  /* En teléfonos se mantiene la vista vertical por habitación. */
+  body.dashboard-page .planning-property-collection {display:none}
+}

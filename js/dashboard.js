@@ -611,7 +611,7 @@ function renderPlanningBoard() {
   if (calendarHint) {
     const count = filteredReservations.filter(item => reservationTouchesRange(item, range)).length;
     calendarHint.hidden = count !== 0;
-    if (!count) calendarHint.textContent = 'No hay reservas en este período. Los días marcados como «Libre» no tienen una reserva registrada. Probá otra semana o mes.';
+    if (!count) calendarHint.textContent = 'Sin reservas registradas en estas fechas. Los casilleros vacíos indican disponibilidad; podés cambiar de semana o mes.';
   }
 
   const monthSegments = buildMonthSegments(visibleDates);
@@ -636,25 +636,7 @@ function renderPlanningBoard() {
     })
     .join('');
 
-  const body = plannerGroups
-    .map((group) => {
-      const visibleCount = group.rows.reduce((sum, row) => sum + row.reservations.filter((item) => reservationTouchesRange(item, range)).length, 0);
-      return `
-        <tr class="planning-property-row">
-          <th scope="row" class="planning-sticky planning-property-cell">
-            <div class="planning-property-name">${escapeHtml(group.property.nombre)}</div>
-            <div class="planning-property-meta">
-              <span>${group.rows.length} unidades</span>
-              <span>${visibleCount} reservas visibles</span>
-              <span>${escapeHtml(group.property.tipo || 'propiedad')}${group.property.activo ? '' : ' · Inactiva'}</span>
-            </div>
-          </th>
-          <td colspan="${visibleDates.length}" class="planning-property-summary planning-property-summary-spacer"></td>
-        </tr>
-        ${group.rows.map((row) => renderUnitScheduleRow(row, visibleDates, range)).join('')}
-      `;
-    })
-    .join('');
+
 
   // La vista Mes muestra el nombre del mes; Semana y Día utilizan una única
   // fila de fechas para ganar espacio vertical y evitar encabezados vacíos.
@@ -662,19 +644,48 @@ function renderPlanningBoard() {
     ? `<tr><th rowspan="2" class="planning-sticky planning-corner-header">Habitaciones / unidades</th>${monthHeaders}</tr><tr>${dayHeaders}</tr>`
     : `<tr><th class="planning-sticky planning-corner-header">Habitaciones / unidades</th>${dayHeaders}</tr>`;
 
+  // Cada propiedad conserva su propio calendario: no intercalar filas de
+  // alojamientos distintos dentro de una sola tabla gigante.
   container.innerHTML = `
-    <table class="planning-board-table is-${calendarView}-view" aria-label="Calendario de reservas y disponibilidad por habitación">
-      <colgroup>
-        <col class="planning-room-column">
-        ${visibleDates.map(() => '<col class="planning-date-column">').join('')}
-      </colgroup>
-      <thead>
-        ${tableHeader}
-      </thead>
-      <tbody>
-        ${body}
-      </tbody>
-    </table>
+    <div class="planning-property-collection">
+      ${plannerGroups.map((group) => {
+        const visibleCount = group.rows.reduce(
+          (sum, row) => sum + row.reservations.filter((item) => reservationTouchesRange(item, range)).length, 0
+        );
+        const totalUnits = group.rows.length;
+        const disabled = group.property.activo === false;
+        const propertyLabel = escapeHtml(group.property.nombre || 'Alojamiento');
+        return `
+          <section class="planning-property-section" aria-label="Disponibilidad de ${propertyLabel}">
+            <div class="planning-property-card-heading">
+              <div class="planning-property-card-title">
+                <span class="planning-property-card-mark" aria-hidden="true">⌂</span>
+                <div class="planning-property-card-names">
+                  <h4>${propertyLabel}</h4>
+                  <p>${escapeHtml(group.property.tipo || 'Alojamiento')} · ${totalUnits} ${totalUnits === 1 ? 'unidad' : 'unidades'}</p>
+                </div>
+              </div>
+              <div class="planning-property-card-meta">
+                <span class="planning-property-count">${visibleCount} ${visibleCount === 1 ? 'reserva' : 'reservas'} en el período</span>
+                <span class="planning-property-state ${disabled ? 'is-inactive' : 'is-active'}">${disabled ? 'Inactiva' : 'Activa'}</span>
+              </div>
+            </div>
+            ${group.rows.length ? `
+              <div class="planning-property-grid-scroll" tabindex="0" aria-label="Desplazar calendario de ${propertyLabel}">
+                <table class="planning-board-table is-${calendarView}-view" aria-label="Calendario de ${propertyLabel}">
+                  <colgroup>
+                    <col class="planning-room-column">
+                    ${visibleDates.map(() => '<col class="planning-date-column">').join('')}
+                  </colgroup>
+                  <thead>${tableHeader}</thead>
+                  <tbody>${group.rows.map((row) => renderUnitScheduleRow(row, visibleDates, range)).join('')}</tbody>
+                </table>
+              </div>
+            ` : '<p class="planning-property-no-units">Este alojamiento no tiene habitaciones cargadas.</p>'}
+          </section>
+        `;
+      }).join('')}
+    </div>
   `;
 }
 
