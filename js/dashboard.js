@@ -34,6 +34,7 @@ let currentMonth = new Date();
 let calendarView = 'week';
 const unitsCache = new Map();
 let plannerViewTouchedByUser = false;
+let activePlannerPropertyId = null;
 const compactPlannerMedia = window.matchMedia('(max-width: 839px)');
 
 function isSmallMobile() {
@@ -457,11 +458,50 @@ function renderUnitScheduleRow(row, visibleDates, range) {
 }
 
 
+function selectedPlannerGroup() {
+  if (!plannerGroups.length) { activePlannerPropertyId = null; return null; }
+  if (!plannerGroups.some(group => group.property.id === activePlannerPropertyId)) {
+    activePlannerPropertyId = plannerGroups[0].property.id;
+  }
+  return plannerGroups.find(group => group.property.id === activePlannerPropertyId) || plannerGroups[0];
+}
+
+function renderPlannerPropertyNavigation() {
+  const host = qs('#plannerPropertyNavigation');
+  if (!host) return;
+  const group = selectedPlannerGroup();
+  if (!group) { host.hidden = true; host.innerHTML = ''; return; }
+  host.hidden = false;
+  const currentIndex = plannerGroups.findIndex(item => item.property.id === group.property.id);
+  host.innerHTML = `
+    <div class="planner-screen-top">
+      <div class="planner-screen-heading">
+        <span class="planner-screen-overline">Alojamiento ${currentIndex + 1} de ${plannerGroups.length}</span>
+        <strong>${escapeHtml(group.property.nombre || 'Alojamiento')}</strong>
+        <span>${group.rows.length} ${group.rows.length === 1 ? 'habitación' : 'habitaciones'} · ${group.visibleReservations} reservas visibles</span>
+      </div>
+      <div class="planner-screen-pager" aria-label="Cambiar de alojamiento">
+        <button type="button" class="planner-screen-arrow" data-planner-step="-1" aria-label="Alojamiento anterior" ${currentIndex === 0 ? 'disabled' : ''}>‹</button>
+        <span class="planner-screen-counter" aria-live="polite">${currentIndex + 1} / ${plannerGroups.length}</span>
+        <button type="button" class="planner-screen-arrow" data-planner-step="1" aria-label="Siguiente alojamiento" ${currentIndex === plannerGroups.length - 1 ? 'disabled' : ''}>›</button>
+      </div>
+    </div>
+    <div class="planner-screen-tabs" role="group" aria-label="Elegir alojamiento">
+      ${plannerGroups.map(item => `
+        <button type="button" class="planner-screen-tab ${item.property.id === group.property.id ? 'is-active' : ''}"
+          data-planner-property="${escapeHtml(item.property.id)}"
+          aria-pressed="${item.property.id === group.property.id}">${escapeHtml(item.property.nombre || 'Alojamiento')}</button>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderMobilePlanningBoard() {
   const container = qs('#planningBoard');
   if (!container) return;
 
   const range = getVisibleRange();
+  renderPlannerPropertyNavigation();
 
   if (!plannerGroups.length) {
     renderEmptyState(container, 'Sin unidades visibles', 'No hay coincidencias para los filtros actuales o todavía no cargaste unidades.');
@@ -498,7 +538,7 @@ function renderMobilePlanningBoard() {
 
   container.innerHTML = `
     <div class="mobile-planner-stack">
-      ${plannerGroups.map((group) => {
+      ${[selectedPlannerGroup()].filter(Boolean).map((group) => {
         const rowsToRender = group.rows;
         return `
           <article class="mobile-property-card">
@@ -567,6 +607,7 @@ function renderMobilePlanningBoard() {
 function renderPlanningBoard() {
   const container = qs('#planningBoard');
   if (!container) return;
+  renderPlannerPropertyNavigation();
 
   if (isSmallMobile()) {
     renderMobilePlanningBoard();
@@ -609,7 +650,8 @@ function renderPlanningBoard() {
   updateViewButtons();
   const calendarHint = qs('#plannerCalendarHint');
   if (calendarHint) {
-    const count = filteredReservations.filter(item => reservationTouchesRange(item, range)).length;
+    const selectedGroup = selectedPlannerGroup();
+    const count = selectedGroup?.rows.reduce((total, row) => total + row.reservations.filter(item => reservationTouchesRange(item, range)).length, 0) || 0;
     calendarHint.hidden = count !== 0;
     if (!count) calendarHint.textContent = 'Sin reservas registradas en estas fechas. Los casilleros vacíos indican disponibilidad; podés cambiar de semana o mes.';
   }
@@ -648,7 +690,7 @@ function renderPlanningBoard() {
   // alojamientos distintos dentro de una sola tabla gigante.
   container.innerHTML = `
     <div class="planning-property-collection">
-      ${plannerGroups.map((group) => {
+      ${[selectedPlannerGroup()].filter(Boolean).map((group) => {
         const visibleCount = group.rows.reduce(
           (sum, row) => sum + row.reservations.filter((item) => reservationTouchesRange(item, range)).length, 0
         );
@@ -729,6 +771,24 @@ function renderSuperadminSummary() {
         </div>
       `).join('')
     : '<div class="muted">No hay reservas para resumir.</div>';
+}
+
+function bindPlannerPropertyNavigation() {
+  const nav = qs('#plannerPropertyNavigation');
+  if (!nav) return;
+  nav.addEventListener('click', event => {
+    const stepButton = event.target.closest('[data-planner-step]');
+    const propertyButton = event.target.closest('[data-planner-property]');
+    if (!stepButton && !propertyButton) return;
+    if (stepButton) {
+      const currentIndex = plannerGroups.findIndex(group => group.property.id === activePlannerPropertyId);
+      const nextIndex = Math.max(0, Math.min(plannerGroups.length - 1, currentIndex + Number(stepButton.dataset.plannerStep)));
+      activePlannerPropertyId = plannerGroups[nextIndex]?.property.id || activePlannerPropertyId;
+    } else {
+      activePlannerPropertyId = propertyButton.dataset.plannerProperty;
+    }
+    renderPlanningBoard();
+  });
 }
 
 function applyFilters() {
@@ -904,6 +964,7 @@ async function init() {
   bindCommonActions();
   renderQuickActions();
   bindFilters();
+  bindPlannerPropertyNavigation();
   applyResponsiveDefaultView();
 
   let wasCompactPlanner = isSmallMobile();

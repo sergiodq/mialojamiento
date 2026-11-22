@@ -1,0 +1,105 @@
+/* Navegación por pantallas: un alojamiento por vez */
+body.dashboard-page .planner-screen-navigation {
+  display:flex;flex-direction:column;gap:9px;min-width:0;
+  margin:0 0 12px;padding:12px 14px;
+  border:1px solid #e2e8f3;border-radius:16px;
+  background:#f8faff;
+}
+body.dashboard-page .planner-screen-navigation[hidden]{display:none!important}
+body.dashboard-page .planner-screen-top{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;min-width:0;
+}
+body.dashboard-page .planner-screen-heading{
+  display:flex;flex-direction:column;gap:2px;min-width:0;
+}
+body.dashboard-page .planner-screen-heading strong{
+  font-size:clamp(.98rem,1.4vw,1.15rem);font-weight:850;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#26314b;
+}
+body.dashboard-page .planner-screen-overline{
+  font-size:.68rem;text-transform:uppercase;letter-spacing:.045em;
+  color:#c22b50;font-weight:800;
+}
+body.dashboard-page .planner-screen-heading>span:last-child{
+  font-size:.73rem;color:#6a778e;line-height:1.25;
+}
+body.dashboard-page .planner-screen-pager{
+  display:flex;align-items:center;gap:7px;flex:0 0 auto;
+}
+body.dashboard-page .planner-screen-arrow{
+  display:grid;place-items:center;
+  width:42px;height:42px;min-width:42px;border-radius:13px;
+  border:1px solid #dfe5ef;background:#fff;color:#c42f50;
+  font:inherit;font-size:1.45rem;font-weight:800;cursor:pointer;
+}
+body.dashboard-page .planner-screen-arrow:disabled{
+  opacity:.35;cursor:not-allowed;
+}
+body.dashboard-page .planner-screen-counter{
+  color:#404e67;font-size:.8rem;font-weight:800;
+  min-width:42px;text-align:center;font-variant-numeric:tabular-nums;
+}
+body.dashboard-page .planner-screen-tabs{
+  display:flex;align-items:center;gap:7px;min-width:0;
+  padding-bottom:3px;overflow-x:auto;scrollbar-width:thin;
+  overscroll-behavior-x:contain;
+}
+body.dashboard-page .planner-screen-tab{
+  flex:0 0 auto;min-height:36px;max-width:260px;
+  border:1px solid #e1e6ef;background:#fff;border-radius:11px;
+  padding:8px 12px;color:#59677f;font:inherit;font-size:.75rem;
+  font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  cursor:pointer;
+}
+body.dashboard-page .planner-screen-tab.is-active{
+  background:#ffe5eb;border-color:#ffc1d0;color:#c42b52;
+}
+body.dashboard-page .planner-screen-tab:focus-visible,
+body.dashboard-page .planner-screen-arrow:focus-visible{
+  outline:3px solid #ff8da4;outline-offset:2px;
+}
+body.dashboard-page .planning-property-collection{
+  display:block!important;width:100%!important;min-width:0!important;
+}
+body.dashboard-page .planning-property-section{
+  margin:0!important;
+}
+@media (min-width:840px){
+  /* Se reserva el espacio vertical disponible para una única propiedad. */
+  body.dashboard-page .dashboard-workspace-card{
+    display:flex!important;flex-direction:column!important;min-height:0!important;
+  }
+  body.dashboard-page .planning-board-shell,
+  body.dashboard-page .planning-board-scroll,
+  body.dashboard-page .planning-board-wrap{
+    min-height:0!important;max-width:100%!important;
+  }
+  body.dashboard-page .planning-property-grid-scroll{
+    max-height:clamp(165px,42vh,540px)!important;
+    overflow:auto!important;overscroll-behavior-y:auto!important;
+    scrollbar-width:thin;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table thead th{
+    position:sticky!important;top:0!important;z-index:8!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table thead .planning-corner-header{
+    z-index:12!important;
+  }
+  body.dashboard-page .planning-property-section .planning-board-table .planning-room-cell{
+    z-index:4!important;
+  }
+  body.dashboard-page .planning-property-card-heading{
+    padding:9px 14px!important;
+  }
+}
+@media (max-width:839px){
+  body.dashboard-page .planner-screen-navigation{
+    padding:11px;gap:10px;margin-bottom:10px;
+  }
+  body.dashboard-page .planner-screen-heading strong{font-size:.98rem}
+  body.dashboard-page .planner-screen-pager{gap:3px}
+  body.dashboard-page .planner-screen-arrow{
+    width:40px;min-width:40px;height:40px;
+  }
+  body.dashboard-page .planner-screen-tab{min-height:42px;font-size:.77rem}
+}
