@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { readFile } from 'node:fs/promises';
-import { initMaterialSelects } from '../js/material-selects.js';
+import { initMaterialSelects, formatSelectDisplayLabel } from '../js/material-selects.js';
 
 const settle=()=>new Promise(resolve=>setTimeout(resolve,15));
 function setup(html) {
@@ -107,4 +107,28 @@ test('clicking outside closes the mobile sheet without modifying the select',()=
     assert.equal(doc.querySelector('.m3-select-panel').hidden,true);
     assert.equal(doc.querySelector('select').value,'1');
   }finally{dom.window.close();}
+});
+
+test('visible state labels use sentence case while preserving Firestore values',()=>{
+  const dom=setup('<label for="estado">Estado</label><select id="estado" name="estado"><option value="">Todos</option><option value="pendiente">pendiente</option><option value="pendiente de pago">pendiente de pago</option><option value="confirmada">confirmada</option><option value="bloqueada">bloqueada</option><option value="mantenimiento">mantenimiento</option><option value="cancelada">cancelada</option></select>');
+  try{
+    const doc=dom.window.document;
+    const select=doc.querySelector('#estado');
+    doc.querySelector('.m3-select-trigger').click();
+    const labels=[...doc.querySelectorAll('.m3-select-option')].map(el=>el.querySelector('span')?.textContent);
+    assert.deepEqual(labels,['Todos','Pendiente','Pendiente de pago','Confirmada','Bloqueada','Mantenimiento','Cancelada']);
+    doc.querySelectorAll('.m3-select-option')[2].click();
+    assert.equal(select.value,'pendiente de pago');
+    assert.equal(select.options[2].textContent,'pendiente de pago');
+    assert.equal(doc.querySelector('.m3-select-value').textContent,'Pendiente de pago');
+  }finally{dom.window.close()}
+});
+
+test('proper names, acronyms and accents retain their original spelling',()=>{
+  assert.equal(formatSelectDisplayLabel('cabaña'),'Cabaña');
+  assert.equal(formatSelectDisplayLabel('  san martín de los andes '),'San martín de los andes');
+  assert.equal(formatSelectDisplayLabel('Buenos Aires'),'Buenos Aires');
+  assert.equal(formatSelectDisplayLabel('CABANA · Cabaña'),'CABANA · Cabaña');
+  assert.equal(formatSelectDisplayLabel('SAP B1'),'SAP B1');
+  assert.equal(formatSelectDisplayLabel(''), '');
 });
