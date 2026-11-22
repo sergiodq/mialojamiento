@@ -31,7 +31,7 @@ let reservations = [];
 let filteredReservations = [];
 let plannerGroups = [];
 let currentMonth = new Date();
-let calendarView = 'month';
+let calendarView = 'week';
 const unitsCache = new Map();
 let plannerViewTouchedByUser = false;
 const compactPlannerMedia = window.matchMedia('(max-width: 839px)');
@@ -42,7 +42,7 @@ function isSmallMobile() {
 
 function applyResponsiveDefaultView() {
   if (plannerViewTouchedByUser) return;
-  calendarView = isSmallMobile() ? 'day' : 'month';
+  calendarView = isSmallMobile() ? 'day' : 'week';
 }
 
 function startOfWeek(date) {
@@ -872,10 +872,8 @@ async function init() {
   if (!currentProfile) return;
 
   renderTopbar({
-    title: 'Dashboard',
-    subtitle: isSuperadmin(currentProfile)
-      ? 'Vista ejecutiva para superadmin: administración de usuarios y resumen de reservas.'
-      : 'Planning operativo por habitaciones, con foco en disponibilidad y reservas visibles.',
+    title: 'Panel de reservas',
+    subtitle: 'Disponibilidad, ocupación y próximas reservas en un solo lugar.',
     actionsHtml: `
       <a id="quickNuevaReserva" hidden class="btn btn-compact topbar-dashboard-cta" href="nueva_reserva.html">Nueva reserva</a>
     `
