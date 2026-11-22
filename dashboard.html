@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/iphone-dashboard.css">
   <link rel="stylesheet" href="css/material-datetime.css">
   <link rel="stylesheet" href="css/material-app.css">
+  <link rel="stylesheet" href="css/dashboard-operativo.css">
 </head>
 <body class="dashboard-page">
   <div class="page-shell">
@@ -28,12 +29,6 @@
             <span class="kpi-label">Unidades activas</span>
             <div id="kpiUnidades" class="kpi-value">0</div>
             <div class="kpi-foot">Habitaciones o unidades visibles en tu alcance actual.</div>
-          </article>
-
-          <article class="card kpi-card dashboard-kpi-card compact planner-kpi-card">
-            <span class="kpi-label">Capacidad máx.</span>
-            <div id="kpiPaxMax" class="kpi-value">0</div>
-            <div class="kpi-foot">Suma de pax máxima según la configuración de unidades.</div>
           </article>
 
           <article class="card kpi-card dashboard-kpi-card compact planner-kpi-card accent-warning">
@@ -54,6 +49,12 @@
             <div class="kpi-foot">Reservas que tocan el rango actualmente mostrado.</div>
           </article>
 
+          <article class="card kpi-card dashboard-kpi-card compact planner-kpi-card">
+            <span class="kpi-label">Capacidad máx.</span>
+            <div id="kpiPaxMax" class="kpi-value">0</div>
+            <div class="kpi-foot">Suma de pax máxima según la configuración de unidades.</div>
+          </article>
+
           <article class="card kpi-card dashboard-kpi-card compact planner-kpi-card accent-soft">
             <span class="kpi-label">Confirmadas visibles</span>
             <div id="kpiConfirmadasVisibles" class="kpi-value">0</div>
@@ -61,19 +62,19 @@
           </article>
         </section>
 
-        <section id="regularDashboardSection" class="section dashboard-focus dashboard-fit-layout">
-          <div class="card pad dashboard-calendar-card dashboard-calendar-card-fit planner-card-fit">
+        <section id="regularDashboardSection" class="section dashboard-focus dashboard-fit-layout dashboard-workspace">
+          <div class="card pad dashboard-calendar-card dashboard-calendar-card-fit planner-card-fit dashboard-workspace-card">
             <div class="dashboard-calendar-header compact planner-header">
               <div class="dashboard-calendar-titleblock planner-titleblock">
-                <h3>Planning de habitaciones</h3>
-                <div class="muted">Elegí un período y consultá la disponibilidad.</div>
+                <h3>Disponibilidad y reservas</h3>
+                <div class="muted">Consultá ocupación y disponibilidad, habitación por habitación.</div>
                 <a href="nueva_reserva.html" id="quickNuevaReservaPlanning" class="btn planner-mobile-new-reservation" hidden>+ Nueva reserva</a>
               </div>
 
               <div class="toolbar dashboard-month-toolbar planner-toolbar">
                 <div class="dashboard-view-switch" role="tablist" aria-label="Vista del planning">
-                  <button id="viewMonthBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn is-active">Mes</button>
-                  <button id="viewWeekBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn">Semana</button>
+                  <button id="viewMonthBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn">Mes</button>
+                  <button id="viewWeekBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn is-active">Semana</button>
                   <button id="viewDayBtn" type="button" class="btn-ghost btn-compact dashboard-view-btn">Día</button>
                 </div>
                 <div class="planner-period-controls">

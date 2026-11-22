@@ -29,7 +29,7 @@ test('iPhone 12 rules keep all three tabs in one row and prevent calendar date s
 });
 test('dashboard starts in daily view on compact devices and leaves role checks in place',async()=>{
  const source=await read('js/dashboard.js');
- assert.match(source,/calendarView = isSmallMobile\(\) \? 'day' : 'month'/);
+ assert.match(source,/calendarView = isSmallMobile\(\) \? 'day' : 'week'/);
  assert.match(source,/qs\('#quickNuevaReservaPlanning'\)/);
  assert.match(source,/canCreateReservations\(currentProfile\)/);
  assert.match(source,/aria-pressed/);
