@@ -154,3 +154,11 @@ body:not(.login-page) .m3-account-button .m3-icon {flex:0 0 20px!important}
 @media (prefers-reduced-motion:reduce) {
   body:not(.login-page) .btn,.m3-datetime-trigger {transition:none!important}
 }
+
+/* Advertencia funcional al elegir fechas inválidas en una nueva reserva. */
+body.reservation-page #reservationDateNotice:not([hidden]) {
+  display:block!important;
+  color:#ae2344!important;background:#fff1f4!important;border:1px solid #ffc4d0!important;
+  padding:11px 13px!important;margin-top:8px!important;border-radius:13px!important;
+  font-size:.8rem!important;font-weight:700!important;line-height:1.45!important;
+}
