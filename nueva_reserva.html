@@ -52,6 +52,7 @@
                   <div class="field">
                     <label for="fecha_fin">Check-out</label>
                     <input id="fecha_fin" name="fecha_fin" type="date" required>
+                    <small id="reservationDateNotice" class="reservation-date-notice" role="alert" hidden></small>
                   </div>
                 </div>
               </div>
@@ -129,6 +130,7 @@
   </div>
 
   <script src="env.js"></script>
+  <script type="module" src="js/reservation-date-guard.js"></script>
   <script type="module" src="js/nueva-reserva.js"></script>
   <script type="module" src="js/reservation-wizard.js"></script>
   <script type="module" src="js/material-selects.js"></script>
