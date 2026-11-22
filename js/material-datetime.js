@@ -43,7 +43,10 @@ function enhance(input) {
     if(value.textContent!==text)value.textContent=text;
     trigger.disabled=input.disabled || input.readOnly;
     trigger.classList.toggle('is-empty',!input.value);
-    if(input.checkValidity())trigger.classList.remove('is-invalid');
+    if(input.checkValidity()) {
+      trigger.classList.remove('is-invalid');
+      trigger.removeAttribute('aria-invalid');
+    }
     trigger.setAttribute('aria-required',String(input.required));
   };
   const close=(restoreFocus=true)=>{
@@ -220,7 +223,7 @@ function enhance(input) {
   };
   trigger.addEventListener('click',()=>state.open?close():open());
   input.addEventListener('input',sync);input.addEventListener('change',sync);
-  input.addEventListener('invalid',()=>{trigger.classList.add('is-invalid');trigger.focus()});
+  input.addEventListener('invalid',()=>{trigger.classList.add('is-invalid');trigger.setAttribute('aria-invalid','true');trigger.focus()});
   input.form?.addEventListener('reset',()=>win.setTimeout(sync,0));
   state.close=close;state.sync=sync;
   sync();

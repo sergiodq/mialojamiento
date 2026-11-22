@@ -37,8 +37,21 @@ function validateCurrentStep() {
   for (const control of panel.querySelectorAll('input,select,textarea')) {
     if (control.disabled || control.closest('[hidden]')) continue;
     if (!control.checkValidity()) {
-      control.reportValidity();
-      control.focus();
+      // Material 3 conserva los controles originales ocultos. En iOS enfocar
+      // el input nativo (1 px) deja al usuario sin saber qué corregir.
+      const custom = control.classList.contains('m3-native-select')
+        ? control.nextElementSibling?.querySelector('.m3-select-trigger')
+        : control.classList.contains('m3-native-datetime')
+          ? control.nextElementSibling?.querySelector('.m3-datetime-trigger')
+          : null;
+      if (custom) {
+        custom.classList.add('is-invalid');
+        custom.setAttribute('aria-invalid', 'true');
+        custom.focus();
+      } else {
+        control.reportValidity();
+        control.focus();
+      }
       return false;
     }
   }
@@ -47,7 +60,14 @@ function validateCurrentStep() {
     const departure = form.elements.fecha_fin.value;
     if (arrival && departure && arrival >= departure) {
       form.elements.fecha_fin.setCustomValidity('La salida debe ser posterior al ingreso.');
-      form.elements.fecha_fin.reportValidity();
+      const customDate = form.elements.fecha_fin.nextElementSibling?.querySelector('.m3-datetime-trigger');
+      if (customDate) {
+        customDate.classList.add('is-invalid');
+        customDate.setAttribute('aria-invalid', 'true');
+        customDate.focus();
+      } else {
+        form.elements.fecha_fin.reportValidity();
+      }
       form.elements.fecha_fin.setCustomValidity('');
       return false;
     }
@@ -57,14 +77,32 @@ function validateCurrentStep() {
     if (manual && !form.elements.unidad_manual.value.trim()) {
       const control = form.elements.unidad_manual;
       control.setCustomValidity('Ingresá una habitación.');
-      control.reportValidity();
+      const custom = control.classList.contains('m3-native-select')
+        ? control.nextElementSibling?.querySelector('.m3-select-trigger') : null;
+      if (custom) {
+        custom.classList.add('is-invalid');
+        custom.setAttribute('aria-invalid', 'true');
+        custom.focus();
+      } else {
+        control.reportValidity();
+        control.focus();
+      }
       control.setCustomValidity('');
       return false;
     }
     if (!manual && !form.elements.unidad_id.value) {
       const control = form.elements.unidad_id;
       control.setCustomValidity('Seleccioná una habitación.');
-      control.reportValidity();
+      const custom = control.classList.contains('m3-native-select')
+        ? control.nextElementSibling?.querySelector('.m3-select-trigger') : null;
+      if (custom) {
+        custom.classList.add('is-invalid');
+        custom.setAttribute('aria-invalid', 'true');
+        custom.focus();
+      } else {
+        control.reportValidity();
+        control.focus();
+      }
       control.setCustomValidity('');
       return false;
     }

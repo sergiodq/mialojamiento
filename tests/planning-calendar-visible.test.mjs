@@ -9,7 +9,7 @@ test('calendar stylesheet loads last on dashboard and the empty-period notice is
   const dom=new JSDOM(html);
   try{
     const styles=[...dom.window.document.querySelectorAll('link[rel="stylesheet"]')].map(x=>x.getAttribute('href'));
-    assert.equal(styles.at(-1),'css/planning-bookings-compact.css');
+    assert.equal(styles.at(-1),'css/mobile-audit.css');
     assert.ok(dom.window.document.querySelector('#plannerCalendarHint[hidden]'));
     assert.ok(dom.window.document.querySelector('.planning-board-scroll'));
   }finally{dom.window.close()}

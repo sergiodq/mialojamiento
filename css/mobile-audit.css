@@ -1,0 +1,193 @@
+/* Mi Alojamiento · revisión móvil integral.
+   Última capa visual de las siete pantallas; iPhone 12 (390px),
+   móviles pequeños (320px) y tablet vertical (hasta 839px). */
+@media (max-width:839px) {
+  html {width:100%!important;max-width:100%!important;overflow-x:clip!important;-webkit-text-size-adjust:100%}
+  body {width:100%!important;min-width:0!important;max-width:100%!important;overflow-x:clip!important}
+  body:not(.login-page) {
+    min-height:100dvh!important;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  body:not(.login-page) .main {
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    margin:0!important;box-sizing:border-box!important;
+    padding:12px clamp(10px,3vw,18px) calc(106px + env(safe-area-inset-bottom))!important;
+  }
+  body:not(.login-page) .page-frame,
+  body:not(.login-page) .page-shell,
+  body:not(.login-page) .section,
+  body:not(.login-page) .card,
+  body:not(.login-page) .management-layout,
+  body:not(.login-page) .management-list,
+  body:not(.login-page) .management-editor,
+  body:not(.login-page) .reservation-layout {
+    min-width:0!important;max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+  body:not(.login-page) .topbar-actions {min-width:0!important}
+  body:not(.login-page) .field,
+  body:not(.login-page) .form-grid,
+  body:not(.login-page) .form-grid>* {min-width:0!important;max-width:100%!important}
+  body:not(.login-page) :is(.m3-select-trigger,.m3-datetime-trigger,input:not([type=checkbox]),textarea) {
+    font-size:16px!important;
+  }
+  body:not(.login-page) :is(.m3-select-trigger,.m3-datetime-trigger) {
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    min-height:48px!important;box-sizing:border-box!important;
+  }
+  body:not(.login-page) .m3-bottom-nav {
+    position:fixed!important;bottom:0!important;left:0!important;right:0!important;
+    width:100%!important;max-width:100%!important;
+    min-height:calc(72px + env(safe-area-inset-bottom))!important;
+    padding:5px max(8px,env(safe-area-inset-right))
+      calc(5px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important;
+    background:#fff!important;z-index:80!important;
+  }
+  body:not(.login-page) .m3-bottom-nav-item {
+    flex:1 1 0!important;min-width:0!important;max-width:25%!important;
+    min-height:60px!important;box-sizing:border-box!important;
+  }
+  body:not(.login-page) .m3-bottom-nav-item span:last-child {
+    display:block!important;max-width:100%!important;
+    overflow:hidden!important;text-overflow:ellipsis!important;
+    white-space:nowrap!important;line-height:1.25!important;
+    font-size:clamp(.62rem,2.5vw,.74rem)!important;
+  }
+  body:not(.login-page) .management-list .table-wrap,
+  body:not(.login-page) .management-editor .table-wrap {
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    overflow-x:auto!important;overscroll-behavior-x:contain;
+  }
+  body:not(.login-page) .management-list .table-actions {
+    display:flex!important;flex-wrap:wrap!important;gap:7px!important;
+  }
+  body:not(.login-page) .management-list .table-actions>* {
+    flex:1 1 auto!important;min-width:0!important;max-width:100%!important;
+    min-height:44px!important;white-space:normal!important;
+  }
+  body.reservation-page .reservation-step>.form-grid {grid-template-columns:minmax(0,1fr)!important}
+  body.reservation-page .reservation-form-actions {
+    display:flex!important;flex-wrap:wrap!important;gap:8px!important;
+    bottom:calc(75px + env(safe-area-inset-bottom))!important;
+    z-index:17!important;
+  }
+  body.reservation-page .reservation-form-actions>* {
+    min-width:0!important;flex:1 1 0!important;min-height:46px!important;
+  }
+  body.reservation-page .reservation-form-actions [hidden] {display:none!important}
+  body.reservation-page .reservation-step[hidden] {display:none!important}
+  body.dashboard-page .planning-board-shell,
+  body.dashboard-page .planning-board-scroll,
+  body.dashboard-page .planning-board-wrap {
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    overflow:visible!important;
+  }
+  body.dashboard-page .planner-screen-navigation {
+    padding:10px!important;gap:7px!important;margin-bottom:9px!important;
+  }
+  body.dashboard-page .planner-screen-heading {min-width:0!important}
+  body.dashboard-page .planner-screen-heading strong {
+    white-space:normal!important;overflow-wrap:normal!important;
+    word-break:normal!important;font-size:1rem!important;
+  }
+  body.dashboard-page .planner-screen-tabs {
+    overflow-x:auto!important;max-width:100%!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  body.dashboard-page .planner-screen-tab {
+    min-height:44px!important;max-width:180px!important;
+    font-size:.77rem!important;
+  }
+  /* La propiedad ya aparece identificada en el selector superior. */
+  body.dashboard-page .mobile-property-head {display:none!important}
+  body.dashboard-page .mobile-property-card {
+    min-width:0!important;max-width:100%!important;
+    overflow:hidden!important;
+  }
+  body.dashboard-page .mobile-units-list {padding:8px!important;gap:8px!important}
+  body.dashboard-page .mobile-unit-card {min-width:0!important;max-width:100%!important}
+  body.dashboard-page .mobile-unit-title,
+  body.dashboard-page .mobile-unit-subtitle {
+    min-width:0!important;overflow-wrap:anywhere!important;
+  }
+  body.dashboard-page .mobile-reservation-card {
+    min-width:0!important;max-width:100%!important;
+    padding:12px!important;border-radius:14px!important;
+  }
+  body.dashboard-page .mobile-reservation-top.mobile-reservation-open {
+    display:flex!important;align-items:center!important;justify-content:space-between!important;
+    width:100%!important;min-width:0!important;min-height:44px!important;
+    gap:8px!important;padding:5px 2px!important;margin:0 0 4px!important;
+    border:0!important;box-shadow:none!important;
+    background:transparent!important;color:inherit!important;
+    font:inherit!important;text-align:left!important;cursor:pointer!important;
+  }
+  body.dashboard-page .mobile-reservation-open strong {
+    flex:1 1 auto!important;min-width:0!important;
+    font-size:.91rem!important;line-height:1.25!important;
+    overflow-wrap:anywhere!important;word-break:normal!important;
+  }
+  body.dashboard-page .mobile-reservation-status {
+    flex:0 0 auto!important;max-width:45%!important;
+    font-size:.67rem!important;white-space:normal!important;
+  }
+  body.dashboard-page .mobile-reservation-detail-icon {
+    flex:0 0 auto;color:#c52b4e;font-size:1.5rem;line-height:1;
+  }
+  body.dashboard-page .mobile-reservation-meta {
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px 9px!important;overflow-wrap:anywhere!important;
+  }
+  body.dashboard-page .mobile-reservation-actions {
+    display:flex!important;flex-wrap:wrap!important;gap:8px!important;
+    margin-top:10px!important;
+  }
+  body.dashboard-page .mobile-reservation-actions>* {
+    flex:1 1 auto!important;min-height:44px!important;
+    max-width:100%!important;display:inline-flex!important;
+    align-items:center!important;justify-content:center!important;
+  }
+  body.dashboard-page #plannerCalendarHint {
+    padding:10px!important;margin-bottom:9px!important;
+    font-size:.75rem!important;line-height:1.4!important;
+  }
+  .m3-select-backdrop,.m3-datetime-backdrop {touch-action:none!important}
+  .m3-select-panel,.m3-datetime-sheet {
+    width:100%!important;max-width:100%!important;max-height:85dvh!important;
+    border-radius:23px 23px 0 0!important;
+    padding-bottom:env(safe-area-inset-bottom)!important;
+  }
+  .m3-select-options,.m3-picker-content {
+    overflow-y:auto!important;overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  .m3-select-option,.m3-calendar-day,.m3-calendar-month,
+  .m3-picker-text-button,.m3-picker-apply {min-height:44px!important}
+  .m3-select-trigger.is-invalid,
+  .m3-datetime-trigger.is-invalid {
+    border-color:#c82850!important;box-shadow:0 0 0 3px #ff385c20!important;
+  }
+  .planner-reservation-detail-root {z-index:30000!important}
+  .planner-reservation-detail-card {
+    width:100%!important;max-width:100%!important;max-height:88dvh!important;
+    border-radius:24px 24px 0 0!important;
+    overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch;
+  }
+  body.login-page .login-premium-shell,body.login-page .hero-auth {
+    min-height:100dvh!important;max-width:100%!important;
+  }
+  body.login-page input {font-size:16px!important}
+  body.login-page .auth-tabs-premium {max-width:100%!important;min-width:0!important}
+  body.login-page .auth-tab {min-width:0!important;overflow-wrap:normal!important;word-break:normal!important}
+}
+@media (max-width:360px) {
+  body:not(.login-page) .main {padding-inline:9px!important}
+  body.dashboard-page .mobile-reservation-meta {grid-template-columns:minmax(0,1fr)!important}
+  body.dashboard-page .planner-screen-pager {gap:2px!important}
+  body.dashboard-page .planner-screen-arrow {width:38px!important;min-width:38px!important}
+  body.dashboard-page .planner-screen-counter {min-width:28px!important}
+  .planner-reservation-detail-grid {grid-template-columns:minmax(0,1fr)!important}
+}
+@media (prefers-reduced-motion:reduce) {
+  .m3-select-panel,.m3-datetime-sheet,.planner-reservation-detail-card {scroll-behavior:auto!important}
+}

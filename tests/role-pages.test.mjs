@@ -14,11 +14,11 @@ const nextDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()+
 const reservation = {id:'ra',cliente:'Cliente',propiedad_id:'pa',empresa_id:'a',fecha_inicio:isoLocal(today),fecha_fin:isoLocal(nextDay),unidad_id:'u1',estado:'confirmada',huespedes:1,total:100,observaciones:'Nota'};
 
 let pageCounter = 0;
-async function openPage(htmlName, scriptName, search='', actor=support, {inactive=false}={}) {
+async function openPage(htmlName, scriptName, search='', actor=support, {inactive=false,mobile=false}={}) {
   const dom = new JSDOM(await readFile(new URL(`../${htmlName}`,import.meta.url),'utf8'),{url:`https://example.test/${htmlName}${search}`});
   Object.assign(globalThis,{window:dom.window,document:dom.window.document,sessionStorage:dom.window.sessionStorage});
   dom.window.scrollTo=()=>{};
-  dom.window.matchMedia=()=>({matches:false,addEventListener(){}});
+  dom.window.matchMedia=()=>({matches:mobile,addEventListener(){}});
   const pageProperty = {...property,activo:!inactive};
   const pageUnit = {...unit,activa:!inactive};
   globalThis.__rolePage={actor,writes:[],get(path){
@@ -215,5 +215,35 @@ test('support reservation detail is read-only and does not expose cancellation',
     assert.equal(modal.querySelector('img'),null);
     modal.querySelector('[data-close-reservation-detail]').click();
     assert.equal(modal.hidden,true);
+  }finally{dom.window.close()}
+});
+
+test('iPhone-sized dashboard shows one property and tappable reservation details',async()=>{
+  const dom=await openPage('dashboard.html','dashboard.js','',{...support,rol:'superadmin'},{mobile:true});
+  try{
+    const doc=dom.window.document;
+    assert.ok(doc.querySelector('.mobile-planner-stack'));
+    assert.equal(doc.querySelectorAll('.mobile-property-card').length,1);
+    assert.equal(doc.querySelector('.planning-board-table'),null);
+    const action=doc.querySelector('.mobile-reservation-open[data-reservation-detail="ra"]');
+    assert.ok(action,'reservation should be a tappable detail button on phones');
+    assert.equal(action.getAttribute('aria-label').includes('Cliente'),true);
+    action.click();
+    assert.equal(doc.querySelector('#plannerReservationDetail').hidden,false);
+    assert.match(doc.querySelector('#plannerReservationDetail').textContent,/Check-in/);
+    doc.querySelector('.planner-reservation-detail-close').click();
+    assert.equal(doc.querySelector('#plannerReservationDetail').hidden,true);
+  }finally{dom.window.close()}
+});
+test('mobile support keeps reservation consultation without cancellation',async()=>{
+  const dom=await openPage('dashboard.html','dashboard.js','',support,{mobile:true});
+  try{
+    const doc=dom.window.document;
+    const action=doc.querySelector('.mobile-reservation-open');
+    assert.ok(action);
+    action.click();
+    assert.equal(doc.querySelector('#plannerReservationDetail').hidden,false);
+    assert.equal(doc.querySelector('#plannerReservationDetail [data-cancel-detail-reservation]'),null);
+    assert.equal(doc.querySelector('#plannerReservationDetail a[href="nueva_reserva.html?id=ra"]').textContent,'Ver / notas');
   }finally{dom.window.close()}
 });
